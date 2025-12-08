@@ -1,0 +1,181 @@
+import mongoose, { Document, Schema } from 'mongoose';
+
+export type CardCondition = 'NM' | 'SP' | 'MP' | 'HP' | 'DMG';
+export type CardFinish = 'nonfoil' | 'foil' | 'etched';
+export type CardRarity = 'common' | 'uncommon' | 'rare' | 'mythic' | 'special' | 'bonus';
+
+export interface IInventoryItem {
+  condition: CardCondition;
+  finish: CardFinish;
+  quantityOwned: number;
+  quantityForSale: number;
+  buyPrice: number;
+  sellPrice: number;
+}
+
+export interface ICard extends Document {
+  name: string;
+  setCode: string;
+  setName: string;
+  collectorNumber: string;
+  language: string;
+  imageUrl?: string;
+  scryfallId?: string;
+  typeLine?: string;
+  oracleText?: string;
+  colorIdentity: string[];
+  rarity: CardRarity;
+  manaCost?: string;
+  notes?: string;
+  isActive: boolean;
+  inventory: IInventoryItem[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const inventoryItemSchema = new Schema<IInventoryItem>({
+  condition: {
+    type: String,
+    enum: {
+      values: ['NM', 'SP', 'MP', 'HP', 'DMG'],
+      message: 'Condition must be one of: NM, SP, MP, HP, DMG',
+    },
+    required: true,
+  },
+  finish: {
+    type: String,
+    enum: {
+      values: ['nonfoil', 'foil', 'etched'],
+      message: 'Finish must be one of: nonfoil, foil, etched',
+    },
+    required: true,
+  },
+  quantityOwned: {
+    type: Number,
+    required: true,
+    min: 0,
+    default: 0,
+  },
+  quantityForSale: {
+    type: Number,
+    required: true,
+    min: 0,
+    default: 0,
+  },
+  buyPrice: {
+    type: Number,
+    required: true,
+    min: 0,
+    default: 0,
+  },
+  sellPrice: {
+    type: Number,
+    required: true,
+    min: 0,
+    default: 0,
+  },
+}, { _id: false });
+
+const cardSchema = new Schema<ICard>(
+  {
+    name: {
+      type: String,
+      required: [true, 'Card name is required'],
+      trim: true,
+      index: true,
+    },
+    setCode: {
+      type: String,
+      required: [true, 'Set code is required'],
+      uppercase: true,
+      trim: true,
+      index: true,
+    },
+    setName: {
+      type: String,
+      required: [true, 'Set name is required'],
+      trim: true,
+    },
+    collectorNumber: {
+      type: String,
+      required: [true, 'Collector number is required'],
+      trim: true,
+    },
+    language: {
+      type: String,
+      required: [true, 'Language is required'],
+      default: 'EN',
+      uppercase: true,
+      trim: true,
+    },
+    inventory: {
+      type: [inventoryItemSchema],
+      default: [],
+    },
+    imageUrl: {
+      type: String,
+      trim: true,
+    },
+    scryfallId: {
+      type: String,
+      trim: true,
+      index: true,
+    },
+    typeLine: {
+      type: String,
+      trim: true,
+    },
+    oracleText: {
+      type: String,
+      trim: true,
+    },
+    colorIdentity: {
+      type: [String],
+      default: [],
+      validate: {
+        validator: function (colors: string[]) {
+          const validColors = ['W', 'U', 'B', 'R', 'G'];
+          return colors.every((color) => validColors.includes(color));
+        },
+        message: 'Color identity must contain only W, U, B, R, G',
+      },
+    },
+    rarity: {
+      type: String,
+      enum: {
+        values: ['common', 'uncommon', 'rare', 'mythic', 'special', 'bonus'],
+        message: 'Rarity must be one of: common, uncommon, rare, mythic, special, bonus',
+      },
+      required: [true, 'Rarity is required'],
+      default: 'common',
+    },
+    manaCost: {
+      type: String,
+      trim: true,
+    },
+    notes: {
+      type: String,
+      trim: true,
+    },
+    isActive: {
+      type: Boolean,
+      default: true,
+      index: true,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+// Compound indexes for common queries
+cardSchema.index({ name: 1, setCode: 1, collectorNumber: 1 });
+cardSchema.index({ isActive: 1 });
+cardSchema.index({ rarity: 1 });
+
+// Text index for search
+cardSchema.index({ name: 'text', setName: 'text', typeLine: 'text' });
+
+const Card = mongoose.model<ICard>('Card', cardSchema);
+
+export default Card;

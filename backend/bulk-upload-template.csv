@@ -1,0 +1,5 @@
+name,setCode,setName,collectorNumber,language,condition,finish,quantityOwned,quantityForSale,buyPrice,sellPrice,rarity,colorIdentity,imageUrl,scryfallId,typeLine,oracleText,manaCost,notes
+"Lightning Bolt",LEA,"Limited Edition Alpha",161,EN,NM,nonfoil,4,2,150.00,200.00,common,R,,,Instant,"Lightning Bolt deals 3 damage to any target.",{R},"First printing"
+"Black Lotus",LEA,"Limited Edition Alpha",232,EN,SP,nonfoil,1,0,15000.00,20000.00,rare,"",,,Artifact - Mana Source,"{T}, Sacrifice Black Lotus: Add three mana of any one color.",{0},"Not for sale - collection only"
+"Counterspell",ICE,Ice Age,65,EN,NM,nonfoil,10,8,2.50,5.00,common,U,,,Instant,"Counter target spell.",{U}{U},
+"Tarmogoyf",FUT,Future Sight,153,EN,NM,nonfoil,2,1,45.00,60.00,rare,"B,G",,,Creature - Lhurgoyf,"Tarmogoyf's power is equal to the number of card types among cards in all graveyards and its toughness is equal to that number plus 1.",{1}{G},"Price negotiable"
