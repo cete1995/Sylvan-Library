@@ -23,6 +23,9 @@ const CatalogPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
   const [selectedSet, setSelectedSet] = useState(searchParams.get('set') || '');
   const [selectedRarity, setSelectedRarity] = useState(searchParams.get('rarity') || '');
+  const [selectedTags, setSelectedTags] = useState<string[]>(
+    searchParams.get('tags') ? searchParams.get('tags')!.split(',') : []
+  );
   const [minPrice, setMinPrice] = useState(searchParams.get('minPrice') || '');
   const [maxPrice, setMaxPrice] = useState(searchParams.get('maxPrice') || '');
   const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'name_asc');
@@ -51,6 +54,7 @@ const CatalogPage: React.FC = () => {
         q: searchParams.get('q') || undefined,
         set: searchParams.get('set') || undefined,
         rarity: searchParams.get('rarity') || undefined,
+        tags: searchParams.get('tags') || undefined,
         minPrice: searchParams.get('minPrice') ? Number(searchParams.get('minPrice')) : undefined,
         maxPrice: searchParams.get('maxPrice') ? Number(searchParams.get('maxPrice')) : undefined,
         page: searchParams.get('page') ? Number(searchParams.get('page')) : 1,
@@ -75,6 +79,7 @@ const CatalogPage: React.FC = () => {
     if (searchQuery) params.q = searchQuery;
     if (selectedSet) params.set = selectedSet;
     if (selectedRarity) params.rarity = selectedRarity;
+    if (selectedTags.length > 0) params.tags = selectedTags.join(',');
     if (minPrice) params.minPrice = minPrice;
     if (maxPrice) params.maxPrice = maxPrice;
     if (sortBy) params.sort = sortBy;
@@ -93,6 +98,7 @@ const CatalogPage: React.FC = () => {
     setSearchQuery('');
     setSelectedSet('');
     setSelectedRarity('');
+    setSelectedTags([]);
     setMinPrice('');
     setMaxPrice('');
     setSortBy('name_asc');
@@ -153,6 +159,43 @@ const CatalogPage: React.FC = () => {
                   <option value="rare">Rare</option>
                   <option value="mythic">Mythic</option>
                 </select>
+              </div>
+
+              {/* Tags */}
+              <div>
+                <label className="label">Special Tags</label>
+                <div className="space-y-2">
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={selectedTags.includes('Borderless')}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedTags([...selectedTags, 'Borderless']);
+                        } else {
+                          setSelectedTags(selectedTags.filter(t => t !== 'Borderless'));
+                        }
+                      }}
+                      className="mr-2"
+                    />
+                    <span className="text-sm">Borderless</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={selectedTags.includes('Extended Art')}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedTags([...selectedTags, 'Extended Art']);
+                        } else {
+                          setSelectedTags(selectedTags.filter(t => t !== 'Extended Art'));
+                        }
+                      }}
+                      className="mr-2"
+                    />
+                    <span className="text-sm">Extended Art</span>
+                  </label>
+                </div>
               </div>
 
               {/* Price Range */}

@@ -31,8 +31,11 @@ export interface Card {
   typeLine?: string;
   oracleText?: string;
   colorIdentity: string[];
-  rarity: 'common' | 'uncommon' | 'rare' | 'mythic' | 'special' | 'bonus';
+  rarity: string;
   manaCost?: string;
+  borderColor?: string;
+  frameEffects?: string[];
+  tags?: string[];
   notes?: string;
   isActive: boolean;
   inventory: InventoryItem[];

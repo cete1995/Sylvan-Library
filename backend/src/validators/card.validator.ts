@@ -35,6 +35,7 @@ export const searchCardsSchema = z.object({
   set: z.string().optional(),
   color: z.string().optional(), // Comma-separated colors
   rarity: z.enum(['common', 'uncommon', 'rare', 'mythic', 'special', 'bonus']).optional(),
+  tags: z.string().optional(), // Comma-separated tags (Borderless, Extended Art, etc.)
   minPrice: z.string().transform(Number).pipe(z.number().min(0)).optional(),
   maxPrice: z.string().transform(Number).pipe(z.number().min(0)).optional(),
   page: z.string().transform(Number).pipe(z.number().min(1)).default('1'),

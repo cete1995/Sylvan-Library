@@ -22,10 +22,26 @@ export const getCards = asyncHandler(async (req: Request, res: Response) => {
 
   // Text search by name
   if (params.q) {
+    // Create variations of the search query to handle hyphens
+    const searchTerm = params.q.trim();
+    const withHyphen = searchTerm.replace(/\s+/g, '-');
+    const withoutHyphen = searchTerm.replace(/-/g, ' ');
+    const withoutSpace = searchTerm.replace(/[\s-]/g, '');
+    
+    // Build regex pattern to match any variation
+    const patterns = [
+      searchTerm,
+      withHyphen,
+      withoutHyphen,
+      withoutSpace
+    ].filter((term, index, self) => self.indexOf(term) === index); // Remove duplicates
+    
+    const regexPattern = patterns.map(p => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+    
     filter.$or = [
-      { name: { $regex: params.q, $options: 'i' } },
-      { setName: { $regex: params.q, $options: 'i' } },
-      { typeLine: { $regex: params.q, $options: 'i' } },
+      { name: { $regex: regexPattern, $options: 'i' } },
+      { setName: { $regex: regexPattern, $options: 'i' } },
+      { typeLine: { $regex: regexPattern, $options: 'i' } },
     ];
   }
 
@@ -43,6 +59,24 @@ export const getCards = asyncHandler(async (req: Request, res: Response) => {
   // Filter by rarity
   if (params.rarity) {
     filter.rarity = params.rarity;
+  }
+
+  // Filter by tags (Borderless, Extended Art, etc.)
+  if (params.tags) {
+    const tagArray = params.tags.split(',').map(t => t.trim());
+    const tagConditions: any[] = [];
+    
+    if (tagArray.includes('Borderless')) {
+      tagConditions.push({ borderColor: 'borderless' });
+    }
+    if (tagArray.includes('Extended Art')) {
+      tagConditions.push({ frameEffects: 'extendedart' });
+    }
+    
+    if (tagConditions.length > 0) {
+      filter.$and = filter.$and || [];
+      filter.$and.push({ $or: tagConditions });
+    }
   }
 
   // Note: Price filtering removed - prices are now in inventory array

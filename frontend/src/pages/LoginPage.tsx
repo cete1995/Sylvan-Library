@@ -28,16 +28,15 @@ const LoginPage: React.FC = () => {
     try {
       const data = await authApi.login(formData.email, formData.password);
       
-      // Only allow customers to login here
-      if (data.user.role !== 'customer') {
-        setError('Please use the admin login page');
-        setLoading(false);
-        return;
-      }
-
       // Use AuthContext login which handles token/user storage
       await login(formData.email, formData.password);
-      navigate('/catalog');
+      
+      // Redirect based on user role
+      if (data.user.role === 'admin') {
+        navigate('/admin/dashboard');
+      } else {
+        navigate('/catalog');
+      }
     } catch (err: any) {
       setError(err.response?.data?.error || 'Invalid email or password');
     } finally {

@@ -64,4 +64,11 @@ export const adminApi = {
     const response = await api.post('/admin/sets/upload', setData);
     return response.data;
   },
+
+  clearDatabase: async (): Promise<{ message: string; deletedCounts: { cards: number; users: number; carts: number } }> => {
+    const response = await api.post<{ message: string; deletedCounts: { cards: number; users: number; carts: number } }>(
+      '/admin/clear-database'
+    );
+    return response.data;
+  },
 };

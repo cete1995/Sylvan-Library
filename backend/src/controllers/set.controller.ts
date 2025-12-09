@@ -19,6 +19,8 @@ interface MTGJsonCard {
   toughness?: string;
   artist?: string;
   flavorText?: string;
+  borderColor?: string;
+  frameEffects?: string[];
   identifiers?: {
     scryfallId?: string;
   };
@@ -94,6 +96,8 @@ export const uploadSetJson = asyncHandler(async (req: Request, res: Response) =>
           typeLine: typeLine,
           oracleText: cardData.text || '',
           scryfallId: cardData.identifiers?.scryfallId || '',
+          borderColor: cardData.borderColor || 'black',
+          frameEffects: cardData.frameEffects || [],
           imageUrl: cardData.identifiers?.scryfallId 
             ? `https://cards.scryfall.io/normal/front/${cardData.identifiers.scryfallId.charAt(0)}/${cardData.identifiers.scryfallId.charAt(1)}/${cardData.identifiers.scryfallId}.jpg`
             : undefined,

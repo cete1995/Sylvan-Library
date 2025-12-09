@@ -13,6 +13,11 @@ const CartPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
 
+  // Format price with thousands separator
+  const formatPrice = (price: number): string => {
+    return price.toLocaleString('id-ID');
+  };
+
   useEffect(() => {
     if (!user) {
       navigate('/register');
@@ -161,8 +166,8 @@ const CartPage: React.FC = () => {
 
                       {/* Price */}
                       <div className="flex-1 text-right">
-                        <div className="text-sm text-gray-600">Rp. {item.price.toFixed(0)} each</div>
-                        <div className="font-bold text-lg text-primary-600">Rp. {(item.price * item.quantity).toFixed(0)}</div>
+                        <div className="text-sm text-gray-600">Rp. {formatPrice(item.price)} each</div>
+                        <div className="font-bold text-lg text-primary-600">Rp. {formatPrice(item.price * item.quantity)}</div>
                       </div>
 
                       {/* Remove Button */}
@@ -189,7 +194,7 @@ const CartPage: React.FC = () => {
             <div className="space-y-2 mb-4">
               <div className="flex justify-between">
                 <span>Items ({cart.items.length})</span>
-                <span>Rp. {totalPrice.toFixed(0)}</span>
+                <span>Rp. {formatPrice(totalPrice)}</span>
               </div>
               <div className="flex justify-between text-sm text-gray-600">
                 <span>Shipping</span>
@@ -200,7 +205,7 @@ const CartPage: React.FC = () => {
             <div className="border-t pt-4 mb-6">
               <div className="flex justify-between text-xl font-bold">
                 <span>Total</span>
-                <span className="text-primary-600">Rp. {totalPrice.toFixed(0)}</span>
+                <span className="text-primary-600">Rp. {formatPrice(totalPrice)}</span>
               </div>
             </div>
 

@@ -6,6 +6,13 @@ import { Stats } from '../types';
 const AdminDashboardPage: React.FC = () => {
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [clearing, setClearing] = useState(false);
+
+  // Format price with thousands separator
+  const formatPrice = (price: string | number): string => {
+    const numPrice = typeof price === 'string' ? parseFloat(price) : price;
+    return numPrice.toLocaleString('id-ID');
+  };
 
   useEffect(() => {
     loadStats();
@@ -19,6 +26,31 @@ const AdminDashboardPage: React.FC = () => {
       console.error('Failed to load stats:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleClearDatabase = async () => {
+    const confirmation = window.confirm(
+      'Are you sure you want to clear ALL data from the database? This action cannot be undone!\n\nThis will delete:\n- All cards\n- All users (except admins)\n- All carts\n\nType "DELETE ALL" in the next prompt to confirm.'
+    );
+    
+    if (!confirmation) return;
+
+    const finalConfirm = window.prompt('Type "DELETE ALL" to confirm:');
+    if (finalConfirm !== 'DELETE ALL') {
+      alert('Confirmation failed. Database was not cleared.');
+      return;
+    }
+
+    setClearing(true);
+    try {
+      await adminApi.clearDatabase();
+      alert('Database cleared successfully!');
+      loadStats(); // Reload stats
+    } catch (error: any) {
+      alert('Failed to clear database: ' + (error.response?.data?.error || error.message));
+    } finally {
+      setClearing(false);
     }
   };
 
@@ -48,13 +80,13 @@ const AdminDashboardPage: React.FC = () => {
 
         <div className="bg-white rounded-lg shadow-md p-6">
           <div className="text-gray-600 mb-2">Inventory Value</div>
-          <div className="text-3xl font-bold text-green-600">${stats?.totalInventoryValue || '0.00'}</div>
+          <div className="text-3xl font-bold text-green-600">Rp. {formatPrice(stats?.totalInventoryValue || 0)}</div>
           <div className="text-sm text-gray-500 mt-1">Based on buy prices</div>
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-6">
           <div className="text-gray-600 mb-2">Listing Value</div>
-          <div className="text-3xl font-bold text-blue-600">${stats?.totalListingValue || '0.00'}</div>
+          <div className="text-3xl font-bold text-blue-600">Rp. {formatPrice(stats?.totalListingValue || 0)}</div>
           <div className="text-sm text-gray-500 mt-1">Based on sell prices</div>
         </div>
       </div>
@@ -62,7 +94,7 @@ const AdminDashboardPage: React.FC = () => {
       {/* Quick Actions */}
       <div className="bg-white rounded-lg shadow-md p-6 mb-8">
         <h2 className="text-2xl font-bold mb-4">Quick Actions</h2>
-        <div className="grid md:grid-cols-4 gap-4">
+        <div className="grid md:grid-cols-5 gap-4">
           <Link
             to="/admin/cards/new"
             className="btn-primary text-center py-4"
@@ -90,6 +122,14 @@ const AdminDashboardPage: React.FC = () => {
           >
             Upload Set JSON
           </Link>
+
+          <button
+            onClick={handleClearDatabase}
+            disabled={clearing}
+            className="border-2 border-red-600 text-red-600 px-4 py-4 rounded-lg hover:bg-red-50 transition-colors font-medium text-center disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {clearing ? 'Clearing...' : 'Clear Database'}
+          </button>
         </div>
       </div>
 

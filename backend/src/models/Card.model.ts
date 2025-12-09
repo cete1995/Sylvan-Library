@@ -26,6 +26,9 @@ export interface ICard extends Document {
   colorIdentity: string[];
   rarity: CardRarity;
   manaCost?: string;
+  borderColor?: string;
+  frameEffects?: string[];
+  tags?: string[];
   notes?: string;
   isActive: boolean;
   inventory: IInventoryItem[];
@@ -153,6 +156,14 @@ const cardSchema = new Schema<ICard>(
       type: String,
       trim: true,
     },
+    borderColor: {
+      type: String,
+      trim: true,
+    },
+    frameEffects: {
+      type: [String],
+      default: [],
+    },
     notes: {
       type: String,
       trim: true,
@@ -175,6 +186,22 @@ cardSchema.index({ rarity: 1 });
 
 // Text index for search
 cardSchema.index({ name: 'text', setName: 'text', typeLine: 'text' });
+
+// Virtual property for tags (computed from borderColor and frameEffects)
+cardSchema.virtual('tags').get(function(this: ICard) {
+  const tags: string[] = [];
+  if (this.borderColor === 'borderless') {
+    tags.push('Borderless');
+  }
+  if (this.frameEffects?.includes('extendedart')) {
+    tags.push('Extended Art');
+  }
+  return tags;
+});
+
+// Ensure virtuals are included in JSON output
+cardSchema.set('toJSON', { virtuals: true });
+cardSchema.set('toObject', { virtuals: true });
 
 const Card = mongoose.model<ICard>('Card', cardSchema);
 

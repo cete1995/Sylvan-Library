@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
 import Navbar from './components/Navbar';
@@ -12,7 +12,6 @@ import CardDetailPage from './pages/CardDetailPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import CartPage from './pages/CartPage';
-import AdminLoginPage from './pages/AdminLoginPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import AdminCardListPage from './pages/AdminCardListPage';
 import AdminCardFormPage from './pages/AdminCardFormPage';
@@ -35,7 +34,8 @@ const App: React.FC = () => {
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/cart" element={<CartPage />} />
-                <Route path="/admin/login" element={<AdminLoginPage />} />
+                {/* Redirect old admin login to unified login */}
+                <Route path="/admin/login" element={<Navigate to="/login" replace />} />
 
               {/* Protected Admin Routes */}
               <Route

@@ -53,6 +53,11 @@ const CardDetailPage: React.FC = () => {
     }
   };
 
+  // Format price with thousands separator
+  const formatPrice = (price: number): string => {
+    return price.toLocaleString('id-ID');
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-12 text-center">
@@ -73,15 +78,16 @@ const CardDetailPage: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <Link to="/catalog" className="text-primary-600 hover:underline mb-4 inline-block">
-        ← Back to Catalog
+    <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <Link to="/catalog" className="inline-block mb-6 bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded">
+        Back
       </Link>
 
-      <div className="grid md:grid-cols-2 gap-8">
-        {/* Card Image */}
-        <div className="flex justify-center">
-          <div className="card w-4/5">
+      <div className="grid lg:grid-cols-[320px_1fr] gap-6">
+        {/* Left Column - Card Image and Info */}
+        <div>
+          {/* Card Image with Yellow Border */}
+          <div className="border-4 border-yellow-400 rounded-lg overflow-hidden mb-4">
             {card.imageUrl ? (
               <img src={card.imageUrl} alt={card.name} className="w-full" />
             ) : (
@@ -92,133 +98,129 @@ const CardDetailPage: React.FC = () => {
               </div>
             )}
           </div>
+
+          {/* Card Info Table */}
+          <div className="border-2 border-yellow-400 rounded-lg overflow-hidden">
+            <table className="w-full text-sm">
+              <tbody>
+                <tr className="border-b">
+                  <td className="bg-red-600 text-white font-bold py-2 px-3 w-24">Name</td>
+                  <td className="py-2 px-3 bg-white">{card.name}</td>
+                </tr>
+                <tr className="border-b">
+                  <td className="bg-red-600 text-white font-bold py-2 px-3">Rarity</td>
+                  <td className="py-2 px-3 bg-white capitalize">{card.rarity}</td>
+                </tr>
+                <tr className="border-b">
+                  <td className="bg-red-600 text-white font-bold py-2 px-3">Type</td>
+                  <td className="py-2 px-3 bg-white">{card.typeLine || 'N/A'}</td>
+                </tr>
+                <tr className="border-b">
+                  <td className="bg-red-600 text-white font-bold py-2 px-3">Cost</td>
+                  <td className="py-2 px-3 bg-white font-mono">{card.manaCost || 'N/A'}</td>
+                </tr>
+                <tr className="border-b">
+                  <td className="bg-red-600 text-white font-bold py-2 px-3">P/T</td>
+                  <td className="py-2 px-3 bg-white">
+                    {card.typeLine?.includes('Creature') ? (card.oracleText?.match(/\d+\/\d+/) || 'N/A') : 'N/A'}
+                  </td>
+                </tr>
+                <tr className="border-b">
+                  <td className="bg-red-600 text-white font-bold py-2 px-3">Edition</td>
+                  <td className="py-2 px-3 bg-white">{card.setName}</td>
+                </tr>
+                <tr>
+                  <td className="bg-red-600 text-white font-bold py-2 px-3">Illust</td>
+                  <td className="py-2 px-3 bg-white">-</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
 
-        {/* Card Details */}
+        {/* Right Column - Inventory Table */}
         <div>
-          <h1 className="text-4xl font-bold mb-2">{card.name}</h1>
-          <p className="text-xl text-gray-600 mb-6">{card.setName} • #{card.collectorNumber}</p>
-
-          {card.manaCost && (
-            <div className="mb-4">
-              <span className="font-semibold">Mana Cost: </span>
-              <span className="font-mono text-lg">{card.manaCost}</span>
-            </div>
-          )}
-
-          {card.typeLine && (
-            <div className="mb-4">
-              <span className="font-semibold">Type: </span>
-              <span>{card.typeLine}</span>
-            </div>
-          )}
-
-          {card.oracleText && (
-            <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-              <p className="whitespace-pre-line">{card.oracleText}</p>
-            </div>
-          )}
-
-          <div className="grid grid-cols-2 gap-4 mb-6">
-            <div>
-              <span className="font-semibold block mb-1">Rarity</span>
-              <span className="capitalize">{card.rarity}</span>
-            </div>
-            <div>
-              <span className="font-semibold block mb-1">Language</span>
-              <span>{card.language}</span>
-            </div>
-          </div>
-
-          {card.colorIdentity.length > 0 && (
-            <div className="mb-6">
-              <span className="font-semibold block mb-2">Color Identity</span>
-              <div className="flex gap-2">
-                {card.colorIdentity.map((color) => (
-                  <span
-                    key={color}
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold"
-                    style={{
-                      backgroundColor:
-                        color === 'W' ? '#F0E68C' :
-                        color === 'U' ? '#0E68AB' :
-                        color === 'B' ? '#150B00' :
-                        color === 'R' ? '#D3202A' :
-                        color === 'G' ? '#00733E' : '#CCC'
-                    }}
-                  >
-                    {color}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Inventory Breakdown */}
-          {card.inventory && card.inventory.length > 0 && (
-            <div className="mb-6 border rounded-lg overflow-hidden">
-              <div className="bg-gray-100 px-4 py-2 font-semibold">Available Inventory</div>
+          {card.inventory && card.inventory.length > 0 ? (
+            <div className="border-2 border-gray-300 rounded-lg overflow-hidden">
+              {/* Table Header */}
               <table className="w-full">
-                <thead className="bg-gray-50 text-sm">
-                  <tr>
-                    <th className="px-4 py-2 text-left">Condition</th>
-                    <th className="px-4 py-2 text-left">Finish</th>
-                    <th className="px-4 py-2 text-right">Owned</th>
-                    <th className="px-4 py-2 text-right">For Sale</th>
-                    <th className="px-4 py-2 text-right">Price</th>
-                    <th className="px-4 py-2 text-right"></th>
+                <thead>
+                  <tr className="bg-red-600 text-white">
+                    <th className="py-3 px-4 text-center font-bold border-r border-white">Quality</th>
+                    <th className="py-3 px-4 text-center font-bold border-r border-white">Price</th>
+                    <th className="py-3 px-4 text-center font-bold border-r border-white">Stock</th>
+                    <th className="py-3 px-4 text-center font-bold border-r border-white">Quantity</th>
+                    <th className="py-3 px-4 text-center font-bold">Add to Cart</th>
                   </tr>
                 </thead>
-                <tbody className="text-sm">
-                  {card.inventory.map((item, index) => (
-                    <tr key={index} className="border-t">
-                      <td className="px-4 py-2 font-medium">{item.condition}</td>
-                      <td className="px-4 py-2 capitalize">{item.finish}</td>
-                      <td className="px-4 py-2 text-right">{item.quantityOwned}</td>
-                      <td className="px-4 py-2 text-right">{item.quantityForSale}</td>
-                      <td className="px-4 py-2 text-right font-semibold">Rp. {item.sellPrice.toFixed(0)}</td>
-                      <td className="px-4 py-2 text-right">
-                        <button
-                          onClick={() => handleAddToCart(index)}
-                          disabled={item.quantityForSale === 0 || addingToCart === index}
-                          className="btn-primary text-sm px-3 py-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          {addingToCart === index ? 'Adding...' : item.quantityForSale === 0 ? 'Out of Stock' : 'Add to Cart'}
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                <tbody>
+                  {card.inventory.map((item, index) => {
+                    const qualityLabel = item.condition === 'NM' 
+                      ? `Near Mint (${item.finish === 'foil' ? 'Foil' : 'Non Foil'})`
+                      : `${item.condition} (${item.finish === 'foil' ? 'Foil' : 'Non Foil'})`;
+                    return (
+                      <tr key={index} className="border-t border-gray-300 bg-white hover:bg-gray-50">
+                        <td className="py-3 px-4 text-center font-semibold border-r border-gray-300">
+                          {qualityLabel}
+                        </td>
+                        <td className="py-3 px-4 text-center border-r border-gray-300">
+                          {formatPrice(item.sellPrice)}
+                        </td>
+                        <td className="py-3 px-4 text-center border-r border-gray-300">
+                          <span className={item.quantityForSale > 0 ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold'}>
+                            {item.quantityForSale}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-center border-r border-gray-300">
+                          <div className="flex items-center justify-center gap-2">
+                            <button className="w-8 h-8 bg-red-600 text-white font-bold rounded hover:bg-red-700">
+                              −
+                            </button>
+                            <input 
+                              type="number" 
+                              defaultValue="1" 
+                              min="1"
+                              max={item.quantityForSale}
+                              className="w-16 text-center border border-gray-300 rounded py-1 appearance-none"
+                              style={{ MozAppearance: 'textfield' }}
+                            />
+                            <button className="w-8 h-8 bg-red-600 text-white font-bold rounded hover:bg-red-700">
+                              +
+                            </button>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          <button
+                            onClick={() => handleAddToCart(index)}
+                            disabled={item.quantityForSale === 0 || addingToCart === index}
+                            className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center mx-auto"
+                          >
+                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
+                            </svg>
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
+          ) : (
+            <div className="text-center py-12 bg-gray-50 rounded-lg">
+              <p className="text-xl font-semibold text-gray-600 mb-2">Not Available</p>
+              <p className="text-gray-500">This card is not currently in stock</p>
+            </div>
           )}
 
-          <div className="border-t pt-6">
-            {card.inventory && card.inventory.length > 0 ? (
-              <>
-                <div className="mb-4">
-                  <div className="text-5xl font-bold text-primary-600 mb-2">
-                    Rp. {Math.min(...card.inventory.map(i => i.sellPrice)).toFixed(0)}+
-                  </div>
-                  <div className="text-gray-600">
-                    {card.inventory.reduce((sum, i) => sum + i.quantityForSale, 0)} total available
-                  </div>
-                </div>
-
-                <button className="btn-primary w-full text-lg py-3">
-                  Add to Cart
-                </button>
-                
-                <p className="text-sm text-gray-500 mt-4 text-center">
-                  (Checkout feature coming soon)
-                </p>
-              </>
-            ) : (
-              <div className="text-center py-8 text-gray-500">
-                <p className="text-lg font-semibold mb-2">Not Available</p>
-                <p>This card is not currently in stock</p>
-              </div>
-            )}
+          {/* Notice Text */}
+          <div className="mt-6 p-4 border-2 border-yellow-400 rounded-lg bg-yellow-50">
+            <ul className="space-y-2 text-sm">
+              <li>• Single cards are drawn from booster packs or purchased from others.</li>
+              <li>• If the ordered card is unavailable, we'll contact you as fast as we can.</li>
+              <li className="text-red-600 font-semibold">• Cancellation or Exchange are unavailable.</li>
+              <li className="text-red-600 font-semibold">• If you order more than 100 cards, we need 2~3 days to prepare the order.</li>
+            </ul>
           </div>
         </div>
       </div>

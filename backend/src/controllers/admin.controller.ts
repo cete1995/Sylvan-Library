@@ -248,3 +248,30 @@ export const bulkUploadCards = asyncHandler(async (req: Request, res: Response) 
     totalRows: records.length,
   });
 });
+
+/**
+ * Clear entire database (cards, non-admin users, carts)
+ * POST /api/admin/clear-database
+ */
+export const clearDatabase = asyncHandler(async (req: Request, res: Response) => {
+  // Import models
+  const { User, Cart } = require('../models');
+
+  // Delete all cards
+  const deletedCards = await Card.deleteMany({});
+  
+  // Delete all non-admin users
+  const deletedUsers = await User.deleteMany({ role: { $ne: 'admin' } });
+  
+  // Delete all carts
+  const deletedCarts = await Cart.deleteMany({});
+
+  res.json({
+    message: 'Database cleared successfully',
+    deletedCounts: {
+      cards: deletedCards.deletedCount,
+      users: deletedUsers.deletedCount,
+      carts: deletedCarts.deletedCount,
+    },
+  });
+});

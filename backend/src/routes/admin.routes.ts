@@ -8,6 +8,7 @@ import {
   getAdminCards,
   getStats,
   bulkUploadCards,
+  clearDatabase,
 } from '../controllers/admin.controller';
 import { uploadSetJson } from '../controllers/set.controller';
 
@@ -80,5 +81,12 @@ router.post('/cards/bulk-upload', upload.single('file'), bulkUploadCards);
  * @access  Private (Admin)
  */
 router.post('/sets/upload', uploadSetJson);
+
+/**
+ * @route   POST /api/admin/clear-database
+ * @desc    Clear entire database (cards, non-admin users, carts)
+ * @access  Private (Admin)
+ */
+router.post('/clear-database', clearDatabase);
 
 export default router;
