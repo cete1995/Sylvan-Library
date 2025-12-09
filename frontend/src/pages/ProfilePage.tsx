@@ -1,0 +1,346 @@
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { profileApi, UserProfile } from '../api/profile';
+import { uploadImage } from '../api/upload';
+
+const ProfilePage: React.FC = () => {
+  const { user, token } = useAuth();
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string>('');
+  const [formData, setFormData] = useState({
+    name: '',
+    address: '',
+    phoneNumber: '',
+    courierNotes: '',
+    profilePhoto: '',
+  });
+
+  useEffect(() => {
+    loadProfile();
+  }, []);
+
+  const loadProfile = async () => {
+    try {
+      setLoading(true);
+      const data = await profileApi.getProfile();
+      setProfile(data);
+      setFormData({
+        name: data.name || '',
+        address: data.address || '',
+        phoneNumber: data.phoneNumber || '',
+        courierNotes: data.courierNotes || '',
+        profilePhoto: data.profilePhoto || '',
+      });
+    } catch (err: any) {
+      setError('Failed to load profile');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
+    }
+  };
+
+  const handleUploadPhoto = async () => {
+    if (!selectedFile || !token) return;
+
+    setUploading(true);
+    setError('');
+
+    try {
+      const uploadedUrl = await uploadImage(selectedFile, token);
+      setFormData({ ...formData, profilePhoto: uploadedUrl });
+      setSuccess('Photo uploaded successfully');
+      setSelectedFile(null);
+      setPreviewUrl('');
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to upload photo');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      const updatedProfile = await profileApi.updateProfile(formData);
+      setProfile(updatedProfile);
+      setSuccess('Profile updated successfully');
+      setIsEditing(false);
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to update profile');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCancel = () => {
+    if (profile) {
+      setFormData({
+        name: profile.name || '',
+        address: profile.address || '',
+        phoneNumber: profile.phoneNumber || '',
+        courierNotes: profile.courierNotes || '',
+        profilePhoto: profile.profilePhoto || '',
+      });
+    }
+    setIsEditing(false);
+    setSelectedFile(null);
+    setPreviewUrl('');
+    setError('');
+  };
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">Loading profile...</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="max-w-3xl mx-auto">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold">My Profile</h1>
+          <p className="text-gray-600 mt-2">Manage your account information</p>
+        </div>
+
+        {error && (
+          <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-4">
+            {error}
+          </div>
+        )}
+
+        {success && (
+          <div className="bg-green-50 text-green-600 p-4 rounded-lg mb-4">
+            {success}
+          </div>
+        )}
+
+        <div className="bg-white rounded-lg shadow-md p-6">
+          {/* Profile Photo Section */}
+          <div className="flex items-start gap-6 mb-6 pb-6 border-b">
+            <div className="flex-shrink-0">
+              {formData.profilePhoto || previewUrl ? (
+                <img
+                  src={previewUrl || formData.profilePhoto}
+                  alt="Profile"
+                  className="w-32 h-32 rounded-full object-cover border-4 border-gray-200"
+                />
+              ) : (
+                <div className="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center">
+                  <span className="text-4xl text-gray-400">
+                    {profile?.name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || '?'}
+                  </span>
+                </div>
+              )}
+            </div>
+            {isEditing && (
+              <div className="flex-1">
+                <label className="label">Profile Photo</label>
+                <div className="flex gap-2 items-start">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileSelect}
+                    className="block w-full text-sm text-gray-500
+                      file:mr-4 file:py-2 file:px-4
+                      file:rounded-lg file:border-0
+                      file:text-sm file:font-semibold
+                      file:bg-blue-50 file:text-blue-700
+                      hover:file:bg-blue-100"
+                  />
+                  {selectedFile && (
+                    <button
+                      type="button"
+                      onClick={handleUploadPhoto}
+                      disabled={uploading}
+                      className="btn-primary whitespace-nowrap"
+                    >
+                      {uploading ? 'Uploading...' : 'Upload'}
+                    </button>
+                  )}
+                </div>
+                <p className="text-sm text-gray-500 mt-1">
+                  Upload a profile photo (max 5MB)
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Profile Form */}
+          {isEditing ? (
+            <form onSubmit={handleSubmit}>
+              <div className="space-y-4">
+                <div>
+                  <label className="label">Email</label>
+                  <input
+                    type="email"
+                    value={profile?.email || ''}
+                    disabled
+                    className="input bg-gray-100 cursor-not-allowed"
+                  />
+                  <p className="text-sm text-gray-500 mt-1">Email cannot be changed</p>
+                </div>
+
+                <div>
+                  <label className="label">Name</label>
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="input"
+                    placeholder="Enter your name"
+                  />
+                </div>
+
+                <div>
+                  <label className="label">Phone Number</label>
+                  <input
+                    type="tel"
+                    value={formData.phoneNumber}
+                    onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
+                    className="input"
+                    placeholder="Enter your phone number"
+                  />
+                </div>
+
+                <div>
+                  <label className="label">Address</label>
+                  <textarea
+                    value={formData.address}
+                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                    className="input"
+                    rows={3}
+                    placeholder="Enter your shipping address"
+                  />
+                </div>
+
+                <div>
+                  <label className="label">Notes for Courier (Optional)</label>
+                  <textarea
+                    value={formData.courierNotes}
+                    onChange={(e) => setFormData({ ...formData, courierNotes: e.target.value })}
+                    className="input"
+                    rows={2}
+                    placeholder="e.g., Ring the doorbell, Leave at the gate"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="btn-primary"
+                >
+                  {saving ? 'Saving...' : 'Save Changes'}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCancel}
+                  className="btn-secondary"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          ) : (
+            <div>
+              <div className="space-y-4">
+                <div>
+                  <label className="label">Email</label>
+                  <input
+                    type="email"
+                    value={profile?.email || ''}
+                    disabled
+                    className="input bg-gray-100 cursor-not-allowed"
+                  />
+                  <p className="text-sm text-gray-500 mt-1">Email cannot be changed</p>
+                </div>
+
+                <div>
+                  <label className="label">Name</label>
+                  <input
+                    type="text"
+                    value={formData.name}
+                    disabled
+                    className="input bg-gray-50"
+                    placeholder="Enter your name"
+                  />
+                </div>
+
+                <div>
+                  <label className="label">Phone Number</label>
+                  <input
+                    type="tel"
+                    value={formData.phoneNumber}
+                    disabled
+                    className="input bg-gray-50"
+                    placeholder="Enter your phone number"
+                  />
+                </div>
+
+                <div>
+                  <label className="label">Address</label>
+                  <textarea
+                    value={formData.address}
+                    disabled
+                    className="input bg-gray-50"
+                    rows={3}
+                    placeholder="Enter your shipping address"
+                  />
+                </div>
+
+                <div>
+                  <label className="label">Notes for Courier (Optional)</label>
+                  <textarea
+                    value={formData.courierNotes}
+                    disabled
+                    className="input bg-gray-50"
+                    rows={2}
+                    placeholder="e.g., Ring the doorbell, Leave at the gate"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(true)}
+                  className="btn-primary"
+                >
+                  Edit Profile
+                </button>
+                <Link to="/orders" className="btn-secondary">
+                  View Order History
+                </Link>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ProfilePage;

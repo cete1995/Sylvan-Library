@@ -94,7 +94,7 @@ const AdminDashboardPage: React.FC = () => {
       {/* Quick Actions */}
       <div className="bg-white rounded-lg shadow-md p-6 mb-8">
         <h2 className="text-2xl font-bold mb-4">Quick Actions</h2>
-        <div className="grid md:grid-cols-5 gap-4">
+        <div className="grid md:grid-cols-3 lg:grid-cols-7 gap-4">
           <Link
             to="/admin/cards/new"
             className="btn-primary text-center py-4"
@@ -121,6 +121,20 @@ const AdminDashboardPage: React.FC = () => {
             className="border-2 border-green-600 text-green-600 px-4 py-4 rounded-lg hover:bg-green-50 transition-colors font-medium text-center"
           >
             Upload Set JSON
+          </Link>
+
+          <Link
+            to="/admin/carousel"
+            className="border-2 border-purple-600 text-purple-600 px-4 py-4 rounded-lg hover:bg-purple-50 transition-colors font-medium text-center"
+          >
+            Manage Carousel
+          </Link>
+
+          <Link
+            to="/admin/featured"
+            className="border-2 border-indigo-600 text-indigo-600 px-4 py-4 rounded-lg hover:bg-indigo-50 transition-colors font-medium text-center"
+          >
+            Featured Section
           </Link>
 
           <button

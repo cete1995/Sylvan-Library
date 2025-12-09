@@ -5,6 +5,10 @@ export interface IUser extends Document {
   passwordHash: string;
   name?: string;
   role: 'admin' | 'customer';
+  address?: string;
+  phoneNumber?: string;
+  courierNotes?: string;
+  profilePhoto?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -33,6 +37,22 @@ const userSchema = new Schema<IUser>(
       enum: ['admin', 'customer'],
       default: 'customer',
       required: true,
+    },
+    address: {
+      type: String,
+      trim: true,
+    },
+    phoneNumber: {
+      type: String,
+      trim: true,
+    },
+    courierNotes: {
+      type: String,
+      trim: true,
+    },
+    profilePhoto: {
+      type: String,
+      trim: true,
     },
   },
   {

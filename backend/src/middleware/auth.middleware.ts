@@ -2,6 +2,15 @@ import { Request, Response, NextFunction } from 'express';
 import { AppError } from './errorHandler';
 import { verifyToken } from '../utils/auth.utils';
 
+export interface AuthRequest extends Request {
+  user?: {
+    id: string;
+    userId: string;
+    email: string;
+    role: string;
+  };
+}
+
 export const authenticate = (
   req: Request,
   res: Response,
@@ -19,8 +28,9 @@ export const authenticate = (
     const decoded = verifyToken(token);
 
     // Attach user info to request
-    (req as any).user = {
+    (req as AuthRequest).user = {
       id: decoded.id,
+      userId: decoded.id,
       email: decoded.email,
       role: decoded.role,
     };

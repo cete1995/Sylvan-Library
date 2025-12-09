@@ -1,3 +1,7 @@
 export { default as User, IUser } from './User.model';
 export { default as Card, ICard, CardCondition, CardFinish, CardRarity } from './Card.model';
 export { default as Cart, ICart, ICartItem } from './Cart.model';
+export { default as Carousel, ICarousel } from './Carousel.model';
+export { default as FeaturedBanner, IFeaturedBanner } from './FeaturedBanner.model';
+export { default as FeaturedProduct, IFeaturedProduct } from './FeaturedProduct.model';
+export { default as Order, IOrder, IOrderItem } from './Order.model';

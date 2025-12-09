@@ -1,9 +1,33 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import Carousel from '../components/Carousel';
+import FeaturedSection from '../components/FeaturedSection';
+import { carouselApi } from '../api/carousel';
 
 const HomePage: React.FC = () => {
+  const [carouselImages, setCarouselImages] = useState<{ imageUrl: string; altText?: string }[]>([]);
+
+  useEffect(() => {
+    loadCarousel();
+  }, []);
+
+  const loadCarousel = async () => {
+    try {
+      const images = await carouselApi.getImages();
+      setCarouselImages(images);
+    } catch (error) {
+      console.error('Failed to load carousel:', error);
+    }
+  };
+
   return (
     <div className="min-h-[calc(100vh-4rem)]">
+      {/* Carousel Section */}
+      <Carousel images={carouselImages} autoPlay={true} interval={5000} />
+
+      {/* Featured Section */}
+      <FeaturedSection />
+
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-primary-600 to-primary-800 text-white">
         <div className="container mx-auto px-4 py-20">

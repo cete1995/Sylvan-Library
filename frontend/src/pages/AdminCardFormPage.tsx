@@ -45,7 +45,7 @@ const AdminCardFormPage: React.FC = () => {
         collectorNumber: card.collectorNumber,
         language: card.language,
         colorIdentity: card.colorIdentity,
-        rarity: card.rarity,
+        rarity: card.rarity as 'common' | 'uncommon' | 'rare' | 'mythic' | 'special' | 'bonus',
         imageUrl: card.imageUrl || '',
         scryfallId: card.scryfallId || '',
         typeLine: card.typeLine || '',

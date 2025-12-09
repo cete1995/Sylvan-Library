@@ -17,6 +17,10 @@ import AdminCardListPage from './pages/AdminCardListPage';
 import AdminCardFormPage from './pages/AdminCardFormPage';
 import AdminBulkUploadPage from './pages/AdminBulkUploadPage';
 import AdminSetUploadPage from './pages/AdminSetUploadPage';
+import AdminCarouselPage from './pages/AdminCarouselPage';
+import AdminFeaturedPage from './pages/AdminFeaturedPage';
+import ProfilePage from './pages/ProfilePage';
+import OrderHistoryPage from './pages/OrderHistoryPage';
 
 const App: React.FC = () => {
   return (
@@ -36,6 +40,24 @@ const App: React.FC = () => {
                 <Route path="/cart" element={<CartPage />} />
                 {/* Redirect old admin login to unified login */}
                 <Route path="/admin/login" element={<Navigate to="/login" replace />} />
+
+              {/* Protected Customer Routes */}
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute adminOnly={false}>
+                    <ProfilePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/orders"
+                element={
+                  <ProtectedRoute adminOnly={false}>
+                    <OrderHistoryPage />
+                  </ProtectedRoute>
+                }
+              />
 
               {/* Protected Admin Routes */}
               <Route
@@ -83,6 +105,22 @@ const App: React.FC = () => {
                 element={
                   <ProtectedRoute>
                     <AdminSetUploadPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/carousel"
+                element={
+                  <ProtectedRoute adminOnly={true}>
+                    <AdminCarouselPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/featured"
+                element={
+                  <ProtectedRoute adminOnly={true}>
+                    <AdminFeaturedPage />
                   </ProtectedRoute>
                 }
               />

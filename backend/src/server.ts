@@ -1,6 +1,7 @@
 import express, { Application } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
 import { connectDatabase } from './config/database';
 import config from './config/env';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
@@ -19,6 +20,9 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' })); // Increase limit for large set JSON uploads
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Serve static files from uploads directory
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
 // Health check route
 app.get('/health', (_req, res) => {
   res.json({
@@ -33,6 +37,13 @@ import authRoutes from './routes/auth.routes';
 import cardRoutes from './routes/card.routes';
 import adminRoutes from './routes/admin.routes';
 import cartRoutes from './routes/cart.routes';
+import carouselRoutes from './routes/public-carousel.routes';
+import adminCarouselRoutes from './routes/carousel.routes';
+import featuredRoutes from './routes/public-featured.routes';
+import adminFeaturedRoutes from './routes/featured.routes';
+import uploadRoutes from './routes/upload.routes';
+import profileRoutes from './routes/profile.routes';
+import orderRoutes from './routes/order.routes';
 
 app.get('/api', (_req, res) => {
   res.json({
@@ -44,6 +55,10 @@ app.get('/api', (_req, res) => {
       auth: '/api/auth',
       admin: '/api/admin',
       cart: '/api/cart',
+      carousel: '/api/carousel',
+      featured: '/api/featured',
+      profile: '/api/profile',
+      orders: '/api/orders',
     },
   });
 });
@@ -53,6 +68,13 @@ app.use('/api/auth', authRoutes);
 app.use('/api/cards', cardRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/cart', cartRoutes);
+app.use('/api/carousel', carouselRoutes);
+app.use('/api/admin/carousel', adminCarouselRoutes);
+app.use('/api/featured', featuredRoutes);
+app.use('/api/admin/featured', adminFeaturedRoutes);
+app.use('/api/upload', uploadRoutes);
+app.use('/api/profile', profileRoutes);
+app.use('/api/orders', orderRoutes);
 
 // Error handling
 app.use(notFoundHandler);

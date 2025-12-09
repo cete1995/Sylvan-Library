@@ -255,7 +255,7 @@ export const bulkUploadCards = asyncHandler(async (req: Request, res: Response) 
  */
 export const clearDatabase = asyncHandler(async (req: Request, res: Response) => {
   // Import models
-  const { User, Cart } = require('../models');
+  const { User, Cart, Carousel } = require('../models');
 
   // Delete all cards
   const deletedCards = await Card.deleteMany({});
@@ -266,12 +266,16 @@ export const clearDatabase = asyncHandler(async (req: Request, res: Response) =>
   // Delete all carts
   const deletedCarts = await Cart.deleteMany({});
 
+  // Delete all carousel images
+  const deletedCarousel = await Carousel.deleteMany({});
+
   res.json({
     message: 'Database cleared successfully',
     deletedCounts: {
       cards: deletedCards.deletedCount,
       users: deletedUsers.deletedCount,
       carts: deletedCarts.deletedCount,
+      carousel: deletedCarousel.deletedCount,
     },
   });
 });
