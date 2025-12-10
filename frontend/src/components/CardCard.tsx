@@ -67,32 +67,32 @@ const CardCard: React.FC<CardCardProps> = ({ card }) => {
       </div>
       
       {/* Card Info */}
-      <div className="p-3">
+      <div className="p-1.5 md:p-2.5">
         {/* Card Name and Set */}
-        <h3 className="font-bold text-sm mb-1 line-clamp-2 min-h-[2.5rem]">{card.name}</h3>
-        <p className="text-xs text-gray-500 mb-2">{card.setName}_{card.collectorNumber}</p>
+        <h3 className="font-bold text-xs md:text-sm mb-1 line-clamp-2 min-h-[2rem] md:min-h-[2.5rem]">{card.name}</h3>
+        <p className="text-xs text-gray-500 mb-2 truncate">{card.setName}_{card.collectorNumber}</p>
         
         {/* Rarity Pill and Special Pills */}
-        <div className="mb-3 flex flex-wrap gap-2">
-          <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${getRarityColor(card.rarity)}`}>
+        <div className="mb-2 md:mb-3 flex flex-wrap gap-1 md:gap-2">
+          <span className={`inline-block px-2 md:px-3 py-0.5 md:py-1 rounded-full text-xs font-semibold ${getRarityColor(card.rarity)}`}>
             {card.rarity.charAt(0).toUpperCase() + card.rarity.slice(1)}
           </span>
           {card.borderColor === 'borderless' && (
-            <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-blue-500 text-white">
+            <span className="inline-block px-2 md:px-3 py-0.5 md:py-1 rounded-full text-xs font-semibold bg-blue-500 text-white">
               Borderless
             </span>
           )}
           {card.frameEffects?.includes('extendedart') && (
-            <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-purple-500 text-white">
+            <span className="inline-block px-2 md:px-3 py-0.5 md:py-1 rounded-full text-xs font-semibold bg-purple-500 text-white">
               Extended Art
             </span>
           )}
         </div>
 
         {/* Stock and Price Info */}
-        <div className="space-y-2 border-t pt-3">
+        <div className="space-y-1.5 md:space-y-2 border-t pt-2 md:pt-3">
           {/* Near Mint Stock */}
-          <div className="flex justify-between items-center text-sm">
+          <div className="flex justify-between items-center text-xs md:text-sm">
             <span className="text-gray-700">Near Mint :</span>
             <span className={nmNonfoilStock > 0 ? 'text-green-600 font-semibold' : 'text-red-600'}>
               {nmNonfoilStock}
@@ -100,7 +100,7 @@ const CardCard: React.FC<CardCardProps> = ({ card }) => {
           </div>
 
           {/* Foil Stock */}
-          <div className="flex justify-between items-center text-sm">
+          <div className="flex justify-between items-center text-xs md:text-sm">
             <span className="text-gray-700">Foil :</span>
             <span className={nmFoilStock > 0 ? 'text-green-600 font-semibold' : 'text-red-600'}>
               {nmFoilStock}
@@ -108,16 +108,16 @@ const CardCard: React.FC<CardCardProps> = ({ card }) => {
           </div>
 
           {/* Prices */}
-          <div className="space-y-1 pt-2 border-t">
+          <div className="space-y-1 pt-1.5 md:pt-2 border-t">
             <div className="flex justify-between items-center">
               <span className="text-xs text-gray-600">Near Mint</span>
-              <span className="text-sm font-bold text-blue-600">
+              <span className="text-xs md:text-sm font-bold text-blue-600">
                 {nmNonfoilPrice > 0 ? `Rp. ${formatPrice(nmNonfoilPrice)}` : '-'}
               </span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-xs text-gray-600">Foil</span>
-              <span className="text-sm font-bold text-blue-600">
+              <span className="text-xs md:text-sm font-bold text-blue-600">
                 {nmFoilPrice > 0 ? `Rp. ${formatPrice(nmFoilPrice)}` : '-'}
               </span>
             </div>

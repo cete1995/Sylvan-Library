@@ -117,11 +117,11 @@ const ProfilePage: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-6 md:py-8">
       <div className="max-w-3xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold">My Profile</h1>
-          <p className="text-gray-600 mt-2">Manage your account information</p>
+        <div className="mb-4 md:mb-6">
+          <h1 className="text-2xl md:text-3xl font-bold">My Profile</h1>
+          <p className="text-sm md:text-base text-gray-600 mt-1 md:mt-2">Manage your account information</p>
         </div>
 
         {error && (
@@ -136,28 +136,28 @@ const ProfilePage: React.FC = () => {
           </div>
         )}
 
-        <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
           {/* Profile Photo Section */}
-          <div className="flex items-start gap-6 mb-6 pb-6 border-b">
+          <div className="flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-6 mb-4 md:mb-6 pb-4 md:pb-6 border-b">
             <div className="flex-shrink-0">
               {formData.profilePhoto || previewUrl ? (
                 <img
                   src={previewUrl || formData.profilePhoto}
                   alt="Profile"
-                  className="w-32 h-32 rounded-full object-cover border-4 border-gray-200"
+                  className="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover border-4 border-gray-200"
                 />
               ) : (
-                <div className="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center">
-                  <span className="text-4xl text-gray-400">
+                <div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-gray-200 flex items-center justify-center">
+                  <span className="text-3xl md:text-4xl text-gray-400">
                     {profile?.name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || '?'}
                   </span>
                 </div>
               )}
             </div>
             {isEditing && (
-              <div className="flex-1">
-                <label className="label">Profile Photo</label>
-                <div className="flex gap-2 items-start">
+              <div className="flex-1 w-full md:w-auto">
+                <label className="label text-sm md:text-base">Profile Photo</label>
+                <div className="flex flex-col sm:flex-row gap-2 items-start">
                   <input
                     type="file"
                     accept="image/*"
@@ -165,7 +165,7 @@ const ProfilePage: React.FC = () => {
                     className="block w-full text-sm text-gray-500
                       file:mr-4 file:py-2 file:px-4
                       file:rounded-lg file:border-0
-                      file:text-sm file:font-semibold
+                      file:text-xs md:file:text-sm file:font-semibold
                       file:bg-blue-50 file:text-blue-700
                       hover:file:bg-blue-100"
                   />
@@ -174,13 +174,13 @@ const ProfilePage: React.FC = () => {
                       type="button"
                       onClick={handleUploadPhoto}
                       disabled={uploading}
-                      className="btn-primary whitespace-nowrap"
+                      className="btn-primary whitespace-nowrap text-sm md:text-base w-full sm:w-auto"
                     >
                       {uploading ? 'Uploading...' : 'Upload'}
                     </button>
                   )}
                 </div>
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-xs md:text-sm text-gray-500 mt-1">
                   Upload a profile photo (max 5MB)
                 </p>
               </div>
@@ -247,18 +247,18 @@ const ProfilePage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex gap-3 mt-6">
+              <div className="flex flex-col sm:flex-row gap-2 md:gap-3 mt-4 md:mt-6">
                 <button
                   type="submit"
                   disabled={saving}
-                  className="btn-primary"
+                  className="btn-primary text-sm md:text-base"
                 >
                   {saving ? 'Saving...' : 'Save Changes'}
                 </button>
                 <button
                   type="button"
                   onClick={handleCancel}
-                  className="btn-secondary"
+                  className="btn-secondary text-sm md:text-base"
                 >
                   Cancel
                 </button>
@@ -323,15 +323,15 @@ const ProfilePage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex gap-3 mt-6">
+              <div className="flex flex-col sm:flex-row gap-2 md:gap-3 mt-4 md:mt-6">
                 <button
                   type="button"
                   onClick={() => setIsEditing(true)}
-                  className="btn-primary"
+                  className="btn-primary text-sm md:text-base"
                 >
                   Edit Profile
                 </button>
-                <Link to="/orders" className="btn-secondary">
+                <Link to="/orders" className="btn-secondary text-sm md:text-base text-center">
                   View Order History
                 </Link>
               </div>

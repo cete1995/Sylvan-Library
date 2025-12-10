@@ -78,12 +78,12 @@ const CardDetailPage: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl">
-      <Link to="/catalog" className="inline-block mb-6 bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded">
+    <div className="container mx-auto px-4 py-6 md:py-8 max-w-7xl">
+      <Link to="/catalog" className="inline-block mb-4 md:mb-6 bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 md:px-6 rounded text-sm md:text-base">
         Back
       </Link>
 
-      <div className="grid lg:grid-cols-[320px_1fr] gap-6">
+      <div className="grid lg:grid-cols-[320px_1fr] gap-4 md:gap-6">
         {/* Left Column - Card Image and Info */}
         <div>
           {/* Card Image with Yellow Border */}
@@ -101,37 +101,37 @@ const CardDetailPage: React.FC = () => {
 
           {/* Card Info Table */}
           <div className="border-2 border-yellow-400 rounded-lg overflow-hidden">
-            <table className="w-full text-sm">
+            <table className="w-full text-xs md:text-sm">
               <tbody>
                 <tr className="border-b">
-                  <td className="bg-red-600 text-white font-bold py-2 px-3 w-24">Name</td>
-                  <td className="py-2 px-3 bg-white">{card.name}</td>
+                  <td className="bg-red-600 text-white font-bold py-1.5 md:py-2 px-2 md:px-3 w-20 md:w-24">Name</td>
+                  <td className="py-1.5 md:py-2 px-2 md:px-3 bg-white">{card.name}</td>
                 </tr>
                 <tr className="border-b">
-                  <td className="bg-red-600 text-white font-bold py-2 px-3">Rarity</td>
-                  <td className="py-2 px-3 bg-white capitalize">{card.rarity}</td>
+                  <td className="bg-red-600 text-white font-bold py-1.5 md:py-2 px-2 md:px-3">Rarity</td>
+                  <td className="py-1.5 md:py-2 px-2 md:px-3 bg-white capitalize">{card.rarity}</td>
                 </tr>
                 <tr className="border-b">
-                  <td className="bg-red-600 text-white font-bold py-2 px-3">Type</td>
-                  <td className="py-2 px-3 bg-white">{card.typeLine || 'N/A'}</td>
+                  <td className="bg-red-600 text-white font-bold py-1.5 md:py-2 px-2 md:px-3">Type</td>
+                  <td className="py-1.5 md:py-2 px-2 md:px-3 bg-white">{card.typeLine || 'N/A'}</td>
                 </tr>
                 <tr className="border-b">
-                  <td className="bg-red-600 text-white font-bold py-2 px-3">Cost</td>
-                  <td className="py-2 px-3 bg-white font-mono">{card.manaCost || 'N/A'}</td>
+                  <td className="bg-red-600 text-white font-bold py-1.5 md:py-2 px-2 md:px-3">Cost</td>
+                  <td className="py-1.5 md:py-2 px-2 md:px-3 bg-white font-mono">{card.manaCost || 'N/A'}</td>
                 </tr>
                 <tr className="border-b">
-                  <td className="bg-red-600 text-white font-bold py-2 px-3">P/T</td>
-                  <td className="py-2 px-3 bg-white">
+                  <td className="bg-red-600 text-white font-bold py-1.5 md:py-2 px-2 md:px-3">P/T</td>
+                  <td className="py-1.5 md:py-2 px-2 md:px-3 bg-white">
                     {card.typeLine?.includes('Creature') ? (card.oracleText?.match(/\d+\/\d+/) || 'N/A') : 'N/A'}
                   </td>
                 </tr>
                 <tr className="border-b">
-                  <td className="bg-red-600 text-white font-bold py-2 px-3">Edition</td>
-                  <td className="py-2 px-3 bg-white">{card.setName}</td>
+                  <td className="bg-red-600 text-white font-bold py-1.5 md:py-2 px-2 md:px-3">Edition</td>
+                  <td className="py-1.5 md:py-2 px-2 md:px-3 bg-white">{card.setName}</td>
                 </tr>
                 <tr>
-                  <td className="bg-red-600 text-white font-bold py-2 px-3">Illust</td>
-                  <td className="py-2 px-3 bg-white">-</td>
+                  <td className="bg-red-600 text-white font-bold py-1.5 md:py-2 px-2 md:px-3">Illust</td>
+                  <td className="py-1.5 md:py-2 px-2 md:px-3 bg-white">-</td>
                 </tr>
               </tbody>
             </table>
@@ -141,16 +141,16 @@ const CardDetailPage: React.FC = () => {
         {/* Right Column - Inventory Table */}
         <div>
           {card.inventory && card.inventory.length > 0 ? (
-            <div className="border-2 border-gray-300 rounded-lg overflow-hidden">
+            <div className="border-2 border-gray-300 rounded-lg overflow-x-auto">
               {/* Table Header */}
-              <table className="w-full">
+              <table className="w-full min-w-[600px]">
                 <thead>
                   <tr className="bg-red-600 text-white">
-                    <th className="py-3 px-4 text-center font-bold border-r border-white">Quality</th>
-                    <th className="py-3 px-4 text-center font-bold border-r border-white">Price</th>
-                    <th className="py-3 px-4 text-center font-bold border-r border-white">Stock</th>
-                    <th className="py-3 px-4 text-center font-bold border-r border-white">Quantity</th>
-                    <th className="py-3 px-4 text-center font-bold">Add to Cart</th>
+                    <th className="py-2 md:py-3 px-2 md:px-4 text-center text-xs md:text-base font-bold border-r border-white">Quality</th>
+                    <th className="py-2 md:py-3 px-2 md:px-4 text-center text-xs md:text-base font-bold border-r border-white">Price</th>
+                    <th className="py-2 md:py-3 px-2 md:px-4 text-center text-xs md:text-base font-bold border-r border-white">Stock</th>
+                    <th className="py-2 md:py-3 px-2 md:px-4 text-center text-xs md:text-base font-bold border-r border-white">Quantity</th>
+                    <th className="py-2 md:py-3 px-2 md:px-4 text-center text-xs md:text-base font-bold">Add to Cart</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -160,20 +160,20 @@ const CardDetailPage: React.FC = () => {
                       : `${item.condition} (${item.finish === 'foil' ? 'Foil' : 'Non Foil'})`;
                     return (
                       <tr key={index} className="border-t border-gray-300 bg-white hover:bg-gray-50">
-                        <td className="py-3 px-4 text-center font-semibold border-r border-gray-300">
+                        <td className="py-2 md:py-3 px-2 md:px-4 text-center text-xs md:text-base font-semibold border-r border-gray-300">
                           {qualityLabel}
                         </td>
-                        <td className="py-3 px-4 text-center border-r border-gray-300">
+                        <td className="py-2 md:py-3 px-2 md:px-4 text-center text-xs md:text-base border-r border-gray-300">
                           {formatPrice(item.sellPrice)}
                         </td>
-                        <td className="py-3 px-4 text-center border-r border-gray-300">
-                          <span className={item.quantityForSale > 0 ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold'}>
+                        <td className="py-2 md:py-3 px-2 md:px-4 text-center border-r border-gray-300">
+                          <span className={item.quantityForSale > 0 ? 'text-green-600 font-semibold text-xs md:text-base' : 'text-red-600 font-semibold text-xs md:text-base'}>
                             {item.quantityForSale}
                           </span>
                         </td>
-                        <td className="py-3 px-4 text-center border-r border-gray-300">
-                          <div className="flex items-center justify-center gap-2">
-                            <button className="w-8 h-8 bg-red-600 text-white font-bold rounded hover:bg-red-700">
+                        <td className="py-2 md:py-3 px-2 md:px-4 text-center border-r border-gray-300">
+                          <div className="flex items-center justify-center gap-1 md:gap-2">
+                            <button className="w-6 h-6 md:w-8 md:h-8 text-xs md:text-base bg-red-600 text-white font-bold rounded hover:bg-red-700">
                               −
                             </button>
                             <input 
@@ -181,21 +181,21 @@ const CardDetailPage: React.FC = () => {
                               defaultValue="1" 
                               min="1"
                               max={item.quantityForSale}
-                              className="w-16 text-center border border-gray-300 rounded py-1 appearance-none"
+                              className="w-12 md:w-16 text-xs md:text-base text-center border border-gray-300 rounded py-1 appearance-none"
                               style={{ MozAppearance: 'textfield' }}
                             />
-                            <button className="w-8 h-8 bg-red-600 text-white font-bold rounded hover:bg-red-700">
+                            <button className="w-6 h-6 md:w-8 md:h-8 text-xs md:text-base bg-red-600 text-white font-bold rounded hover:bg-red-700">
                               +
                             </button>
                           </div>
                         </td>
-                        <td className="py-3 px-4 text-center">
+                        <td className="py-2 md:py-3 px-2 md:px-4 text-center">
                           <button
                             onClick={() => handleAddToCart(index)}
                             disabled={item.quantityForSale === 0 || addingToCart === index}
-                            className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center mx-auto"
+                            className="bg-red-600 hover:bg-red-700 text-white font-bold py-1.5 px-4 md:py-2 md:px-6 rounded disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center mx-auto text-xs md:text-base"
                           >
-                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <svg className="w-4 h-4 md:w-5 md:h-5" fill="currentColor" viewBox="0 0 20 20">
                               <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
                             </svg>
                           </button>
@@ -214,8 +214,8 @@ const CardDetailPage: React.FC = () => {
           )}
 
           {/* Notice Text */}
-          <div className="mt-6 p-4 border-2 border-yellow-400 rounded-lg bg-yellow-50">
-            <ul className="space-y-2 text-sm">
+          <div className="mt-4 md:mt-6 p-3 md:p-4 border-2 border-yellow-400 rounded-lg bg-yellow-50">
+            <ul className="space-y-1.5 md:space-y-2 text-xs md:text-sm">
               <li>• Single cards are drawn from booster packs or purchased from others.</li>
               <li>• If the ordered card is unavailable, we'll contact you as fast as we can.</li>
               <li className="text-red-600 font-semibold">• Cancellation or Exchange are unavailable.</li>

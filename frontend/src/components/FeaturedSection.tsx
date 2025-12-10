@@ -59,22 +59,22 @@ const FeaturedSection: React.FC = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="max-w-7xl mx-auto px-4 py-6 md:py-8">
       {/* Product Highlights */}
       <div className="flex flex-col">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold text-gray-800">Product Highlights</h2>
+        <div className="flex justify-between items-center mb-3 md:mb-4">
+          <h2 className="text-xl md:text-2xl font-bold text-gray-800">Product Highlights</h2>
           {products.length > PRODUCTS_PER_PAGE && (
             <button
               onClick={handleNext}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded transition-colors duration-200"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1.5 px-3 md:py-2 md:px-4 rounded transition-colors duration-200 text-sm md:text-base"
             >
               Next →
             </button>
           )}
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 flex-1">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 flex-1">
           {displayedProducts.map((product) => (
             <div
               key={product._id}
@@ -88,18 +88,18 @@ const FeaturedSection: React.FC = () => {
                   className="w-full h-full object-contain transition-transform duration-200 group-hover:scale-105"
                 />
               </div>
-              <div className="p-3">
-                <h3 className="font-semibold text-sm text-gray-800 truncate mb-1">
+              <div className="p-2 md:p-3">
+                <h3 className="font-semibold text-xs md:text-sm text-gray-800 truncate mb-1">
                   {product.cardId.name}
                 </h3>
-                <p className="text-xs text-gray-500 truncate mb-2">
+                <p className="text-xs text-gray-500 truncate mb-1 md:mb-2">
                   {product.cardId.setName}
                 </p>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm font-bold text-blue-600">
+                  <span className="text-xs md:text-sm font-bold text-blue-600">
                     {formatPrice(getCardPrice(product.cardId))}
                   </span>
-                  <span className={`text-xs px-2 py-1 rounded ${
+                  <span className={`text-xs px-1.5 md:px-2 py-0.5 md:py-1 rounded ${
                     product.cardId.rarity === 'mythic'
                       ? 'bg-red-100 text-red-600'
                       : product.cardId.rarity === 'rare'
@@ -118,7 +118,7 @@ const FeaturedSection: React.FC = () => {
 
         {/* Pagination indicator */}
         {products.length > PRODUCTS_PER_PAGE && (
-          <div className="flex justify-center mt-4 space-x-2">
+          <div className="flex justify-center mt-3 md:mt-4 space-x-2">
             {Array.from({ length: Math.ceil(products.length / PRODUCTS_PER_PAGE) }).map((_, idx) => (
               <div
                 key={idx}

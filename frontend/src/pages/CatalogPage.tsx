@@ -106,16 +106,16 @@ const CatalogPage: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-4xl font-bold mb-8">Browse Cards</h1>
+    <div className="container mx-auto px-4 py-6 md:py-8">
+      <h1 className="text-2xl md:text-4xl font-bold mb-4 md:mb-8">Browse Cards</h1>
 
-      <div className="grid lg:grid-cols-4 gap-8">
+      <div className="grid lg:grid-cols-4 gap-4 md:gap-8">
         {/* Filters Sidebar */}
         <div className="lg:col-span-1">
-          <div className="bg-white rounded-lg shadow p-6 sticky top-4">
-            <h2 className="text-xl font-bold mb-4">Filters</h2>
+          <div className="bg-white rounded-lg shadow p-4 md:p-6 lg:sticky lg:top-4">
+            <h2 className="text-lg md:text-xl font-bold mb-3 md:mb-4">Filters</h2>
             
-            <form onSubmit={handleSearch} className="space-y-4">
+            <form onSubmit={handleSearch} className="space-y-3 md:space-y-4">
               {/* Search */}
               <div>
                 <label className="label">Search</label>
@@ -240,11 +240,11 @@ const CatalogPage: React.FC = () => {
                 </select>
               </div>
 
-              <button type="submit" className="btn-primary w-full">
+              <button type="submit" className="btn-primary w-full text-sm md:text-base">
                 Apply Filters
               </button>
               
-              <button type="button" onClick={clearFilters} className="btn-secondary w-full">
+              <button type="button" onClick={clearFilters} className="btn-secondary w-full text-sm md:text-base">
                 Clear Filters
               </button>
             </form>
@@ -254,20 +254,20 @@ const CatalogPage: React.FC = () => {
         {/* Cards Grid */}
         <div className="lg:col-span-3">
           {loading ? (
-            <div className="text-center py-12">
-              <div className="text-xl">Loading cards...</div>
+            <div className="text-center py-8 md:py-12">
+              <div className="text-lg md:text-xl">Loading cards...</div>
             </div>
           ) : cards.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-xl text-gray-600">No cards found matching your criteria.</p>
+            <div className="text-center py-8 md:py-12">
+              <p className="text-lg md:text-xl text-gray-600">No cards found matching your criteria.</p>
             </div>
           ) : (
             <>
-              <div className="mb-4 text-gray-600">
+              <div className="mb-3 md:mb-4 text-sm md:text-base text-gray-600">
                 Found {pagination.total} card{pagination.total !== 1 ? 's' : ''}
               </div>
               
-              <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4 lg:gap-6">
                 {cards.map((card) => (
                   <CardCard key={card._id} card={card} />
                 ))}

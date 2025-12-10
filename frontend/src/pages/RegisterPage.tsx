@@ -24,6 +24,8 @@ const RegisterPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Clear previous error
     setError('');
 
     if (formData.password !== formData.confirmPassword) {
@@ -38,10 +40,13 @@ const RegisterPage: React.FC = () => {
       
       // Log user in with the returned token
       setAuthData(data.token, data.user);
-      navigate('/');
+      
+      setTimeout(() => {
+        navigate('/');
+      }, 100);
     } catch (err: any) {
-      setError(err.message || 'Failed to register');
-    } finally {
+      const errorMessage = err.response?.data?.error || err.message || 'Failed to register';
+      setError(errorMessage);
       setLoading(false);
     }
   };
