@@ -185,7 +185,7 @@ const AdminFeaturedPage: React.FC = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-800 mb-6">Manage Featured Section</h1>
+        <h1 className="text-3xl font-bold mb-6" style={{ color: 'var(--color-text)' }}>Manage Featured Section</h1>
 
         {/* Message Display */}
         {message && (
@@ -224,11 +224,11 @@ const AdminFeaturedPage: React.FC = () => {
 
         {/* Banner Tab */}
         {activeTab === 'banner' && (
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-semibold mb-4">Banner Settings</h2>
+          <div className="rounded-lg shadow-md p-6" style={{ backgroundColor: 'var(--color-panel)' }}>
+            <h2 className="text-xl font-semibold mb-4" style={{ color: 'var(--color-text)' }}>Banner Settings</h2>
             <form onSubmit={handleBannerSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text)' }}>
                   Image URL
                 </label>
                 <input
@@ -241,7 +241,7 @@ const AdminFeaturedPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text)' }}>
                   Title
                 </label>
                 <input
@@ -254,7 +254,7 @@ const AdminFeaturedPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text)' }}>
                   Button Text
                 </label>
                 <input
@@ -267,7 +267,7 @@ const AdminFeaturedPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text)' }}>
                   Button Link
                 </label>
                 <input
@@ -288,14 +288,14 @@ const AdminFeaturedPage: React.FC = () => {
                   onChange={(e) => setBannerForm({ ...bannerForm, isActive: e.target.checked })}
                   className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                 />
-                <label htmlFor="bannerActive" className="ml-2 text-sm text-gray-700">
+                <label htmlFor="bannerActive" className="ml-2 text-sm" style={{ color: 'var(--color-text)' }}>
                   Active
                 </label>
               </div>
 
               {bannerForm.imageUrl && (
                 <div className="mt-4">
-                  <p className="text-sm font-medium text-gray-700 mb-2">Preview:</p>
+                  <p className="text-sm font-medium mb-2" style={{ color: 'var(--color-text)' }}>Preview:</p>
                   <div className="relative h-64 rounded-lg overflow-hidden">
                     <img
                       src={bannerForm.imageUrl}
@@ -305,7 +305,8 @@ const AdminFeaturedPage: React.FC = () => {
                     <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
                       <button
                         type="button"
-                        className="bg-blue-600 text-white font-bold py-2 px-6 rounded-lg"
+                        className="font-bold py-2 px-6 rounded-lg hover:opacity-90"
+                        style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-panel)' }}
                       >
                         {bannerForm.buttonText}
                       </button>
@@ -317,7 +318,8 @@ const AdminFeaturedPage: React.FC = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-colors disabled:bg-gray-400"
+                className="w-full font-bold py-3 px-6 rounded-lg hover:opacity-90 disabled:opacity-50"
+                style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-panel)' }}
               >
                 {loading ? 'Saving...' : 'Save Banner'}
               </button>
@@ -329,14 +331,14 @@ const AdminFeaturedPage: React.FC = () => {
         {activeTab === 'products' && (
           <div className="space-y-6">
             {/* Add/Edit Product Form */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-xl font-semibold mb-4">
+            <div className="rounded-lg shadow-md p-6" style={{ backgroundColor: 'var(--color-panel)' }}>
+              <h2 className="text-xl font-semibold mb-4" style={{ color: 'var(--color-text)' }}>
                 {editingProduct ? 'Edit Featured Product' : 'Add Featured Product'}
               </h2>
 
               {/* Search Cards */}
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text)' }}>
                   Search Cards
                 </label>
                 <div className="flex gap-2">
@@ -351,7 +353,8 @@ const AdminFeaturedPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={handleSearch}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg"
+                    className="px-6 py-2 rounded-lg hover:opacity-90"
+                    style={{ backgroundColor: 'var(--color-highlight)', color: 'var(--color-panel)' }}
                   >
                     Search
                   </button>
@@ -378,8 +381,8 @@ const AdminFeaturedPage: React.FC = () => {
                       />
                       <div className="flex-1">
                         <p className="font-semibold text-sm">{card.name}</p>
-                        <p className="text-xs text-gray-500">{card.setName}</p>
-                        <p className="text-xs text-blue-600 font-semibold">
+                        <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>{card.setName}</p>
+                        <p className="text-xs font-semibold" style={{ color: 'var(--color-accent)' }}>
                           {formatPrice(getCardPrice(card))}
                         </p>
                       </div>
@@ -390,17 +393,17 @@ const AdminFeaturedPage: React.FC = () => {
 
               {/* Selected Card */}
               {selectedCard && (
-                <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <p className="text-sm font-medium text-gray-700 mb-2">Selected Card:</p>
+                <div className="mb-4 p-4 border rounded-lg" style={{ backgroundColor: 'var(--color-background)', borderColor: 'var(--color-accent)', opacity: 0.9 }}>
+                  <p className="text-sm font-medium mb-2" style={{ color: 'var(--color-text)' }}>Selected Card:</p>
                   <div className="flex items-center gap-3">
                     <img
                       src={selectedCard.imageUrl}
                       alt={selectedCard.name}
-                      className="w-16 h-22 object-contain"
+                      className="w-16 h-20 object-contain"
                     />
                     <div>
-                      <p className="font-semibold">{selectedCard.name}</p>
-                      <p className="text-sm text-gray-600">{selectedCard.setName}</p>
+                      <p className="font-semibold" style={{ color: 'var(--color-text)' }}>{selectedCard.name}</p>
+                      <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>{selectedCard.setName}</p>
                       <p className="text-sm text-blue-600 font-semibold">
                         {formatPrice(getCardPrice(selectedCard))}
                       </p>
@@ -434,7 +437,7 @@ const AdminFeaturedPage: React.FC = () => {
                     onChange={(e) => setProductForm({ ...productForm, isActive: e.target.checked })}
                     className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                   />
-                  <label htmlFor="productActive" className="ml-2 text-sm text-gray-700">
+                  <label htmlFor="productActive" className="ml-2 text-sm" style={{ color: 'var(--color-text)' }}>
                     Active
                   </label>
                 </div>
@@ -443,7 +446,8 @@ const AdminFeaturedPage: React.FC = () => {
                   <button
                     type="submit"
                     disabled={loading || !selectedCard}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-colors disabled:bg-gray-400"
+                    className="flex-1 font-bold py-3 px-6 rounded-lg hover:opacity-90 disabled:opacity-50"
+                    style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-panel)' }}
                   >
                     {loading ? 'Saving...' : editingProduct ? 'Update Product' : 'Add Product'}
                   </button>
@@ -465,8 +469,8 @@ const AdminFeaturedPage: React.FC = () => {
             </div>
 
             {/* Featured Products List */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-xl font-semibold mb-4">Current Featured Products</h2>
+            <div className="rounded-lg shadow-md p-6" style={{ backgroundColor: 'var(--color-panel)' }}>
+              <h2 className="text-xl font-semibold mb-4" style={{ color: 'var(--color-text)' }}>Current Featured Products</h2>
               {featuredProducts.length === 0 ? (
                 <p className="text-gray-500 text-center py-8">No featured products yet.</p>
               ) : (
@@ -509,7 +513,8 @@ const AdminFeaturedPage: React.FC = () => {
                         </button>
                         <button
                           onClick={() => handleDeleteProduct(product._id!)}
-                          className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm"
+                          className="px-4 py-2 rounded-lg text-sm hover:opacity-90"
+                          style={{ backgroundColor: '#DC2626', color: 'var(--color-panel)' }}
                         >
                           Remove
                         </button>

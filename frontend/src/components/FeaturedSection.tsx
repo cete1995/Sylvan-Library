@@ -55,7 +55,17 @@ const FeaturedSection: React.FC = () => {
   };
 
   if (products.length === 0) {
-    return null; // Don't render if no featured content
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="border-2 border-dashed rounded-2xl p-12 text-center" style={{ backgroundColor: 'var(--color-panel)', borderColor: 'var(--color-accent)', opacity: 0.7 }}>
+          <svg className="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--color-accent)' }}>
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+          </svg>
+          <h3 className="text-2xl font-bold mb-2" style={{ color: 'var(--color-text)' }}>Featured Products Coming Soon</h3>
+          <p style={{ color: 'var(--color-text-secondary)' }}>Check back later for our hand-picked card recommendations</p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -63,11 +73,12 @@ const FeaturedSection: React.FC = () => {
       {/* Product Highlights */}
       <div className="flex flex-col">
         <div className="flex justify-between items-center mb-3 md:mb-4">
-          <h2 className="text-xl md:text-2xl font-bold text-gray-800">Product Highlights</h2>
+          <h2 className="text-xl md:text-2xl font-bold" style={{ color: 'var(--color-text)' }}>Product Highlights</h2>
           {products.length > PRODUCTS_PER_PAGE && (
             <button
               onClick={handleNext}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1.5 px-3 md:py-2 md:px-4 rounded transition-colors duration-200 text-sm md:text-base"
+              className="font-semibold py-1.5 px-3 md:py-2 md:px-4 rounded hover:opacity-90 text-sm md:text-base"
+              style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-panel)' }}
             >
               Next →
             </button>
@@ -75,29 +86,34 @@ const FeaturedSection: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 flex-1">
-          {displayedProducts.map((product) => (
-            <div
-              key={product._id}
-              onClick={() => handleProductClick(product.cardId._id)}
-              className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-200 cursor-pointer group"
-            >
-              <div className="aspect-square overflow-hidden bg-gray-100">
-                <img
-                  src={product.cardId.imageUrl}
-                  alt={product.cardId.name}
-                  className="w-full h-full object-contain transition-transform duration-200 group-hover:scale-105"
-                />
-              </div>
-              <div className="p-2 md:p-3">
-                <h3 className="font-semibold text-xs md:text-sm text-gray-800 truncate mb-1">
-                  {product.cardId.name}
-                </h3>
-                <p className="text-xs text-gray-500 truncate mb-1 md:mb-2">
-                  {product.cardId.setName}
-                </p>
-                <div className="flex justify-between items-center">
-                  <span className="text-xs md:text-sm font-bold text-blue-600">
-                    {formatPrice(getCardPrice(product.cardId))}
+          {displayedProducts.map((product) => {
+            // Safety check for product.cardId
+            if (!product.cardId) return null;
+            
+            return (
+              <div
+                key={product._id}
+                onClick={() => handleProductClick(product.cardId._id)}
+                className="border rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-200 cursor-pointer group"
+                style={{ backgroundColor: 'var(--color-panel)', borderColor: 'var(--color-text-secondary)' }}
+              >
+                <div className="aspect-square overflow-hidden" style={{ backgroundColor: 'var(--color-background)' }}>
+                  <img
+                    src={product.cardId.imageUrl}
+                    alt={product.cardId.name}
+                    className="w-full h-full object-contain transition-transform duration-200 group-hover:scale-105"
+                  />
+                </div>
+                <div className="p-2 md:p-3">
+                  <h3 className="font-semibold text-xs md:text-sm truncate mb-1" style={{ color: 'var(--color-text)' }}>
+                    {product.cardId.name}
+                  </h3>
+                  <p className="text-xs truncate mb-1 md:mb-2" style={{ color: 'var(--color-text-secondary)' }}>
+                    {product.cardId.setName}
+                  </p>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs md:text-sm font-bold" style={{ color: 'var(--color-accent)' }}>
+                      {formatPrice(getCardPrice(product.cardId))}
                   </span>
                   <span className={`text-xs px-1.5 md:px-2 py-0.5 md:py-1 rounded ${
                     product.cardId.rarity === 'mythic'
@@ -113,7 +129,8 @@ const FeaturedSection: React.FC = () => {
                 </div>
               </div>
             </div>
-          ))}
+          );
+          })}
         </div>
 
         {/* Pagination indicator */}

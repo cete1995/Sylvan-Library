@@ -1,0 +1,66 @@
+/* Theme CSS Variables */
+:root {
+  /* Light mode colors (default) */
+  --color-background: #F9FAFB;
+  --color-panel: #FFFFFF;
+  --color-accent: #3B82F6;
+  --color-highlight: #8B5CF6;
+  --color-text: #111827;
+  --color-text-secondary: #6B7280;
+}
+
+/* Utility classes for themed components */
+.themed-bg {
+  background-color: var(--color-background);
+}
+
+.themed-panel {
+  background-color: var(--color-panel);
+}
+
+.themed-accent {
+  color: var(--color-accent);
+}
+
+.themed-accent-bg {
+  background-color: var(--color-accent);
+}
+
+.themed-highlight {
+  color: var(--color-highlight);
+}
+
+.themed-highlight-bg {
+  background-color: var(--color-highlight);
+}
+
+.themed-text {
+  color: var(--color-text);
+}
+
+.themed-text-secondary {
+  color: var(--color-text-secondary);
+}
+
+.themed-border {
+  border-color: var(--color-accent);
+}
+
+.themed-border-highlight {
+  border-color: var(--color-highlight);
+}
+
+/* Disable default transitions globally to prevent interference */
+*, *::before, *::after {
+  transition: none !important;
+}
+
+/* Re-enable smooth transitions only for specific interactive elements */
+button, a, input, select, textarea {
+  transition: opacity 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+/* Add smooth theme transition only to elements using CSS variables */
+[style*="--color"] {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease !important;
+}

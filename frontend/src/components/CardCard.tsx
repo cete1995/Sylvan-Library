@@ -41,9 +41,9 @@ const CardCard: React.FC<CardCardProps> = ({ card }) => {
   };
 
   return (
-    <Link to={`/cards/${card._id}`} className={`bg-white rounded-lg shadow hover:shadow-lg transition-shadow overflow-hidden block ${!isAvailable ? 'opacity-60' : ''}`}>
+    <Link to={`/cards/${card._id}`} className={`rounded-lg shadow hover:shadow-lg transition-shadow overflow-hidden block ${!isAvailable ? 'opacity-60' : ''}`} style={{ backgroundColor: 'var(--color-panel)' }}>
       {/* Card Image */}
-      <div className="aspect-[5/7] bg-gray-200 relative overflow-hidden">
+      <div className="aspect-[5/7] relative overflow-hidden" style={{ backgroundColor: 'var(--color-background)' }}>
         {card.imageUrl ? (
           <img
             src={card.imageUrl}
@@ -59,7 +59,7 @@ const CardCard: React.FC<CardCardProps> = ({ card }) => {
         )}
         {!isAvailable && (
           <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-            <span className="bg-red-600 text-white text-sm px-3 py-1 rounded font-bold">
+            <span className="text-sm px-3 py-1 rounded font-bold" style={{ backgroundColor: '#DC2626', color: 'var(--color-panel)' }}>
               UNAVAILABLE
             </span>
           </div>
@@ -69,31 +69,31 @@ const CardCard: React.FC<CardCardProps> = ({ card }) => {
       {/* Card Info */}
       <div className="p-1.5 md:p-2.5">
         {/* Card Name and Set */}
-        <h3 className="font-bold text-xs md:text-sm mb-1 line-clamp-2 min-h-[2rem] md:min-h-[2.5rem]">{card.name}</h3>
-        <p className="text-xs text-gray-500 mb-2 truncate">{card.setName}_{card.collectorNumber}</p>
+        <h3 className="font-bold text-xs md:text-sm mb-1 line-clamp-2 min-h-[2rem] md:min-h-[2.5rem]" style={{ color: 'var(--color-text)' }}>{card.name}</h3>
+        <p className="text-xs mb-2 truncate" style={{ color: 'var(--color-text-secondary)' }}>{card.setName}_{card.collectorNumber}</p>
         
         {/* Rarity Pill and Special Pills */}
-        <div className="mb-2 md:mb-3 flex flex-wrap gap-1 md:gap-2">
-          <span className={`inline-block px-2 md:px-3 py-0.5 md:py-1 rounded-full text-xs font-semibold ${getRarityColor(card.rarity)}`}>
+        <div className="mb-2 md:mb-3 flex gap-1 md:gap-2 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
+          <span className={`inline-block px-2 md:px-3 py-0.5 md:py-1 rounded-full text-xs font-semibold whitespace-nowrap ${getRarityColor(card.rarity)}`}>
             {card.rarity.charAt(0).toUpperCase() + card.rarity.slice(1)}
           </span>
           {card.borderColor === 'borderless' && (
-            <span className="inline-block px-2 md:px-3 py-0.5 md:py-1 rounded-full text-xs font-semibold bg-blue-500 text-white">
+            <span className="inline-block px-2 md:px-3 py-0.5 md:py-1 rounded-full text-xs font-semibold whitespace-nowrap" style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-panel)' }}>
               Borderless
             </span>
           )}
           {card.frameEffects?.includes('extendedart') && (
-            <span className="inline-block px-2 md:px-3 py-0.5 md:py-1 rounded-full text-xs font-semibold bg-purple-500 text-white">
+            <span className="inline-block px-2 md:px-3 py-0.5 md:py-1 rounded-full text-xs font-semibold whitespace-nowrap" style={{ backgroundColor: 'var(--color-highlight)', color: 'var(--color-panel)' }}>
               Extended Art
             </span>
           )}
         </div>
 
         {/* Stock and Price Info */}
-        <div className="space-y-1.5 md:space-y-2 border-t pt-2 md:pt-3">
+        <div className="space-y-1.5 md:space-y-2 pt-2 md:pt-3">
           {/* Near Mint Stock */}
           <div className="flex justify-between items-center text-xs md:text-sm">
-            <span className="text-gray-700">Near Mint :</span>
+            <span style={{ color: 'var(--color-text-secondary)' }}>Near Mint :</span>
             <span className={nmNonfoilStock > 0 ? 'text-green-600 font-semibold' : 'text-red-600'}>
               {nmNonfoilStock}
             </span>
@@ -101,23 +101,23 @@ const CardCard: React.FC<CardCardProps> = ({ card }) => {
 
           {/* Foil Stock */}
           <div className="flex justify-between items-center text-xs md:text-sm">
-            <span className="text-gray-700">Foil :</span>
+            <span style={{ color: 'var(--color-text-secondary)' }}>Foil :</span>
             <span className={nmFoilStock > 0 ? 'text-green-600 font-semibold' : 'text-red-600'}>
               {nmFoilStock}
             </span>
           </div>
 
           {/* Prices */}
-          <div className="space-y-1 pt-1.5 md:pt-2 border-t">
+          <div className="space-y-1 pt-1.5 md:pt-2">
             <div className="flex justify-between items-center">
-              <span className="text-xs text-gray-600">Near Mint</span>
-              <span className="text-xs md:text-sm font-bold text-blue-600">
+              <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>Near Mint</span>
+              <span className="text-xs md:text-sm font-bold" style={{ color: 'var(--color-accent)' }}>
                 {nmNonfoilPrice > 0 ? `Rp. ${formatPrice(nmNonfoilPrice)}` : '-'}
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-xs text-gray-600">Foil</span>
-              <span className="text-xs md:text-sm font-bold text-blue-600">
+              <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>Foil</span>
+              <span className="text-xs md:text-sm font-bold" style={{ color: 'var(--color-accent)' }}>
                 {nmFoilPrice > 0 ? `Rp. ${formatPrice(nmFoilPrice)}` : '-'}
               </span>
             </div>

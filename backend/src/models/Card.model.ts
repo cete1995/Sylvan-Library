@@ -21,6 +21,7 @@ export interface ICard extends Document {
   language: string;
   imageUrl?: string;
   scryfallId?: string;
+  uuid?: string;
   typeLine?: string;
   oracleText?: string;
   colorIdentity: string[];
@@ -120,6 +121,11 @@ const cardSchema = new Schema<ICard>(
       trim: true,
     },
     scryfallId: {
+      type: String,
+      trim: true,
+      index: true,
+    },
+    uuid: {
       type: String,
       trim: true,
       index: true,

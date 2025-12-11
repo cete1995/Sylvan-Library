@@ -147,11 +147,11 @@ const AdminCarouselPage: React.FC = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
-        <Link to="/admin/dashboard" className="text-primary-600 hover:text-primary-700 mb-4 inline-block">
+        <Link to="/admin/dashboard" className="hover:opacity-80 mb-4 inline-block" style={{ color: 'var(--color-accent)' }}>
           ← Back to Dashboard
         </Link>
         <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold">Manage Carousel</h1>
+          <h1 className="text-3xl font-bold" style={{ color: 'var(--color-text)' }}>Manage Carousel</h1>
           {!showForm && images.length < 8 && (
             <button
               onClick={() => setShowForm(true)}
@@ -161,7 +161,7 @@ const AdminCarouselPage: React.FC = () => {
             </button>
           )}
         </div>
-        <p className="text-gray-600 mt-2">
+        <p className="mt-2" style={{ color: 'var(--color-text-secondary)' }}>
           Manage homepage carousel images (maximum 8 images)
         </p>
       </div>
@@ -180,8 +180,8 @@ const AdminCarouselPage: React.FC = () => {
 
       {/* Add/Edit Form */}
       {showForm && (
-        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-          <h2 className="text-xl font-bold mb-4">
+        <div className="rounded-lg shadow-md p-6 mb-8" style={{ backgroundColor: 'var(--color-panel)' }}>
+          <h2 className="text-xl font-bold mb-4" style={{ color: 'var(--color-text)' }}>
             {editingId ? 'Edit Carousel Image' : 'Add Carousel Image'}
           </h2>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -193,12 +193,13 @@ const AdminCarouselPage: React.FC = () => {
                   type="file"
                   accept="image/*"
                   onChange={handleFileSelect}
-                  className="block w-full text-sm text-gray-500
+                  className="block w-full text-sm
                     file:mr-4 file:py-2 file:px-4
                     file:rounded-lg file:border-0
                     file:text-sm file:font-semibold
                     file:bg-blue-50 file:text-blue-700
                     hover:file:bg-blue-100"
+                  style={{ color: 'var(--color-text-secondary)' }}
                 />
                 {selectedFile && !formData.imageUrl && (
                   <button
@@ -216,7 +217,7 @@ const AdminCarouselPage: React.FC = () => {
                   <img src={previewUrl} alt="Preview" className="h-32 rounded-lg object-cover" />
                 </div>
               )}
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-sm mt-1" style={{ color: 'var(--color-text-secondary)' }}>
                 Upload an image from your computer (max 5MB, recommended size: 1920x600px)
               </p>
             </div>

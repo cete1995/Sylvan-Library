@@ -78,8 +78,8 @@ const CardDetailPage: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-6 md:py-8 max-w-7xl">
-      <Link to="/catalog" className="inline-block mb-4 md:mb-6 bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 md:px-6 rounded text-sm md:text-base">
+    <div className="container mx-auto px-4 py-6 md:py-8 max-w-7xl" style={{ minHeight: '100vh', backgroundColor: 'var(--color-background)' }}>
+      <Link to="/catalog" className="inline-block mb-4 md:mb-6 font-bold py-2 px-4 md:px-6 rounded text-sm md:text-base hover:opacity-90" style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-panel)' }}>
         Back
       </Link>
 
@@ -103,35 +103,35 @@ const CardDetailPage: React.FC = () => {
           <div className="border-2 border-yellow-400 rounded-lg overflow-hidden">
             <table className="w-full text-xs md:text-sm">
               <tbody>
-                <tr className="border-b">
-                  <td className="bg-red-600 text-white font-bold py-1.5 md:py-2 px-2 md:px-3 w-20 md:w-24">Name</td>
-                  <td className="py-1.5 md:py-2 px-2 md:px-3 bg-white">{card.name}</td>
+                <tr>
+                  <td className="font-bold py-1.5 md:py-2 px-2 md:px-3 w-20 md:w-24" style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-panel)' }}>Name</td>
+                  <td className="py-1.5 md:py-2 px-2 md:px-3" style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)' }}>{card.name}</td>
                 </tr>
-                <tr className="border-b">
-                  <td className="bg-red-600 text-white font-bold py-1.5 md:py-2 px-2 md:px-3">Rarity</td>
-                  <td className="py-1.5 md:py-2 px-2 md:px-3 bg-white capitalize">{card.rarity}</td>
+                <tr>
+                  <td className="font-bold py-1.5 md:py-2 px-2 md:px-3" style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-panel)' }}>Rarity</td>
+                  <td className="py-1.5 md:py-2 px-2 md:px-3 capitalize" style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)' }}>{card.rarity}</td>
                 </tr>
-                <tr className="border-b">
-                  <td className="bg-red-600 text-white font-bold py-1.5 md:py-2 px-2 md:px-3">Type</td>
-                  <td className="py-1.5 md:py-2 px-2 md:px-3 bg-white">{card.typeLine || 'N/A'}</td>
+                <tr>
+                  <td className="font-bold py-1.5 md:py-2 px-2 md:px-3" style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-panel)' }}>Type</td>
+                  <td className="py-1.5 md:py-2 px-2 md:px-3" style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)' }}>{card.typeLine || 'N/A'}</td>
                 </tr>
-                <tr className="border-b">
-                  <td className="bg-red-600 text-white font-bold py-1.5 md:py-2 px-2 md:px-3">Cost</td>
-                  <td className="py-1.5 md:py-2 px-2 md:px-3 bg-white font-mono">{card.manaCost || 'N/A'}</td>
+                <tr>
+                  <td className="font-bold py-1.5 md:py-2 px-2 md:px-3" style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-panel)' }}>Cost</td>
+                  <td className="py-1.5 md:py-2 px-2 md:px-3 font-mono" style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)' }}>{card.manaCost || 'N/A'}</td>
                 </tr>
-                <tr className="border-b">
-                  <td className="bg-red-600 text-white font-bold py-1.5 md:py-2 px-2 md:px-3">P/T</td>
-                  <td className="py-1.5 md:py-2 px-2 md:px-3 bg-white">
+                <tr>
+                  <td className="font-bold py-1.5 md:py-2 px-2 md:px-3" style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-panel)' }}>P/T</td>
+                  <td className="py-1.5 md:py-2 px-2 md:px-3" style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)' }}>
                     {card.typeLine?.includes('Creature') ? (card.oracleText?.match(/\d+\/\d+/) || 'N/A') : 'N/A'}
                   </td>
                 </tr>
-                <tr className="border-b">
-                  <td className="bg-red-600 text-white font-bold py-1.5 md:py-2 px-2 md:px-3">Edition</td>
-                  <td className="py-1.5 md:py-2 px-2 md:px-3 bg-white">{card.setName}</td>
+                <tr>
+                  <td className="font-bold py-1.5 md:py-2 px-2 md:px-3" style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-panel)' }}>Edition</td>
+                  <td className="py-1.5 md:py-2 px-2 md:px-3" style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)' }}>{card.setName}</td>
                 </tr>
                 <tr>
-                  <td className="bg-red-600 text-white font-bold py-1.5 md:py-2 px-2 md:px-3">Illust</td>
-                  <td className="py-1.5 md:py-2 px-2 md:px-3 bg-white">-</td>
+                  <td className="font-bold py-1.5 md:py-2 px-2 md:px-3" style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-panel)' }}>Illust</td>
+                  <td className="py-1.5 md:py-2 px-2 md:px-3" style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)' }}>-</td>
                 </tr>
               </tbody>
             </table>
@@ -145,7 +145,7 @@ const CardDetailPage: React.FC = () => {
               {/* Table Header */}
               <table className="w-full min-w-[600px]">
                 <thead>
-                  <tr className="bg-red-600 text-white">
+                  <tr style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-panel)' }}>
                     <th className="py-2 md:py-3 px-2 md:px-4 text-center text-xs md:text-base font-bold border-r border-white">Quality</th>
                     <th className="py-2 md:py-3 px-2 md:px-4 text-center text-xs md:text-base font-bold border-r border-white">Price</th>
                     <th className="py-2 md:py-3 px-2 md:px-4 text-center text-xs md:text-base font-bold border-r border-white">Stock</th>
@@ -159,21 +159,21 @@ const CardDetailPage: React.FC = () => {
                       ? `Near Mint (${item.finish === 'foil' ? 'Foil' : 'Non Foil'})`
                       : `${item.condition} (${item.finish === 'foil' ? 'Foil' : 'Non Foil'})`;
                     return (
-                      <tr key={index} className="border-t border-gray-300 bg-white hover:bg-gray-50">
-                        <td className="py-2 md:py-3 px-2 md:px-4 text-center text-xs md:text-base font-semibold border-r border-gray-300">
+                      <tr key={index} className="border-t hover:opacity-90" style={{ backgroundColor: 'var(--color-panel)', borderColor: 'var(--color-text-secondary)' }}>
+                        <td className="py-2 md:py-3 px-2 md:px-4 text-center text-xs md:text-base font-semibold border-r" style={{ color: 'var(--color-text)', borderColor: 'var(--color-text-secondary)' }}>
                           {qualityLabel}
                         </td>
-                        <td className="py-2 md:py-3 px-2 md:px-4 text-center text-xs md:text-base border-r border-gray-300">
+                        <td className="py-2 md:py-3 px-2 md:px-4 text-center text-xs md:text-base border-r" style={{ color: 'var(--color-text)', borderColor: 'var(--color-text-secondary)' }}>
                           {formatPrice(item.sellPrice)}
                         </td>
-                        <td className="py-2 md:py-3 px-2 md:px-4 text-center border-r border-gray-300">
+                        <td className="py-2 md:py-3 px-2 md:px-4 text-center border-r" style={{ borderColor: 'var(--color-text-secondary)' }}>
                           <span className={item.quantityForSale > 0 ? 'text-green-600 font-semibold text-xs md:text-base' : 'text-red-600 font-semibold text-xs md:text-base'}>
                             {item.quantityForSale}
                           </span>
                         </td>
-                        <td className="py-2 md:py-3 px-2 md:px-4 text-center border-r border-gray-300">
+                        <td className="py-2 md:py-3 px-2 md:px-4 text-center border-r" style={{ borderColor: 'var(--color-text-secondary)' }}>
                           <div className="flex items-center justify-center gap-1 md:gap-2">
-                            <button className="w-6 h-6 md:w-8 md:h-8 text-xs md:text-base bg-red-600 text-white font-bold rounded hover:bg-red-700">
+                            <button className="w-6 h-6 md:w-8 md:h-8 text-xs md:text-base font-bold rounded hover:opacity-90" style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-panel)' }}>
                               −
                             </button>
                             <input 
@@ -184,7 +184,7 @@ const CardDetailPage: React.FC = () => {
                               className="w-12 md:w-16 text-xs md:text-base text-center border border-gray-300 rounded py-1 appearance-none"
                               style={{ MozAppearance: 'textfield' }}
                             />
-                            <button className="w-6 h-6 md:w-8 md:h-8 text-xs md:text-base bg-red-600 text-white font-bold rounded hover:bg-red-700">
+                            <button className="w-6 h-6 md:w-8 md:h-8 text-xs md:text-base font-bold rounded hover:opacity-90" style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-panel)' }}>
                               +
                             </button>
                           </div>
@@ -193,7 +193,8 @@ const CardDetailPage: React.FC = () => {
                           <button
                             onClick={() => handleAddToCart(index)}
                             disabled={item.quantityForSale === 0 || addingToCart === index}
-                            className="bg-red-600 hover:bg-red-700 text-white font-bold py-1.5 px-4 md:py-2 md:px-6 rounded disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center mx-auto text-xs md:text-base"
+                            className="font-bold py-1.5 px-4 md:py-2 md:px-6 rounded disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center mx-auto text-xs md:text-base hover:opacity-90"
+                            style={{ backgroundColor: 'var(--color-highlight)', color: 'var(--color-panel)' }}
                           >
                             <svg className="w-4 h-4 md:w-5 md:h-5" fill="currentColor" viewBox="0 0 20 20">
                               <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />

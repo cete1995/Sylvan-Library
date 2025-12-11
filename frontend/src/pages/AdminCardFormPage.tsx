@@ -2,15 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { adminApi } from '../api/admin';
 import { cardApi } from '../api/cards';
+import { priceApi } from '../api/price';
 import { CardFormData, InventoryItem } from '../types';
+import CardPriceChart from '../components/CardPriceChart';
+import { useAuth } from '../contexts/AuthContext';
 
 const AdminCardFormPage: React.FC = () => {
   const { id } = useParams<{ id?: string }>();
   const navigate = useNavigate();
+  const { token } = useAuth();
   const isEdit = !!id;
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [allPrices, setAllPrices] = useState<any>(null);
   const [formData, setFormData] = useState<CardFormData>({
     name: '',
     setCode: '',
@@ -21,6 +26,7 @@ const AdminCardFormPage: React.FC = () => {
     rarity: 'common',
     imageUrl: '',
     scryfallId: '',
+    uuid: '',
     typeLine: '',
     oracleText: '',
     manaCost: '',
@@ -48,12 +54,31 @@ const AdminCardFormPage: React.FC = () => {
         rarity: card.rarity as 'common' | 'uncommon' | 'rare' | 'mythic' | 'special' | 'bonus',
         imageUrl: card.imageUrl || '',
         scryfallId: card.scryfallId || '',
+        uuid: card.uuid || '',
         typeLine: card.typeLine || '',
         oracleText: card.oracleText || '',
         manaCost: card.manaCost || '',
         notes: card.notes || '',
         inventory: card.inventory || [],
       });
+
+      // Fetch latest price if UUID exists
+      if (card.uuid && token) {
+        console.log('Fetching price for UUID:', card.uuid);
+        try {
+          const priceData = await priceApi.getLatestPrice(token, card.uuid);
+          console.log('Price data received:', priceData);
+          if (priceData.success && priceData.price?.prices) {
+            setAllPrices(priceData.price.prices);
+          } else {
+            console.log('No price data found');
+          }
+        } catch (err) {
+          console.error('Price fetch error:', err);
+        }
+      } else {
+        console.log('No UUID or token:', { uuid: card.uuid, hasToken: !!token });
+      }
     } catch (error) {
       setError('Failed to load card');
     }
@@ -143,11 +168,11 @@ const AdminCardFormPage: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <Link to="/admin/cards" className="text-primary-600 hover:underline mb-4 inline-block">
+      <Link to="/admin/cards" className="hover:underline mb-4 inline-block" style={{ color: 'var(--color-accent)' }}>
         ← Back to Card List
       </Link>
 
-      <h1 className="text-4xl font-bold mb-8">
+      <h1 className="text-4xl font-bold mb-8" style={{ color: 'var(--color-text)' }}>
         {isEdit ? 'Edit Card' : 'Add New Card'}
       </h1>
 
@@ -159,8 +184,8 @@ const AdminCardFormPage: React.FC = () => {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Card Information */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-2xl font-bold mb-4">Card Information</h2>
+        <div className="rounded-lg shadow p-6" style={{ backgroundColor: 'var(--color-panel)' }}>
+          <h2 className="text-2xl font-bold mb-4" style={{ color: 'var(--color-text)' }}>Card Information</h2>
           <div className="grid md:grid-cols-2 gap-4">
             <div className="md:col-span-2">
               <label className="label">Card Name *</label>
@@ -170,7 +195,8 @@ const AdminCardFormPage: React.FC = () => {
                 value={formData.name}
                 onChange={handleChange}
                 required
-                className="input"
+                disabled={isEdit}
+                className="input disabled:bg-gray-100 disabled:cursor-not-allowed"
               />
             </div>
 
@@ -182,7 +208,8 @@ const AdminCardFormPage: React.FC = () => {
                 value={formData.setCode}
                 onChange={handleChange}
                 required
-                className="input"
+                disabled={isEdit}
+                className="input disabled:bg-gray-100 disabled:cursor-not-allowed"
               />
             </div>
 
@@ -194,7 +221,8 @@ const AdminCardFormPage: React.FC = () => {
                 value={formData.setName}
                 onChange={handleChange}
                 required
-                className="input"
+                disabled={isEdit}
+                className="input disabled:bg-gray-100 disabled:cursor-not-allowed"
               />
             </div>
 
@@ -206,7 +234,8 @@ const AdminCardFormPage: React.FC = () => {
                 value={formData.collectorNumber}
                 onChange={handleChange}
                 required
-                className="input"
+                disabled={isEdit}
+                className="input disabled:bg-gray-100 disabled:cursor-not-allowed"
               />
             </div>
 
@@ -217,13 +246,20 @@ const AdminCardFormPage: React.FC = () => {
                 name="language"
                 value={formData.language}
                 onChange={handleChange}
-                className="input"
+                disabled={isEdit}
+                className="input disabled:bg-gray-100 disabled:cursor-not-allowed"
               />
             </div>
 
             <div>
               <label className="label">Rarity *</label>
-              <select name="rarity" value={formData.rarity} onChange={handleChange} className="input">
+              <select 
+                name="rarity" 
+                value={formData.rarity} 
+                onChange={handleChange} 
+                disabled={isEdit}
+                className="input disabled:bg-gray-100 disabled:cursor-not-allowed"
+              >
                 <option value="common">Common</option>
                 <option value="uncommon">Uncommon</option>
                 <option value="rare">Rare</option>
@@ -240,7 +276,8 @@ const AdminCardFormPage: React.FC = () => {
                 name="manaCost"
                 value={formData.manaCost}
                 onChange={handleChange}
-                className="input"
+                disabled={isEdit}
+                className="input disabled:bg-gray-100 disabled:cursor-not-allowed"
               />
             </div>
 
@@ -258,9 +295,10 @@ const AdminCardFormPage: React.FC = () => {
                     key={color}
                     type="button"
                     onClick={() => handleColorToggle(color)}
+                    disabled={isEdit}
                     className={`px-4 py-2 rounded-lg border-2 ${
                       formData.colorIdentity.includes(color) ? 'border-primary-600' : 'border-gray-300'
-                    }`}
+                    } disabled:opacity-60 disabled:cursor-not-allowed`}
                     style={{
                       backgroundColor: formData.colorIdentity.includes(color) ? bg : 'white',
                       color: formData.colorIdentity.includes(color) ? 'white' : 'black',
@@ -279,7 +317,8 @@ const AdminCardFormPage: React.FC = () => {
                 name="typeLine"
                 value={formData.typeLine}
                 onChange={handleChange}
-                className="input"
+                disabled={isEdit}
+                className="input disabled:bg-gray-100 disabled:cursor-not-allowed"
               />
             </div>
 
@@ -290,7 +329,8 @@ const AdminCardFormPage: React.FC = () => {
                 value={formData.oracleText}
                 onChange={handleChange}
                 rows={3}
-                className="input"
+                disabled={isEdit}
+                className="input disabled:bg-gray-100 disabled:cursor-not-allowed"
               />
             </div>
 
@@ -301,7 +341,8 @@ const AdminCardFormPage: React.FC = () => {
                 name="imageUrl"
                 value={formData.imageUrl}
                 onChange={handleChange}
-                className="input"
+                disabled={isEdit}
+                className="input disabled:bg-gray-100 disabled:cursor-not-allowed"
               />
             </div>
 
@@ -312,9 +353,85 @@ const AdminCardFormPage: React.FC = () => {
                 name="scryfallId"
                 value={formData.scryfallId}
                 onChange={handleChange}
-                className="input"
+                disabled={isEdit}
+                className="input disabled:bg-gray-100 disabled:cursor-not-allowed"
               />
             </div>
+
+            <div>
+              <label className="label">UUID (MTGJson)</label>
+              <input
+                type="text"
+                name="uuid"
+                value={formData.uuid}
+                onChange={handleChange}
+                disabled={isEdit}
+                className="input disabled:bg-gray-100 disabled:cursor-not-allowed"
+                placeholder="Auto-filled from set JSON"
+              />
+            </div>
+
+            {isEdit && allPrices && (
+              <div className="md:col-span-2">
+                <label className="label">Latest Prices (Retail)</label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                  {/* CardKingdom Prices */}
+                  {allPrices.cardkingdom?.retail && (
+                    <div>
+                      <h4 className="font-semibold text-sm mb-2" style={{ color: 'var(--color-text)' }}>CardKingdom</h4>
+                      <div className="space-y-1 text-sm">
+                        {allPrices.cardkingdom.retail.normal && (
+                          <div className="flex justify-between">
+                            <span style={{ color: 'var(--color-text-secondary)' }}>Normal:</span>
+                            <span className="font-semibold" style={{ color: 'var(--color-text)' }}>${allPrices.cardkingdom.retail.normal.toFixed(2)}</span>
+                          </div>
+                        )}
+                        {allPrices.cardkingdom.retail.foil && (
+                          <div className="flex justify-between">
+                            <span style={{ color: 'var(--color-text-secondary)' }}>Foil:</span>
+                            <span className="font-semibold" style={{ color: 'var(--color-text)' }}>${allPrices.cardkingdom.retail.foil.toFixed(2)}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* TCGPlayer Prices */}
+                  {allPrices.tcgplayer?.retail && (
+                    <div>
+                      <h4 className="font-semibold text-sm mb-2" style={{ color: 'var(--color-text)' }}>TCGPlayer</h4>
+                      <div className="space-y-1 text-sm">
+                        {allPrices.tcgplayer.retail.normal && (
+                          <div className="flex justify-between">
+                            <span style={{ color: 'var(--color-text-secondary)' }}>Normal:</span>
+                            <span className="font-semibold" style={{ color: 'var(--color-text)' }}>${allPrices.tcgplayer.retail.normal.toFixed(2)}</span>
+                          </div>
+                        )}
+                        {allPrices.tcgplayer.retail.foil && (
+                          <div className="flex justify-between">
+                            <span style={{ color: 'var(--color-text-secondary)' }}>Foil:</span>
+                            <span className="font-semibold" style={{ color: 'var(--color-text)' }}>${allPrices.tcgplayer.retail.foil.toFixed(2)}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {isEdit && !allPrices && formData.uuid && (
+              <div className="md:col-span-2">
+                <label className="label">Latest Prices</label>
+                <input
+                  type="text"
+                  value="No price data available"
+                  disabled
+                  className="input disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  style={{ color: 'var(--color-text-secondary)' }}
+                />
+              </div>
+            )}
 
             <div className="md:col-span-2">
               <label className="label">Notes</label>
@@ -324,22 +441,28 @@ const AdminCardFormPage: React.FC = () => {
                 onChange={handleChange}
                 rows={2}
                 className="input"
+                placeholder="Add your notes here..."
               />
             </div>
           </div>
         </div>
 
+        {/* Price Chart */}
+        {isEdit && formData.uuid && (
+          <CardPriceChart uuid={formData.uuid} />
+        )}
+
         {/* Inventory Management */}
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="rounded-lg shadow p-6" style={{ backgroundColor: 'var(--color-panel)' }}>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold">Inventory</h2>
+            <h2 className="text-2xl font-bold" style={{ color: 'var(--color-text)' }}>Inventory</h2>
             <button type="button" onClick={addInventoryItem} className="btn-primary">
               + Add Inventory Item
             </button>
           </div>
 
           {formData.inventory.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">No inventory items. Click "Add Inventory Item" to add stock.</p>
+            <p className="text-center py-8" style={{ color: 'var(--color-text-secondary)' }}>No inventory items. Click "Add Inventory Item" to add stock.</p>
           ) : (
             <div className="space-y-4">
               {formData.inventory.map((item, index) => (

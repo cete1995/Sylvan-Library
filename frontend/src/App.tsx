@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -19,15 +20,17 @@ import AdminBulkUploadPage from './pages/AdminBulkUploadPage';
 import AdminSetUploadPage from './pages/AdminSetUploadPage';
 import AdminCarouselPage from './pages/AdminCarouselPage';
 import AdminFeaturedPage from './pages/AdminFeaturedPage';
+import AdminPriceManagementPage from './pages/AdminPriceManagementPage';
 import ProfilePage from './pages/ProfilePage';
 import OrderHistoryPage from './pages/OrderHistoryPage';
 
 const App: React.FC = () => {
   return (
-    <AuthProvider>
-      <CartProvider>
-        <BrowserRouter>
-          <div className="min-h-screen flex flex-col">
+    <ThemeProvider>
+      <AuthProvider>
+        <CartProvider>
+          <BrowserRouter>
+            <div className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--color-background)' }}>
             <Navbar />
             <main className="flex-1">
               <Routes>
@@ -124,6 +127,14 @@ const App: React.FC = () => {
                   </ProtectedRoute>
                 }
               />
+              <Route
+                path="/admin/prices"
+                element={
+                  <ProtectedRoute adminOnly={true}>
+                    <AdminPriceManagementPage />
+                  </ProtectedRoute>
+                }
+              />
 
               {/* 404 */}
               <Route
@@ -141,10 +152,10 @@ const App: React.FC = () => {
           </main>
 
           {/* Footer */}
-          <footer className="bg-gray-800 text-white py-8 mt-12">
+          <footer className="py-8 mt-12" style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)' }}>
             <div className="container mx-auto px-4 text-center">
               <p>&copy; 2025 MTG Inventory. All rights reserved.</p>
-              <p className="text-sm text-gray-400 mt-2">
+              <p className="text-sm mt-2" style={{ color: 'var(--color-text-secondary)' }}>
                 Magic: The Gathering is trademark of Wizards of the Coast LLC.
               </p>
             </div>
@@ -153,6 +164,7 @@ const App: React.FC = () => {
       </BrowserRouter>
       </CartProvider>
     </AuthProvider>
+    </ThemeProvider>
   );
 };
 

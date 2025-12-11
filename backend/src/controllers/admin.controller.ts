@@ -250,12 +250,13 @@ export const bulkUploadCards = asyncHandler(async (req: Request, res: Response) 
 });
 
 /**
- * Clear entire database (cards, non-admin users, carts)
+ * Clear entire database (cards, non-admin users, carts, price data)
  * POST /api/admin/clear-database
  */
 export const clearDatabase = asyncHandler(async (req: Request, res: Response) => {
   // Import models
   const { User, Cart, Carousel } = require('../models');
+  const { default: CardPrice } = require('../models/CardPrice');
 
   // Delete all cards
   const deletedCards = await Card.deleteMany({});
@@ -269,6 +270,9 @@ export const clearDatabase = asyncHandler(async (req: Request, res: Response) =>
   // Delete all carousel images
   const deletedCarousel = await Carousel.deleteMany({});
 
+  // Delete all price data
+  const deletedPrices = await CardPrice.deleteMany({});
+
   res.json({
     message: 'Database cleared successfully',
     deletedCounts: {
@@ -276,6 +280,7 @@ export const clearDatabase = asyncHandler(async (req: Request, res: Response) =>
       users: deletedUsers.deletedCount,
       carts: deletedCarts.deletedCount,
       carousel: deletedCarousel.deletedCount,
+      prices: deletedPrices.deletedCount,
     },
   });
 });

@@ -31,7 +31,7 @@ const AdminDashboardPage: React.FC = () => {
 
   const handleClearDatabase = async () => {
     const confirmation = window.confirm(
-      'Are you sure you want to clear ALL data from the database? This action cannot be undone!\n\nThis will delete:\n- All cards\n- All users (except admins)\n- All carts\n\nType "DELETE ALL" in the next prompt to confirm.'
+      'Are you sure you want to clear ALL data from the database? This action cannot be undone!\n\nThis will delete:\n- All cards\n- All users (except admins)\n- All carts\n- All carousel images\n- All price data\n\nType "DELETE ALL" in the next prompt to confirm.'
     );
     
     if (!confirmation) return;
@@ -44,8 +44,10 @@ const AdminDashboardPage: React.FC = () => {
 
     setClearing(true);
     try {
-      await adminApi.clearDatabase();
-      alert('Database cleared successfully!');
+      const result = await adminApi.clearDatabase();
+      alert(
+        `Database cleared successfully!\n\nDeleted:\n- ${result.deletedCounts.cards} cards\n- ${result.deletedCounts.users} users\n- ${result.deletedCounts.carts} carts\n- ${result.deletedCounts.carousel} carousel images\n- ${result.deletedCounts.prices} price records`
+      );
       loadStats(); // Reload stats
     } catch (error: any) {
       alert('Failed to clear database: ' + (error.response?.data?.error || error.message));
@@ -56,109 +58,254 @@ const AdminDashboardPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-12 text-center">
-        <div className="text-xl">Loading...</div>
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--color-background)' }}>
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mb-4"></div>
+          <div className="text-xl" style={{ color: 'var(--color-text-secondary)' }}>Loading dashboard...</div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-4xl font-bold mb-8">Admin Dashboard</h1>
-
-      {/* Stats Cards */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="text-gray-600 mb-2">Total Unique Cards</div>
-          <div className="text-3xl font-bold text-primary-600">{stats?.totalCards || 0}</div>
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--color-background)' }}>
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold mb-2" style={{ color: 'var(--color-text)' }}>Admin Dashboard</h1>
+          <p style={{ color: 'var(--color-text-secondary)' }}>Welcome back! Manage your MTG card inventory from here.</p>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="text-gray-600 mb-2">Total Quantity</div>
-          <div className="text-3xl font-bold text-primary-600">{stats?.totalQuantity || 0}</div>
+        {/* Stats Cards */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {/* Total Cards */}
+          <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white transform hover:scale-105 transition-transform">
+            <div className="flex items-center justify-between mb-4">
+              <div className="bg-white bg-opacity-20 p-3 rounded-lg">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+              </div>
+            </div>
+            <div className="text-sm font-medium opacity-90 mb-1">Unique Cards</div>
+            <div className="text-4xl font-bold">{stats?.totalCards || 0}</div>
+            <div className="text-xs opacity-75 mt-2">In catalog</div>
+          </div>
+
+          {/* Total Quantity */}
+          <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg p-6 text-white transform hover:scale-105 transition-transform">
+            <div className="flex items-center justify-between mb-4">
+              <div className="bg-white bg-opacity-20 p-3 rounded-lg">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                </svg>
+              </div>
+            </div>
+            <div className="text-sm font-medium opacity-90 mb-1">Total Quantity</div>
+            <div className="text-4xl font-bold">{stats?.totalQuantity || 0}</div>
+            <div className="text-xs opacity-75 mt-2">Cards in stock</div>
+          </div>
+
+          {/* Inventory Value */}
+          <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-6 text-white transform hover:scale-105 transition-transform">
+            <div className="flex items-center justify-between mb-4">
+              <div className="bg-white bg-opacity-20 p-3 rounded-lg">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+            </div>
+            <div className="text-sm font-medium opacity-90 mb-1">Inventory Value</div>
+            <div className="text-3xl font-bold">Rp {formatPrice(stats?.totalInventoryValue || 0)}</div>
+            <div className="text-xs opacity-75 mt-2">Buy price total</div>
+          </div>
+
+          {/* Listing Value */}
+          <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl shadow-lg p-6 text-white transform hover:scale-105 transition-transform">
+            <div className="flex items-center justify-between mb-4">
+              <div className="bg-white bg-opacity-20 p-3 rounded-lg">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                </svg>
+              </div>
+            </div>
+            <div className="text-sm font-medium opacity-90 mb-1">Listing Value</div>
+            <div className="text-3xl font-bold">Rp {formatPrice(stats?.totalListingValue || 0)}</div>
+            <div className="text-xs opacity-75 mt-2">Sell price total</div>
+          </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="text-gray-600 mb-2">Inventory Value</div>
-          <div className="text-3xl font-bold text-green-600">Rp. {formatPrice(stats?.totalInventoryValue || 0)}</div>
-          <div className="text-sm text-gray-500 mt-1">Based on buy prices</div>
+        {/* Main Actions Grid */}
+        <div className="grid lg:grid-cols-3 gap-6 mb-8">
+          {/* Card Management */}
+          <div className="rounded-xl shadow-md p-6 border-t-4 border-blue-500" style={{ backgroundColor: 'var(--color-panel)' }}>
+            <div className="flex items-center mb-4">
+              <div className="bg-blue-100 p-3 rounded-lg mr-3">
+                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold" style={{ color: 'var(--color-text)' }}>Card Management</h3>
+            </div>
+            <p className="mb-6 text-sm" style={{ color: 'var(--color-text-secondary)' }}>Add and manage individual cards in your inventory</p>
+            <div className="space-y-3">
+              <Link
+                to="/admin/cards/new"
+                className="block w-full px-4 py-3 rounded-lg font-medium text-center hover:opacity-90 shadow-sm"
+                style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-panel)' }}
+              >
+                + Add New Card
+              </Link>
+              <Link
+                to="/admin/cards"
+                className="block w-full border-2 px-4 py-3 rounded-lg font-medium text-center hover:opacity-80"
+                style={{ borderColor: 'var(--color-accent)', color: 'var(--color-accent)' }}
+              >
+                Browse All Cards
+              </Link>
+            </div>
+          </div>
+
+          {/* Bulk Operations */}
+          <div className="rounded-xl shadow-md p-6 border-t-4 border-green-500" style={{ backgroundColor: 'var(--color-panel)' }}>
+            <div className="flex items-center mb-4">
+              <div className="bg-green-100 p-3 rounded-lg mr-3">
+                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold" style={{ color: 'var(--color-text)' }}>Bulk Import</h3>
+            </div>
+            <p className="mb-6 text-sm" style={{ color: 'var(--color-text-secondary)' }}>Import multiple cards at once using CSV or JSON</p>
+            <div className="space-y-3">
+              <Link
+                to="/admin/bulk-upload"
+                className="block w-full px-4 py-3 rounded-lg font-medium text-center hover:opacity-90 shadow-sm"
+                style={{ backgroundColor: 'var(--color-highlight)', color: 'var(--color-panel)' }}
+              >
+                Upload CSV File
+              </Link>
+              <Link
+                to="/admin/set-upload"
+                className="block w-full border-2 px-4 py-3 rounded-lg font-medium text-center hover:opacity-80"
+                style={{ borderColor: 'var(--color-highlight)', color: 'var(--color-highlight)' }}
+              >
+                Import Set JSON
+              </Link>
+            </div>
+          </div>
+
+          {/* Website Content */}
+          <div className="rounded-xl shadow-md p-6 border-t-4 border-purple-500" style={{ backgroundColor: 'var(--color-panel)' }}>
+            <div className="flex items-center mb-4">
+              <div className="bg-purple-100 p-3 rounded-lg mr-3">
+                <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold" style={{ color: 'var(--color-text)' }}>Website Content</h3>
+            </div>
+            <p className="mb-6 text-sm" style={{ color: 'var(--color-text-secondary)' }}>Manage homepage carousel and featured items</p>
+            <div className="space-y-3">
+              <Link
+                to="/admin/carousel"
+                className="block w-full px-4 py-3 rounded-lg font-medium text-center hover:opacity-90 shadow-sm"
+                style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-panel)' }}
+              >
+                Manage Carousel
+              </Link>
+              <Link
+                to="/admin/featured"
+                className="block w-full border-2 px-4 py-3 rounded-lg font-medium text-center hover:opacity-80"
+                style={{ borderColor: 'var(--color-accent)', color: 'var(--color-accent)' }}
+              >
+                Featured Section
+              </Link>
+            </div>
+          </div>
+
+          {/* Price Data Management */}
+          <div className="rounded-xl shadow-md p-6 border-t-4 border-green-500" style={{ backgroundColor: 'var(--color-panel)' }}>
+            <div className="flex items-center mb-4">
+              <div className="bg-green-100 p-3 rounded-lg mr-3">
+                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold" style={{ color: 'var(--color-text)' }}>Price Data</h3>
+            </div>
+            <p className="mb-6 text-sm" style={{ color: 'var(--color-text-secondary)' }}>Import and track market prices from MTGJson</p>
+            <div className="space-y-3">
+              <Link
+                to="/admin/prices"
+                className="block w-full px-4 py-3 rounded-lg font-medium text-center hover:opacity-90 shadow-sm"
+                style={{ backgroundColor: 'var(--color-highlight)', color: 'var(--color-panel)' }}
+              >
+                📊 Manage Price Data
+              </Link>
+            </div>
+          </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="text-gray-600 mb-2">Listing Value</div>
-          <div className="text-3xl font-bold text-blue-600">Rp. {formatPrice(stats?.totalListingValue || 0)}</div>
-          <div className="text-sm text-gray-500 mt-1">Based on sell prices</div>
+        {/* Info Banner */}
+        <div className="border-l-4 border-blue-500 rounded-lg p-6 mb-6 shadow-sm" style={{ backgroundColor: 'var(--color-panel)' }}>
+          <div className="flex items-start">
+            <svg className="w-6 h-6 text-blue-600 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+              <h3 className="font-bold text-lg mb-2" style={{ color: 'var(--color-text)' }}>Quick Guide</h3>
+              <ul className="space-y-1.5 text-sm" style={{ color: 'var(--color-text)' }}>
+                <li className="flex items-start">
+                  <span className="text-blue-600 mr-2">•</span>
+                  <span><strong>Add New Card:</strong> Manually create a single card entry with full details</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-blue-600 mr-2">•</span>
+                  <span><strong>Upload CSV:</strong> Import multiple cards with inventory from spreadsheet</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-blue-600 mr-2">•</span>
+                  <span><strong>Import Set JSON:</strong> Add entire MTG sets from MTGJson (creates catalog without inventory)</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-blue-600 mr-2">•</span>
+                  <span><strong>Browse Cards:</strong> Edit existing cards, update prices, manage inventory, and add notes</span>
+                </li>
+              </ul>
+            </div>
+          </div>
         </div>
-      </div>
 
-      {/* Quick Actions */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-        <h2 className="text-2xl font-bold mb-4">Quick Actions</h2>
-        <div className="grid md:grid-cols-3 lg:grid-cols-7 gap-4">
-          <Link
-            to="/admin/cards/new"
-            className="btn-primary text-center py-4"
-          >
-            + Add New Card
-          </Link>
-          
-          <Link
-            to="/admin/cards"
-            className="btn-secondary text-center py-4"
-          >
-            Manage Cards
-          </Link>
-
-          <Link
-            to="/admin/bulk-upload"
-            className="border-2 border-primary-600 text-primary-600 px-4 py-4 rounded-lg hover:bg-primary-50 transition-colors font-medium text-center"
-          >
-            Bulk Upload CSV
-          </Link>
-
-          <Link
-            to="/admin/set-upload"
-            className="border-2 border-green-600 text-green-600 px-4 py-4 rounded-lg hover:bg-green-50 transition-colors font-medium text-center"
-          >
-            Upload Set JSON
-          </Link>
-
-          <Link
-            to="/admin/carousel"
-            className="border-2 border-purple-600 text-purple-600 px-4 py-4 rounded-lg hover:bg-purple-50 transition-colors font-medium text-center"
-          >
-            Manage Carousel
-          </Link>
-
-          <Link
-            to="/admin/featured"
-            className="border-2 border-indigo-600 text-indigo-600 px-4 py-4 rounded-lg hover:bg-indigo-50 transition-colors font-medium text-center"
-          >
-            Featured Section
-          </Link>
-
+        {/* Danger Zone */}
+        <div className="rounded-xl shadow-md p-6 border-l-4 border-red-500" style={{ backgroundColor: 'var(--color-panel)' }}>
+          <div className="flex items-center mb-4">
+            <svg className="w-6 h-6 text-red-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <h3 className="text-xl font-bold" style={{ color: 'var(--color-text)' }}>Danger Zone</h3>
+          </div>
+          <p className="mb-4 text-sm" style={{ color: 'var(--color-text-secondary)' }}>Irreversible actions that will permanently delete data</p>
           <button
             onClick={handleClearDatabase}
             disabled={clearing}
-            className="border-2 border-red-600 text-red-600 px-4 py-4 rounded-lg hover:bg-red-50 transition-colors font-medium text-center disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-6 py-3 rounded-lg font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+            style={{ backgroundColor: '#DC2626', color: 'var(--color-panel)' }}
           >
-            {clearing ? 'Clearing...' : 'Clear Database'}
+            {clearing ? (
+              <span className="flex items-center">
+                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Clearing Database...
+              </span>
+            ) : (
+              '🗑️ Clear All Database'
+            )}
           </button>
+          <p className="text-xs mt-2" style={{ color: 'var(--color-text-secondary)' }}>This will delete all cards, users (except admins), and carts. This cannot be undone!</p>
         </div>
-      </div>
-
-      {/* Info Section */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-        <h3 className="font-bold text-lg mb-2">Welcome to Your Dashboard!</h3>
-        <p className="text-gray-700 mb-2">
-          From here you can manage your entire MTG card inventory. Add new cards, update prices and quantities, or upload cards in bulk.
-        </p>
-        <ul className="list-disc list-inside text-gray-700 space-y-1">
-          <li>Use "Add New Card" to manually add individual cards</li>
-          <li>Use "Manage Cards" to edit or delete existing cards</li>
-          <li>Use "Bulk Upload CSV" to import many cards at once</li>
-          <li>Use "Upload Set JSON" to import entire sets from MTGJson with quantity 0</li>
-        </ul>
       </div>
     </div>
   );

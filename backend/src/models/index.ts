@@ -5,3 +5,4 @@ export { default as Carousel, ICarousel } from './Carousel.model';
 export { default as FeaturedBanner, IFeaturedBanner } from './FeaturedBanner.model';
 export { default as FeaturedProduct, IFeaturedProduct } from './FeaturedProduct.model';
 export { default as Order, IOrder, IOrderItem } from './Order.model';
+export { default as CardPrice, ICardPrice } from './CardPrice';

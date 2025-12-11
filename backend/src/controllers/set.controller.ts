@@ -21,6 +21,7 @@ interface MTGJsonCard {
   flavorText?: string;
   borderColor?: string;
   frameEffects?: string[];
+  uuid?: string;
   identifiers?: {
     scryfallId?: string;
   };
@@ -96,6 +97,7 @@ export const uploadSetJson = asyncHandler(async (req: Request, res: Response) =>
           typeLine: typeLine,
           oracleText: cardData.text || '',
           scryfallId: cardData.identifiers?.scryfallId || '',
+          uuid: cardData.uuid || '',
           borderColor: cardData.borderColor || 'black',
           frameEffects: cardData.frameEffects || [],
           imageUrl: cardData.identifiers?.scryfallId 

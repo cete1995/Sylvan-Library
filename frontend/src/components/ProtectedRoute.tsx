@@ -28,8 +28,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, adminOnly = t
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-red-600 mb-4">Access Denied</h1>
-          <p className="text-gray-600 mb-4">You do not have permission to access this page.</p>
-          <a href="/" className="text-primary-600 hover:underline">Go to Home</a>
+          <p className="mb-4" style={{ color: 'var(--color-text-secondary)' }}>You do not have permission to access this page.</p>
+          <a href="/" className="hover:underline" style={{ color: 'var(--color-accent)' }}>Go to Home</a>
         </div>
       </div>
     );

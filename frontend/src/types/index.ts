@@ -28,6 +28,7 @@ export interface Card {
   language: string;
   imageUrl?: string;
   scryfallId?: string;
+  uuid?: string;
   typeLine?: string;
   oracleText?: string;
   colorIdentity: string[];
@@ -51,6 +52,7 @@ export interface CardFormData {
   language: string;
   imageUrl?: string;
   scryfallId?: string;
+  uuid?: string;
   typeLine?: string;
   oracleText?: string;
   colorIdentity: string[];

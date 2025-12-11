@@ -54,16 +54,16 @@ const AdminBulkUploadPage: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <Link to="/admin/dashboard" className="text-primary-600 hover:underline mb-4 inline-block">
+      <Link to="/admin/dashboard" className="hover:underline mb-4 inline-block" style={{ color: 'var(--color-accent)' }}>
         ← Back to Dashboard
       </Link>
 
-      <h1 className="text-4xl font-bold mb-8">Bulk Upload Cards</h1>
+      <h1 className="text-4xl font-bold mb-8" style={{ color: 'var(--color-text)' }}>Bulk Upload Cards</h1>
 
       {/* Instructions */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
-        <h2 className="font-bold text-lg mb-3">Instructions</h2>
-        <ol className="list-decimal list-inside space-y-2 text-gray-700">
+      <div className="border rounded-lg p-6 mb-8" style={{ backgroundColor: 'var(--color-panel)', borderColor: 'var(--color-accent)', opacity: 0.9 }}>
+        <h2 className="font-bold text-lg mb-3" style={{ color: 'var(--color-text)' }}>Instructions</h2>
+        <ol className="list-decimal list-inside space-y-2" style={{ color: 'var(--color-text)' }}>
           <li>Download the CSV template below</li>
           <li>Fill in your card data (one card per row)</li>
           <li>Save the file as CSV format</li>
@@ -76,8 +76,8 @@ const AdminBulkUploadPage: React.FC = () => {
       </div>
 
       {/* CSV Format Reference */}
-      <div className="bg-white rounded-lg shadow p-6 mb-8">
-        <h2 className="font-bold text-xl mb-4">CSV Format</h2>
+      <div className="rounded-lg shadow p-6 mb-8" style={{ backgroundColor: 'var(--color-panel)' }}>
+        <h2 className="font-bold text-xl mb-4" style={{ color: 'var(--color-text)' }}>CSV Format</h2>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -107,8 +107,8 @@ const AdminBulkUploadPage: React.FC = () => {
       </div>
 
       {/* Upload Form */}
-      <div className="bg-white rounded-lg shadow p-6 mb-8">
-        <h2 className="font-bold text-xl mb-4">Upload File</h2>
+      <div className="rounded-lg shadow p-6 mb-8" style={{ backgroundColor: 'var(--color-panel)' }}>
+        <h2 className="font-bold text-xl mb-4" style={{ color: 'var(--color-text)' }}>Upload File</h2>
         <form onSubmit={handleUpload}>
           <div className="mb-4">
             <label className="label">Select CSV File</label>
@@ -117,7 +117,8 @@ const AdminBulkUploadPage: React.FC = () => {
               type="file"
               accept=".csv"
               onChange={handleFileChange}
-              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
+              className="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
+              style={{ color: 'var(--color-text-secondary)' }}
             />
           </div>
 
@@ -140,24 +141,24 @@ const AdminBulkUploadPage: React.FC = () => {
           <div className="grid md:grid-cols-2 gap-4 mb-4">
             <div>
               <div className="text-green-600 text-3xl font-bold">{result.imported}</div>
-              <div className="text-gray-600">Cards Imported</div>
+              <div style={{ color: 'var(--color-text-secondary)' }}>Cards Imported</div>
             </div>
             <div>
               <div className="text-red-600 text-3xl font-bold">{result.failed}</div>
-              <div className="text-gray-600">Failed</div>
+              <div style={{ color: 'var(--color-text-secondary)' }}>Failed</div>
             </div>
           </div>
 
           {result.errors.length > 0 && (
             <div>
-              <h3 className="font-semibold mb-2">Errors:</h3>
-              <ul className="list-disc list-inside space-y-1 text-sm text-gray-700">
+              <h3 className="font-semibold mb-2" style={{ color: 'var(--color-text)' }}>Errors:</h3>
+              <ul className="list-disc list-inside space-y-1 text-sm" style={{ color: 'var(--color-text)' }}>
                 {result.errors.map((error, index) => (
                   <li key={index}>{error}</li>
                 ))}
               </ul>
               {result.failed > result.errors.length && (
-                <p className="text-sm text-gray-600 mt-2">
+                <p className="text-sm mt-2" style={{ color: 'var(--color-text-secondary)' }}>
                   ... and {result.failed - result.errors.length} more errors
                 </p>
               )}

@@ -44,6 +44,7 @@ import adminFeaturedRoutes from './routes/featured.routes';
 import uploadRoutes from './routes/upload.routes';
 import profileRoutes from './routes/profile.routes';
 import orderRoutes from './routes/order.routes';
+import priceRoutes from './routes/price.routes';
 
 app.get('/api', (_req, res) => {
   res.json({
@@ -59,6 +60,7 @@ app.get('/api', (_req, res) => {
       featured: '/api/featured',
       profile: '/api/profile',
       orders: '/api/orders',
+      prices: '/api/prices',
     },
   });
 });
@@ -75,6 +77,7 @@ app.use('/api/admin/featured', adminFeaturedRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/prices', priceRoutes);
 
 // Error handling
 app.use(notFoundHandler);
