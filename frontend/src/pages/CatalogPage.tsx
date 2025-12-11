@@ -29,6 +29,7 @@ const CatalogPage: React.FC = () => {
   const [minPrice, setMinPrice] = useState(searchParams.get('minPrice') || '');
   const [maxPrice, setMaxPrice] = useState(searchParams.get('maxPrice') || '');
   const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'name_asc');
+  const [isFilterOpen, setIsFilterOpen] = useState(true);
 
   useEffect(() => {
     loadSets();
@@ -116,15 +117,31 @@ const CatalogPage: React.FC = () => {
         <div className="grid lg:grid-cols-4 gap-6">
           {/* Filters Sidebar */}
           <div className="lg:col-span-1">
-            <div className="rounded-xl shadow-lg p-6 lg:sticky lg:top-4" style={{ backgroundColor: 'var(--color-panel)' }}>
-              <div className="flex items-center mb-4">
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--color-accent)' }}>
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+            <div className="rounded-xl shadow-lg lg:sticky lg:top-4" style={{ backgroundColor: 'var(--color-panel)' }}>
+              <button
+                onClick={() => setIsFilterOpen(!isFilterOpen)}
+                className="w-full flex items-center justify-between p-6 hover:opacity-80 transition-opacity"
+              >
+                <div className="flex items-center">
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--color-accent)' }}>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                  </svg>
+                  <h2 className="text-xl font-bold" style={{ color: 'var(--color-text)' }}>Filters</h2>
+                </div>
+                <svg
+                  className={`w-5 h-5 transition-transform ${isFilterOpen ? 'rotate-180' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  style={{ color: 'var(--color-text)' }}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
-                <h2 className="text-xl font-bold" style={{ color: 'var(--color-text)' }}>Filters</h2>
-              </div>
+              </button>
               
-              <form onSubmit={handleSearch} className="space-y-4">
+              {isFilterOpen && (
+                <div className="px-6 pb-6">
+                  <form onSubmit={handleSearch} className="space-y-4">
                 {/* Search */}
                 <div>
                   <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--color-text)' }}>
@@ -293,6 +310,8 @@ const CatalogPage: React.FC = () => {
                   Clear All
                 </button>
               </form>
+                </div>
+              )}
             </div>
           </div>
 

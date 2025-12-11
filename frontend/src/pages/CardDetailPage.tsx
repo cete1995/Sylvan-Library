@@ -14,6 +14,8 @@ const CardDetailPage: React.FC = () => {
   const [card, setCard] = useState<Card | null>(null);
   const [loading, setLoading] = useState(true);
   const [addingToCart, setAddingToCart] = useState<number | null>(null);
+  const [activeTab, setActiveTab] = useState<'NM' | 'LP' | 'P'>('NM');
+  const [quantities, setQuantities] = useState<{ [key: number]: number }>({});
 
   useEffect(() => {
     if (id) {
@@ -42,8 +44,9 @@ const CardDetailPage: React.FC = () => {
     if (!card) return;
 
     setAddingToCart(inventoryIndex);
+    const quantity = quantities[inventoryIndex] || 1;
     try {
-      await cartApi.addToCart(card._id, inventoryIndex, 1);
+      await cartApi.addToCart(card._id, inventoryIndex, quantity);
       await refreshCart(); // Update cart count in navbar
       alert('Item added to cart!');
     } catch (error: any) {
@@ -56,6 +59,28 @@ const CardDetailPage: React.FC = () => {
   // Format price with thousands separator
   const formatPrice = (price: number): string => {
     return price.toLocaleString('id-ID');
+  };
+
+  const getConditionLabel = (condition: string): string => {
+    switch (condition) {
+      case 'NM': return 'Near Mint';
+      case 'LP': return 'Lightly Played';
+      case 'P': return 'Played';
+      default: return condition;
+    }
+  };
+
+  const updateQuantity = (index: number, delta: number) => {
+    const currentQty = quantities[index] || 1;
+    const newQty = Math.max(1, currentQty + delta);
+    const maxQty = card?.inventory[index]?.quantityForSale || 1;
+    setQuantities({ ...quantities, [index]: Math.min(newQty, maxQty) });
+  };
+
+  const handleQuantityChange = (index: number, value: string) => {
+    const numValue = parseInt(value) || 1;
+    const maxQty = card?.inventory[index]?.quantityForSale || 1;
+    setQuantities({ ...quantities, [index]: Math.min(Math.max(1, numValue), maxQty) });
   };
 
   if (loading) {
@@ -138,74 +163,187 @@ const CardDetailPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Right Column - Inventory Table */}
+        {/* Right Column - Inventory Tabs */}
         <div>
           {card.inventory && card.inventory.length > 0 ? (
-            <div className="border-2 border-gray-300 rounded-lg overflow-x-auto">
-              {/* Table Header */}
-              <table className="w-full min-w-[600px]">
-                <thead>
-                  <tr style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-panel)' }}>
-                    <th className="py-2 md:py-3 px-2 md:px-4 text-center text-xs md:text-base font-bold border-r border-white">Quality</th>
-                    <th className="py-2 md:py-3 px-2 md:px-4 text-center text-xs md:text-base font-bold border-r border-white">Price</th>
-                    <th className="py-2 md:py-3 px-2 md:px-4 text-center text-xs md:text-base font-bold border-r border-white">Stock</th>
-                    <th className="py-2 md:py-3 px-2 md:px-4 text-center text-xs md:text-base font-bold border-r border-white">Quantity</th>
-                    <th className="py-2 md:py-3 px-2 md:px-4 text-center text-xs md:text-base font-bold">Add to Cart</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {card.inventory.map((item, index) => {
-                    const qualityLabel = item.condition === 'NM' 
-                      ? `Near Mint (${item.finish === 'foil' ? 'Foil' : 'Non Foil'})`
-                      : `${item.condition} (${item.finish === 'foil' ? 'Foil' : 'Non Foil'})`;
+            <div className="border-2 rounded-lg overflow-hidden" style={{ borderColor: 'var(--color-text-secondary)' }}>
+              {/* Tab Headers */}
+              <div className="flex border-b" style={{ borderColor: 'var(--color-text-secondary)' }}>
+                {['NM', 'LP', 'P'].map((condition) => {
+                  const hasInventory = card.inventory.some(item => item.condition === condition && item.finish === 'nonfoil');
+                  return (
+                    <button
+                      key={condition}
+                      onClick={() => setActiveTab(condition as 'NM' | 'LP' | 'P')}
+                      disabled={!hasInventory}
+                      className={`flex-1 py-3 px-4 font-bold text-sm md:text-base transition-colors ${
+                        activeTab === condition 
+                          ? 'border-b-4' 
+                          : 'opacity-60'
+                      } ${!hasInventory ? 'opacity-30 cursor-not-allowed' : 'hover:opacity-100'}`}
+                      style={{ 
+                        backgroundColor: activeTab === condition ? 'var(--color-accent)' : 'var(--color-panel)',
+                        color: activeTab === condition ? 'var(--color-panel)' : 'var(--color-text)',
+                        borderBottomColor: activeTab === condition ? 'var(--color-highlight)' : 'transparent'
+                      }}
+                    >
+                      {condition}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Tab Content */}
+              <div className="p-4 md:p-6" style={{ backgroundColor: 'var(--color-panel)' }}>
+                {(() => {
+                  const nonfoilItem = card.inventory.find(item => item.condition === activeTab && item.finish === 'nonfoil');
+                  const foilItem = card.inventory.find(item => item.condition === activeTab && item.finish === 'foil');
+                  const nonfoilIndex = card.inventory.findIndex(item => item.condition === activeTab && item.finish === 'nonfoil');
+                  const foilIndex = card.inventory.findIndex(item => item.condition === activeTab && item.finish === 'foil');
+
+                  if (!nonfoilItem && !foilItem) {
                     return (
-                      <tr key={index} className="border-t hover:opacity-90" style={{ backgroundColor: 'var(--color-panel)', borderColor: 'var(--color-text-secondary)' }}>
-                        <td className="py-2 md:py-3 px-2 md:px-4 text-center text-xs md:text-base font-semibold border-r" style={{ color: 'var(--color-text)', borderColor: 'var(--color-text-secondary)' }}>
-                          {qualityLabel}
-                        </td>
-                        <td className="py-2 md:py-3 px-2 md:px-4 text-center text-xs md:text-base border-r" style={{ color: 'var(--color-text)', borderColor: 'var(--color-text-secondary)' }}>
-                          {formatPrice(item.sellPrice)}
-                        </td>
-                        <td className="py-2 md:py-3 px-2 md:px-4 text-center border-r" style={{ borderColor: 'var(--color-text-secondary)' }}>
-                          <span className={item.quantityForSale > 0 ? 'text-green-600 font-semibold text-xs md:text-base' : 'text-red-600 font-semibold text-xs md:text-base'}>
-                            {item.quantityForSale}
-                          </span>
-                        </td>
-                        <td className="py-2 md:py-3 px-2 md:px-4 text-center border-r" style={{ borderColor: 'var(--color-text-secondary)' }}>
-                          <div className="flex items-center justify-center gap-1 md:gap-2">
-                            <button className="w-6 h-6 md:w-8 md:h-8 text-xs md:text-base font-bold rounded hover:opacity-90" style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-panel)' }}>
-                              −
-                            </button>
-                            <input 
-                              type="number" 
-                              defaultValue="1" 
-                              min="1"
-                              max={item.quantityForSale}
-                              className="w-12 md:w-16 text-xs md:text-base text-center border border-gray-300 rounded py-1 appearance-none"
-                              style={{ MozAppearance: 'textfield' }}
-                            />
-                            <button className="w-6 h-6 md:w-8 md:h-8 text-xs md:text-base font-bold rounded hover:opacity-90" style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-panel)' }}>
-                              +
-                            </button>
-                          </div>
-                        </td>
-                        <td className="py-2 md:py-3 px-2 md:px-4 text-center">
-                          <button
-                            onClick={() => handleAddToCart(index)}
-                            disabled={item.quantityForSale === 0 || addingToCart === index}
-                            className="font-bold py-1.5 px-4 md:py-2 md:px-6 rounded disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center mx-auto text-xs md:text-base hover:opacity-90"
-                            style={{ backgroundColor: 'var(--color-highlight)', color: 'var(--color-panel)' }}
-                          >
-                            <svg className="w-4 h-4 md:w-5 md:h-5" fill="currentColor" viewBox="0 0 20 20">
-                              <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
-                            </svg>
-                          </button>
-                        </td>
-                      </tr>
+                      <div className="text-center py-8" style={{ color: 'var(--color-text-secondary)' }}>
+                        <p className="text-lg font-semibold">No inventory available for {getConditionLabel(activeTab)}</p>
+                      </div>
                     );
-                  })}
-                </tbody>
-              </table>
+                  }
+
+                  return (
+                    <div className="overflow-x-auto">
+                      <table className="w-full min-w-[600px]">
+                        <thead>
+                          <tr style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-panel)' }}>
+                            <th className="py-3 px-4 text-center text-sm md:text-base font-bold border-r border-white">Quality</th>
+                            <th className="py-3 px-4 text-center text-sm md:text-base font-bold border-r border-white">Price</th>
+                            <th className="py-3 px-4 text-center text-sm md:text-base font-bold border-r border-white">Stock</th>
+                            <th className="py-3 px-4 text-center text-sm md:text-base font-bold border-r border-white">Quantity</th>
+                            <th className="py-3 px-4 text-center text-sm md:text-base font-bold">Add to Cart</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {nonfoilItem && (
+                            <tr className="border-t" style={{ backgroundColor: 'var(--color-background)', borderColor: 'var(--color-text-secondary)' }}>
+                              <td className="py-3 px-4 text-center text-sm md:text-base font-semibold border-r" style={{ color: 'var(--color-text)', borderColor: 'var(--color-text-secondary)' }}>
+                                {getConditionLabel(activeTab)} (Non Foil)
+                              </td>
+                              <td className="py-3 px-4 text-center text-sm md:text-base border-r" style={{ color: 'var(--color-text)', borderColor: 'var(--color-text-secondary)' }}>
+                                Rp. {formatPrice(nonfoilItem.sellPrice)}
+                              </td>
+                              <td className="py-3 px-4 text-center border-r" style={{ borderColor: 'var(--color-text-secondary)' }}>
+                                <span className={nonfoilItem.quantityForSale > 0 ? 'text-emerald-500 font-bold text-sm md:text-base' : 'text-red-600 font-semibold text-sm md:text-base'}>
+                                  {nonfoilItem.quantityForSale}
+                                </span>
+                              </td>
+                              <td className="py-3 px-4 text-center border-r" style={{ borderColor: 'var(--color-text-secondary)' }}>
+                                <div className="flex items-center justify-center gap-2">
+                                  <button 
+                                    onClick={() => updateQuantity(nonfoilIndex, -1)}
+                                    className="w-8 h-8 text-base font-bold rounded hover:opacity-90" 
+                                    style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-panel)' }}
+                                  >
+                                    −
+                                  </button>
+                                  <input 
+                                    type="number" 
+                                    value={quantities[nonfoilIndex] || 1}
+                                    onChange={(e) => handleQuantityChange(nonfoilIndex, e.target.value)}
+                                    min="1"
+                                    max={nonfoilItem.quantityForSale}
+                                    className="w-16 text-sm md:text-base text-center border rounded py-1"
+                                    style={{ 
+                                      borderColor: 'var(--color-text-secondary)',
+                                      backgroundColor: 'var(--color-panel)',
+                                      color: 'var(--color-text)'
+                                    }}
+                                  />
+                                  <button 
+                                    onClick={() => updateQuantity(nonfoilIndex, 1)}
+                                    className="w-8 h-8 text-base font-bold rounded hover:opacity-90" 
+                                    style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-panel)' }}
+                                  >
+                                    +
+                                  </button>
+                                </div>
+                              </td>
+                              <td className="py-3 px-4 text-center">
+                                <button
+                                  onClick={() => handleAddToCart(nonfoilIndex)}
+                                  disabled={nonfoilItem.quantityForSale === 0 || addingToCart === nonfoilIndex}
+                                  className="font-bold py-2 px-6 rounded disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center mx-auto text-sm md:text-base hover:opacity-90"
+                                  style={{ backgroundColor: 'var(--color-highlight)', color: 'var(--color-panel)' }}
+                                >
+                                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
+                                  </svg>
+                                </button>
+                              </td>
+                            </tr>
+                          )}
+                          {foilItem && (
+                            <tr className="border-t" style={{ backgroundColor: 'var(--color-background)', borderColor: 'var(--color-text-secondary)' }}>
+                              <td className="py-3 px-4 text-center text-sm md:text-base font-semibold border-r" style={{ color: 'var(--color-text)', borderColor: 'var(--color-text-secondary)' }}>
+                                {getConditionLabel(activeTab)} (Foil)
+                              </td>
+                              <td className="py-3 px-4 text-center text-sm md:text-base border-r" style={{ color: 'var(--color-text)', borderColor: 'var(--color-text-secondary)' }}>
+                                Rp. {formatPrice(foilItem.sellPrice)}
+                              </td>
+                              <td className="py-3 px-4 text-center border-r" style={{ borderColor: 'var(--color-text-secondary)' }}>
+                                <span className={foilItem.quantityForSale > 0 ? 'text-emerald-500 font-bold text-sm md:text-base' : 'text-red-600 font-semibold text-sm md:text-base'}>
+                                  {foilItem.quantityForSale}
+                                </span>
+                              </td>
+                              <td className="py-3 px-4 text-center border-r" style={{ borderColor: 'var(--color-text-secondary)' }}>
+                                <div className="flex items-center justify-center gap-2">
+                                  <button 
+                                    onClick={() => updateQuantity(foilIndex, -1)}
+                                    className="w-8 h-8 text-base font-bold rounded hover:opacity-90" 
+                                    style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-panel)' }}
+                                  >
+                                    −
+                                  </button>
+                                  <input 
+                                    type="number" 
+                                    value={quantities[foilIndex] || 1}
+                                    onChange={(e) => handleQuantityChange(foilIndex, e.target.value)}
+                                    min="1"
+                                    max={foilItem.quantityForSale}
+                                    className="w-16 text-sm md:text-base text-center border rounded py-1"
+                                    style={{ 
+                                      borderColor: 'var(--color-text-secondary)',
+                                      backgroundColor: 'var(--color-panel)',
+                                      color: 'var(--color-text)'
+                                    }}
+                                  />
+                                  <button 
+                                    onClick={() => updateQuantity(foilIndex, 1)}
+                                    className="w-8 h-8 text-base font-bold rounded hover:opacity-90" 
+                                    style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-panel)' }}
+                                  >
+                                    +
+                                  </button>
+                                </div>
+                              </td>
+                              <td className="py-3 px-4 text-center">
+                                <button
+                                  onClick={() => handleAddToCart(foilIndex)}
+                                  disabled={foilItem.quantityForSale === 0 || addingToCart === foilIndex}
+                                  className="font-bold py-2 px-6 rounded disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center mx-auto text-sm md:text-base hover:opacity-90"
+                                  style={{ backgroundColor: 'var(--color-highlight)', color: 'var(--color-panel)' }}
+                                >
+                                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
+                                  </svg>
+                                </button>
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  );
+                })()}
+              </div>
             </div>
           ) : (
             <div className="text-center py-12 bg-gray-50 rounded-lg">

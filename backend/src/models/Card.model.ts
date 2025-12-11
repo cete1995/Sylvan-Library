@@ -1,6 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
-export type CardCondition = 'NM' | 'SP' | 'MP' | 'HP' | 'DMG';
+export type CardCondition = 'NM' | 'LP' | 'P';
 export type CardFinish = 'nonfoil' | 'foil' | 'etched';
 export type CardRarity = 'common' | 'uncommon' | 'rare' | 'mythic' | 'special' | 'bonus';
 
@@ -41,8 +41,8 @@ const inventoryItemSchema = new Schema<IInventoryItem>({
   condition: {
     type: String,
     enum: {
-      values: ['NM', 'SP', 'MP', 'HP', 'DMG'],
-      message: 'Condition must be one of: NM, SP, MP, HP, DMG',
+      values: ['NM', 'LP', 'P'],
+      message: 'Condition must be one of: NM, LP, P',
     },
     required: true,
   },

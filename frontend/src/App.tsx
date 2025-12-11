@@ -9,6 +9,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 // Pages
 import HomePage from './pages/HomePage';
 import CatalogPage from './pages/CatalogPage';
+import CatalogPageV2 from './pages/CatalogPageV2';
 import CardDetailPage from './pages/CardDetailPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
@@ -37,6 +38,7 @@ const App: React.FC = () => {
                 {/* Public Routes */}
                 <Route path="/" element={<HomePage />} />
                 <Route path="/catalog" element={<CatalogPage />} />
+                <Route path="/catalog-v2" element={<CatalogPageV2 />} />
                 <Route path="/cards/:id" element={<CardDetailPage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />

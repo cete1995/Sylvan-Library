@@ -94,7 +94,7 @@ const CardCard: React.FC<CardCardProps> = ({ card }) => {
           {/* Near Mint Stock */}
           <div className="flex justify-between items-center text-xs md:text-sm">
             <span style={{ color: 'var(--color-text-secondary)' }}>Near Mint :</span>
-            <span className={nmNonfoilStock > 0 ? 'text-green-600 font-semibold' : 'text-red-600'}>
+            <span className={nmNonfoilStock > 0 ? 'text-emerald-500 font-bold' : 'text-red-600 font-semibold'}>
               {nmNonfoilStock}
             </span>
           </div>
@@ -102,7 +102,7 @@ const CardCard: React.FC<CardCardProps> = ({ card }) => {
           {/* Foil Stock */}
           <div className="flex justify-between items-center text-xs md:text-sm">
             <span style={{ color: 'var(--color-text-secondary)' }}>Foil :</span>
-            <span className={nmFoilStock > 0 ? 'text-green-600 font-semibold' : 'text-red-600'}>
+            <span className={nmFoilStock > 0 ? 'text-emerald-500 font-bold' : 'text-red-600 font-semibold'}>
               {nmFoilStock}
             </span>
           </div>
@@ -111,13 +111,13 @@ const CardCard: React.FC<CardCardProps> = ({ card }) => {
           <div className="space-y-1 pt-1.5 md:pt-2">
             <div className="flex justify-between items-center">
               <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>Near Mint</span>
-              <span className="text-xs md:text-sm font-bold" style={{ color: 'var(--color-accent)' }}>
+              <span className="text-xs md:text-sm font-bold text-blue-600">
                 {nmNonfoilPrice > 0 ? `Rp. ${formatPrice(nmNonfoilPrice)}` : '-'}
               </span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>Foil</span>
-              <span className="text-xs md:text-sm font-bold" style={{ color: 'var(--color-accent)' }}>
+              <span className="text-xs md:text-sm font-bold text-blue-600">
                 {nmFoilPrice > 0 ? `Rp. ${formatPrice(nmFoilPrice)}` : '-'}
               </span>
             </div>

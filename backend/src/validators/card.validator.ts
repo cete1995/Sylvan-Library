@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 const inventoryItemSchema = z.object({
-  condition: z.enum(['NM', 'SP', 'MP', 'HP', 'DMG']),
+  condition: z.enum(['NM', 'LP', 'P']),
   finish: z.enum(['nonfoil', 'foil', 'etched']),
   quantityOwned: z.number().min(0),
   quantityForSale: z.number().min(0),

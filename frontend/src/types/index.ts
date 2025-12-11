@@ -11,7 +11,7 @@ export interface AuthResponse {
 }
 
 export interface InventoryItem {
-  condition: 'NM' | 'SP' | 'MP' | 'HP' | 'DMG';
+  condition: 'NM' | 'LP' | 'P';
   finish: 'nonfoil' | 'foil' | 'etched';
   quantityOwned: number;
   quantityForSale: number;

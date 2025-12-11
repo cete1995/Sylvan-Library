@@ -476,10 +476,8 @@ const AdminCardFormPage: React.FC = () => {
                         className="input text-sm"
                       >
                         <option value="NM">NM</option>
-                        <option value="SP">SP</option>
-                        <option value="MP">MP</option>
-                        <option value="HP">HP</option>
-                        <option value="DMG">DMG</option>
+                        <option value="LP">LP</option>
+                        <option value="P">P</option>
                       </select>
                     </div>
 
