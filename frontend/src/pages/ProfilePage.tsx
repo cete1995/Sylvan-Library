@@ -120,23 +120,23 @@ const ProfilePage: React.FC = () => {
     <div className="container mx-auto px-4 py-6 md:py-8">
       <div className="max-w-3xl mx-auto">
         <div className="mb-4 md:mb-6">
-          <h1 className="text-2xl md:text-3xl font-bold">My Profile</h1>
-          <p className="text-sm md:text-base text-gray-600 mt-1 md:mt-2">Manage your account information</p>
+          <h1 className="text-2xl md:text-3xl font-bold" style={{ color: 'var(--color-text)' }}>My Profile</h1>
+          <p className="text-sm md:text-base mt-1 md:mt-2" style={{ color: 'var(--color-text-secondary)' }}>Manage your account information</p>
         </div>
 
         {error && (
-          <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-4">
+          <div className="alert-error mb-4">
             {error}
           </div>
         )}
 
         {success && (
-          <div className="bg-green-50 text-green-600 p-4 rounded-lg mb-4">
+          <div className="alert-success mb-4">
             {success}
           </div>
         )}
 
-        <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
+        <div className="rounded-lg shadow-md p-4 md:p-6" style={{ backgroundColor: 'var(--color-panel)' }}>
           {/* Profile Photo Section */}
           <div className="flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-6 mb-4 md:mb-6 pb-4 md:pb-6 border-b">
             <div className="flex-shrink-0">
@@ -144,11 +144,12 @@ const ProfilePage: React.FC = () => {
                 <img
                   src={previewUrl || formData.profilePhoto}
                   alt="Profile"
-                  className="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover border-4 border-gray-200"
+                  className="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover"
+                  style={{ border: '4px solid var(--color-border)' }}
                 />
               ) : (
-                <div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-gray-200 flex items-center justify-center">
-                  <span className="text-3xl md:text-4xl text-gray-400">
+                <div className="w-24 h-24 md:w-32 md:h-32 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--color-background)', border: '4px solid var(--color-border)' }}>
+                  <span className="text-3xl md:text-4xl" style={{ color: 'var(--color-text-secondary)' }}>
                     {profile?.name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || '?'}
                   </span>
                 </div>
@@ -162,12 +163,14 @@ const ProfilePage: React.FC = () => {
                     type="file"
                     accept="image/*"
                     onChange={handleFileSelect}
-                    className="block w-full text-sm text-gray-500
+                    className="block w-full text-sm
                       file:mr-4 file:py-2 file:px-4
                       file:rounded-lg file:border-0
                       file:text-xs md:file:text-sm file:font-semibold
-                      file:bg-blue-50 file:text-blue-700
-                      hover:file:bg-blue-100"
+                      file:cursor-pointer"
+                    style={{
+                      color: 'var(--color-text-secondary)'
+                    }}
                   />
                   {selectedFile && (
                     <button
@@ -180,7 +183,7 @@ const ProfilePage: React.FC = () => {
                     </button>
                   )}
                 </div>
-                <p className="text-xs md:text-sm text-gray-500 mt-1">
+                <p className="text-xs md:text-sm mt-1" style={{ color: 'var(--color-text-secondary)' }}>
                   Upload a profile photo (max 5MB)
                 </p>
               </div>
@@ -197,9 +200,9 @@ const ProfilePage: React.FC = () => {
                     type="email"
                     value={profile?.email || ''}
                     disabled
-                    className="input bg-gray-100 cursor-not-allowed"
+                    className="input"
                   />
-                  <p className="text-sm text-gray-500 mt-1">Email cannot be changed</p>
+                  <p className="text-sm mt-1" style={{ color: 'var(--color-text-secondary)' }}>Email cannot be changed</p>
                 </div>
 
                 <div>
@@ -273,9 +276,9 @@ const ProfilePage: React.FC = () => {
                     type="email"
                     value={profile?.email || ''}
                     disabled
-                    className="input bg-gray-100 cursor-not-allowed"
+                    className="input"
                   />
-                  <p className="text-sm text-gray-500 mt-1">Email cannot be changed</p>
+                  <p className="text-sm mt-1" style={{ color: 'var(--color-text-secondary)' }}>Email cannot be changed</p>
                 </div>
 
                 <div>
@@ -284,7 +287,7 @@ const ProfilePage: React.FC = () => {
                     type="text"
                     value={formData.name}
                     disabled
-                    className="input bg-gray-50"
+                    className="input"
                     placeholder="Enter your name"
                   />
                 </div>
@@ -295,7 +298,7 @@ const ProfilePage: React.FC = () => {
                     type="tel"
                     value={formData.phoneNumber}
                     disabled
-                    className="input bg-gray-50"
+                    className="input"
                     placeholder="Enter your phone number"
                   />
                 </div>
@@ -305,7 +308,7 @@ const ProfilePage: React.FC = () => {
                   <textarea
                     value={formData.address}
                     disabled
-                    className="input bg-gray-50"
+                    className="input"
                     rows={3}
                     placeholder="Enter your shipping address"
                   />
@@ -316,7 +319,7 @@ const ProfilePage: React.FC = () => {
                   <textarea
                     value={formData.courierNotes}
                     disabled
-                    className="input bg-gray-50"
+                    className="input"
                     rows={2}
                     placeholder="e.g., Ring the doorbell, Leave at the gate"
                   />

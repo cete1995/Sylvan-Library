@@ -70,7 +70,10 @@ const CardCard: React.FC<CardCardProps> = ({ card }) => {
       <div className="p-1.5 md:p-2.5">
         {/* Card Name and Set */}
         <h3 className="font-bold text-xs md:text-sm mb-1 line-clamp-2 min-h-[2rem] md:min-h-[2.5rem]" style={{ color: 'var(--color-text)' }}>{card.name}</h3>
-        <p className="text-xs mb-2 truncate" style={{ color: 'var(--color-text-secondary)' }}>{card.setName}_{card.collectorNumber}</p>
+        <p className="text-xs mb-2 flex items-center justify-center gap-1" style={{ color: 'var(--color-text-secondary)' }}>
+          <i className={`ss ss-${card.setCode.toLowerCase()} ss-${card.rarity.toLowerCase()} ss-2x`}></i>
+          {card.setCode} #{card.collectorNumber}
+        </p>
         
         {/* Rarity Pill and Special Pills */}
         <div className="mb-2 md:mb-3 flex gap-1 md:gap-2 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">

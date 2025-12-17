@@ -243,6 +243,20 @@ const AdminDashboardPage: React.FC = () => {
               >
                 📊 Manage Price Data
               </Link>
+              <Link
+                to="/admin/ub-pricing"
+                className="block w-full px-4 py-3 rounded-lg font-medium text-center hover:opacity-90 shadow-sm"
+                style={{ background: 'linear-gradient(to right, #8B5CF6, #EC4899)', color: 'white' }}
+              >
+                🌌 UB Set Pricing
+              </Link>
+              <Link
+                to="/admin/ub-settings"
+                className="block w-full px-4 py-3 rounded-lg font-medium text-center hover:opacity-90 shadow-sm"
+                style={{ background: 'linear-gradient(to right, #6366F1, #8B5CF6)', color: 'white' }}
+              >
+                ⚙️ UB Settings
+              </Link>
             </div>
           </div>
         </div>

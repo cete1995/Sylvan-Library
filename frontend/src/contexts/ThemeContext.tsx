@@ -9,6 +9,7 @@ export interface Theme {
     highlight: string;
     text: string;
     textSecondary: string;
+    border: string;
   };
 }
 
@@ -22,17 +23,19 @@ export const themes: Record<string, Theme> = {
       highlight: '#8B5CF6',
       text: '#111827',
       textSecondary: '#6B7280',
+      border: '#E5E7EB',
     },
   },
   dark: {
     name: 'Dark Mode',
     colors: {
-      background: '#0F172A',
-      panel: '#1E293B',
+      background: '#0A0E1A',
+      panel: '#131824',
       accent: '#60A5FA',
       highlight: '#A78BFA',
-      text: '#F1F5F9',
-      textSecondary: '#94A3B8',
+      text: '#E5E7EB',
+      textSecondary: '#9CA3AF',
+      border: '#1F2937',
     },
   },
 };
@@ -63,6 +66,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     root.style.setProperty('--color-highlight', currentTheme.colors.highlight);
     root.style.setProperty('--color-text', currentTheme.colors.text);
     root.style.setProperty('--color-text-secondary', currentTheme.colors.textSecondary);
+    root.style.setProperty('--color-border', currentTheme.colors.border);
   }, [themeName, currentTheme]);
 
   const setTheme = (newThemeName: string) => {

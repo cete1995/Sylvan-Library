@@ -109,27 +109,33 @@ const CatalogPage: React.FC = () => {
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--color-background)' }}>
       <div className="container mx-auto px-4 py-6 md:py-8 max-w-7xl">
-        <div className="mb-6">
-          <h1 className="text-3xl md:text-4xl font-bold mb-2" style={{ color: 'var(--color-text)' }}>Card Catalog</h1>
-          <p style={{ color: 'var(--color-text-secondary)' }}>Browse and search our complete collection of Magic: The Gathering cards</p>
+        <div className="mb-8">
+          <h1 className="text-3xl md:text-4xl font-bold mb-3 flex items-center gap-3" style={{ color: 'var(--color-text)' }}>
+            <svg className="w-9 h-9 md:w-10 md:h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--color-accent)' }}>
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
+            Card Catalog
+          </h1>
+          <p className="text-sm md:text-base" style={{ color: 'var(--color-text-secondary)' }}>Browse and search our complete collection of Magic: The Gathering cards</p>
         </div>
 
         <div className="grid lg:grid-cols-4 gap-6">
           {/* Filters Sidebar */}
           <div className="lg:col-span-1">
-            <div className="rounded-xl shadow-lg lg:sticky lg:top-4" style={{ backgroundColor: 'var(--color-panel)' }}>
+            <div className="rounded-xl shadow-xl lg:sticky lg:top-4" style={{ backgroundColor: 'var(--color-panel)' }}>
               <button
                 onClick={() => setIsFilterOpen(!isFilterOpen)}
-                className="w-full flex items-center justify-between p-6 hover:opacity-80 transition-opacity"
+                className="w-full flex items-center justify-between px-6 py-5 hover:opacity-90 transition-opacity border-b"
+                style={{ borderColor: 'var(--color-border)' }}
               >
-                <div className="flex items-center">
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--color-accent)' }}>
+                <div className="flex items-center gap-2">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--color-accent)' }}>
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
                   </svg>
                   <h2 className="text-xl font-bold" style={{ color: 'var(--color-text)' }}>Filters</h2>
                 </div>
                 <svg
-                  className={`w-5 h-5 transition-transform ${isFilterOpen ? 'rotate-180' : ''}`}
+                  className={`w-6 h-6 transition-transform duration-300 ${isFilterOpen ? 'rotate-180' : ''}`}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -140,8 +146,8 @@ const CatalogPage: React.FC = () => {
               </button>
               
               {isFilterOpen && (
-                <div className="px-6 pb-6">
-                  <form onSubmit={handleSearch} className="space-y-4">
+                <div className="p-6">
+                  <form onSubmit={handleSearch} className="space-y-5">
                 {/* Search */}
                 <div>
                   <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--color-text)' }}>
@@ -302,11 +308,17 @@ const CatalogPage: React.FC = () => {
                   </select>
                 </div>
 
-                <button type="submit" className="w-full px-6 py-3 rounded-lg font-semibold shadow-md hover:opacity-90" style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-panel)' }}>
+                <button type="submit" className="w-full px-6 py-3.5 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2" style={{ background: 'linear-gradient(to right, var(--color-accent), var(--color-highlight))', color: 'var(--color-panel)' }}>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
                   Apply Filters
                 </button>
                 
-                <button type="button" onClick={clearFilters} className="w-full border-2 px-6 py-3 rounded-lg font-semibold hover:opacity-80" style={{ borderColor: 'var(--color-text-secondary)', color: 'var(--color-text)' }}>
+                <button type="button" onClick={clearFilters} className="w-full border-2 px-6 py-3.5 rounded-lg font-semibold hover:shadow-md transition-all duration-300 flex items-center justify-center gap-2" style={{ borderColor: 'var(--color-text-secondary)', color: 'var(--color-text)' }}>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
                   Clear All
                 </button>
               </form>
@@ -318,18 +330,19 @@ const CatalogPage: React.FC = () => {
           {/* Cards Grid */}
           <div className="lg:col-span-3">
             {loading ? (
-              <div className="rounded-xl shadow-md p-16 text-center" style={{ backgroundColor: 'var(--color-panel)' }}>
-                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 mb-4" style={{ borderColor: 'var(--color-accent)' }}></div>
-                <div className="text-xl" style={{ color: 'var(--color-text-secondary)' }}>Loading cards...</div>
+              <div className="rounded-xl shadow-lg p-20 text-center" style={{ backgroundColor: 'var(--color-panel)' }}>
+                <div className="inline-block animate-spin rounded-full h-16 w-16 border-b-4 mb-6" style={{ borderColor: 'var(--color-accent)' }}></div>
+                <div className="text-xl font-semibold" style={{ color: 'var(--color-text)' }}>Loading cards...</div>
+                <p className="mt-2 text-sm" style={{ color: 'var(--color-text-secondary)' }}>Please wait while we fetch your collection</p>
               </div>
             ) : cards.length === 0 ? (
-              <div className="rounded-xl shadow-md p-16 text-center" style={{ backgroundColor: 'var(--color-panel)' }}>
-                <svg className="w-24 h-24 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="rounded-xl shadow-lg p-16 text-center" style={{ backgroundColor: 'var(--color-panel)' }}>
+                <svg className="w-28 h-28 mx-auto mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--color-text-secondary)', opacity: 0.3 }}>
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <p className="text-2xl mb-2 font-semibold" style={{ color: 'var(--color-text-secondary)' }}>No cards found</p>
-                <p className="mb-6" style={{ color: 'var(--color-text-secondary)' }}>Try adjusting your filters or search terms</p>
-                <button onClick={clearFilters} className="inline-flex items-center px-6 py-3 rounded-lg font-medium shadow-md hover:opacity-90" style={{ backgroundColor: 'var(--color-highlight)', color: 'var(--color-panel)' }}>
+                <p className="text-2xl mb-3 font-bold" style={{ color: 'var(--color-text)' }}>No cards found</p>
+                <p className="mb-8 text-base" style={{ color: 'var(--color-text-secondary)' }}>Try adjusting your filters or search terms</p>
+                <button onClick={clearFilters} className="inline-flex items-center px-6 py-3.5 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300" style={{ background: 'linear-gradient(to right, var(--color-accent), var(--color-highlight))', color: 'var(--color-panel)' }}>
                   <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                   </svg>
@@ -338,15 +351,17 @@ const CatalogPage: React.FC = () => {
               </div>
             ) : (
               <>
-                <div className="rounded-lg shadow-sm px-4 py-3 mb-4 flex items-center justify-between" style={{ backgroundColor: 'var(--color-panel)' }}>
-                  <div className="text-sm flex items-center" style={{ color: 'var(--color-text-secondary)' }}>
-                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--color-accent)' }}>
+                <div className="rounded-xl shadow-lg px-5 py-4 mb-6 flex items-center justify-between" style={{ backgroundColor: 'var(--color-panel)' }}>
+                  <div className="text-sm flex items-center gap-2" style={{ color: 'var(--color-text-secondary)' }}>
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--color-accent)' }}>
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
-                    <span className="font-semibold" style={{ color: 'var(--color-text)' }}>{pagination.total}</span> 
-                    <span className="ml-1">card{pagination.total !== 1 ? 's' : ''} found</span>
+                    <div>
+                      <span className="font-bold text-lg" style={{ color: 'var(--color-text)' }}>{pagination.total}</span> 
+                      <span className="ml-1.5">card{pagination.total !== 1 ? 's' : ''} found</span>
+                    </div>
                   </div>
-                  <div className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+                  <div className="text-sm font-medium px-3 py-1.5 rounded-lg" style={{ backgroundColor: 'var(--color-background)', color: 'var(--color-text)' }}>
                     Page {pagination.page} of {pagination.totalPages}
                   </div>
                 </div>

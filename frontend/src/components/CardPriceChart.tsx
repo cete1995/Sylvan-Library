@@ -103,9 +103,14 @@ const CardPriceChart: React.FC<CardPriceChartProps> = ({ uuid }) => {
           {[7, 30, 90, 180].map((d) => (
             <button
               key={d}
-              onClick={() => setDays(d)}
-              className={`px-3 py-1 rounded text-sm font-medium ${
-                days === d ? 'opacity-100' : 'opacity-50'
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setDays(d);
+              }}
+              className={`px-3 py-1 rounded text-sm font-medium transition-all ${
+                days === d ? 'opacity-100' : 'opacity-50 hover:opacity-75'
               }`}
               style={{ 
                 backgroundColor: days === d ? 'var(--color-accent)' : 'var(--color-background)',

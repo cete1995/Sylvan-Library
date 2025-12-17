@@ -75,8 +75,15 @@ const AdminLoginPage: React.FC = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent transition-all"
-                style={{ '--tw-ring-color': 'var(--color-accent)' } as React.CSSProperties}
+                className="w-full px-4 py-3 rounded-lg focus:ring-2 focus:border-transparent transition-all"
+                style={{
+                  backgroundColor: 'var(--color-panel)',
+                  color: 'var(--color-text)',
+                  borderWidth: '1px',
+                  borderStyle: 'solid',
+                  borderColor: 'var(--color-border)',
+                  '--tw-ring-color': 'var(--color-accent)'
+                } as React.CSSProperties}
                 placeholder="admin@example.com"
               />
             </div>
@@ -93,8 +100,15 @@ const AdminLoginPage: React.FC = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent transition-all"
-                style={{ '--tw-ring-color': 'var(--color-accent)' } as React.CSSProperties}
+                className="w-full px-4 py-3 rounded-lg focus:ring-2 focus:border-transparent transition-all"
+                style={{
+                  backgroundColor: 'var(--color-panel)',
+                  color: 'var(--color-text)',
+                  borderWidth: '1px',
+                  borderStyle: 'solid',
+                  borderColor: 'var(--color-border)',
+                  '--tw-ring-color': 'var(--color-accent)'
+                } as React.CSSProperties}
                 placeholder="••••••••"
               />
             </div>

@@ -45,6 +45,7 @@ import uploadRoutes from './routes/upload.routes';
 import profileRoutes from './routes/profile.routes';
 import orderRoutes from './routes/order.routes';
 import priceRoutes from './routes/price.routes';
+import ubPricingRoutes from './routes/ubPricing.routes';
 
 app.get('/api', (_req, res) => {
   res.json({
@@ -78,6 +79,7 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/prices', priceRoutes);
+app.use('/api/admin/ub-pricing', ubPricingRoutes);
 
 // Error handling
 app.use(notFoundHandler);

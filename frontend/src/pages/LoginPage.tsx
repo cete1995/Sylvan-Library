@@ -152,7 +152,15 @@ const LoginPage: React.FC = () => {
                     handleSubmit();
                   }
                 }}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-3 rounded-lg focus:ring-2 focus:border-transparent transition-all"
+                style={{
+                  backgroundColor: 'var(--color-panel)',
+                  color: 'var(--color-text)',
+                  borderWidth: '1px',
+                  borderStyle: 'solid',
+                  borderColor: 'var(--color-border)',
+                  '--tw-ring-color': 'var(--color-accent)'
+                } as React.CSSProperties}
                 placeholder="you@example.com"
               />
             </div>
@@ -177,8 +185,15 @@ const LoginPage: React.FC = () => {
                     handleSubmit();
                   }
                 }}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent transition-all"
-                style={{ '--tw-ring-color': 'var(--color-accent)' } as React.CSSProperties}
+                className="w-full px-4 py-3 rounded-lg focus:ring-2 focus:border-transparent transition-all"
+                style={{
+                  backgroundColor: 'var(--color-panel)',
+                  color: 'var(--color-text)',
+                  borderWidth: '1px',
+                  borderStyle: 'solid',
+                  borderColor: 'var(--color-border)',
+                  '--tw-ring-color': 'var(--color-accent)'
+                } as React.CSSProperties}
                 placeholder="••••••••"
               />
             </div>

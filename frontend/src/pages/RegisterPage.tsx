@@ -91,7 +91,15 @@ const RegisterPage: React.FC = () => {
                 name="name"
                 type="text"
                 required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-3 rounded-lg focus:ring-2 focus:border-transparent transition-all"
+                style={{
+                  backgroundColor: 'var(--color-panel)',
+                  color: 'var(--color-text)',
+                  borderWidth: '1px',
+                  borderStyle: 'solid',
+                  borderColor: 'var(--color-border)',
+                  '--tw-ring-color': 'var(--color-highlight)'
+                } as React.CSSProperties}
                 placeholder="John Doe"
                 value={formData.name}
                 onChange={handleChange}
@@ -110,7 +118,15 @@ const RegisterPage: React.FC = () => {
                 name="email"
                 type="email"
                 required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-3 rounded-lg focus:ring-2 focus:border-transparent transition-all"
+                style={{
+                  backgroundColor: 'var(--color-panel)',
+                  color: 'var(--color-text)',
+                  borderWidth: '1px',
+                  borderStyle: 'solid',
+                  borderColor: 'var(--color-border)',
+                  '--tw-ring-color': 'var(--color-highlight)'
+                } as React.CSSProperties}
                 placeholder="you@example.com"
                 value={formData.email}
                 onChange={handleChange}
@@ -129,7 +145,15 @@ const RegisterPage: React.FC = () => {
                 name="password"
                 type="password"
                 required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-3 rounded-lg focus:ring-2 focus:border-transparent transition-all"
+                style={{
+                  backgroundColor: 'var(--color-panel)',
+                  color: 'var(--color-text)',
+                  borderWidth: '1px',
+                  borderStyle: 'solid',
+                  borderColor: 'var(--color-border)',
+                  '--tw-ring-color': 'var(--color-highlight)'
+                } as React.CSSProperties}
                 placeholder="••••••••"
                 value={formData.password}
                 onChange={handleChange}
@@ -154,7 +178,15 @@ const RegisterPage: React.FC = () => {
                 name="confirmPassword"
                 type="password"
                 required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-3 rounded-lg focus:ring-2 focus:border-transparent transition-all"
+                style={{
+                  backgroundColor: 'var(--color-panel)',
+                  color: 'var(--color-text)',
+                  borderWidth: '1px',
+                  borderStyle: 'solid',
+                  borderColor: 'var(--color-border)',
+                  '--tw-ring-color': 'var(--color-highlight)'
+                } as React.CSSProperties}
                 placeholder="••••••••"
                 value={formData.confirmPassword}
                 onChange={handleChange}

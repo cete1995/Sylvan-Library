@@ -22,6 +22,8 @@ import AdminSetUploadPage from './pages/AdminSetUploadPage';
 import AdminCarouselPage from './pages/AdminCarouselPage';
 import AdminFeaturedPage from './pages/AdminFeaturedPage';
 import AdminPriceManagementPage from './pages/AdminPriceManagementPage';
+import AdminUBPricingPage from './pages/AdminUBPricingPage';
+import AdminUBSettingsPage from './pages/AdminUBSettingsPage';
 import ProfilePage from './pages/ProfilePage';
 import OrderHistoryPage from './pages/OrderHistoryPage';
 
@@ -134,6 +136,22 @@ const App: React.FC = () => {
                 element={
                   <ProtectedRoute adminOnly={true}>
                     <AdminPriceManagementPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/ub-pricing"
+                element={
+                  <ProtectedRoute adminOnly={true}>
+                    <AdminUBPricingPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/ub-settings"
+                element={
+                  <ProtectedRoute adminOnly={true}>
+                    <AdminUBSettingsPage />
                   </ProtectedRoute>
                 }
               />

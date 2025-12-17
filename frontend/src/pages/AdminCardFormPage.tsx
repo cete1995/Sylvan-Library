@@ -6,6 +6,8 @@ import { priceApi } from '../api/price';
 import { CardFormData, InventoryItem } from '../types';
 import CardPriceChart from '../components/CardPriceChart';
 import { useAuth } from '../contexts/AuthContext';
+import { isUBSet } from '../utils/ubPricing';
+import { ubPricingApi } from '../api/ubPricing';
 
 const AdminCardFormPage: React.FC = () => {
   const { id } = useParams<{ id?: string }>();
@@ -16,6 +18,8 @@ const AdminCardFormPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [allPrices, setAllPrices] = useState<any>(null);
+  const [calculatingPrice, setCalculatingPrice] = useState<number | null>(null);
+  const [syncingAllPrices, setSyncingAllPrices] = useState(false);
   const [formData, setFormData] = useState<CardFormData>({
     name: '',
     setCode: '',
@@ -166,15 +170,67 @@ const AdminCardFormPage: React.FC = () => {
     }));
   };
 
+  const calculateUBPrice = async (index: number) => {
+    if (!token || !id || !isUBSet(formData.setCode)) return;
+
+    try {
+      setCalculatingPrice(index);
+      const item = formData.inventory[index];
+      const result = await ubPricingApi.calculateUBPrice(token, id, item.finish);
+      
+      if (result.success && result.ubPrice) {
+        updateInventoryItem(index, 'sellPrice', result.ubPrice);
+      }
+    } catch (err: any) {
+      console.error('Failed to calculate UB price:', err);
+      setError(err.response?.data?.error || 'Failed to calculate UB price');
+    } finally {
+      setCalculatingPrice(null);
+    }
+  };
+
+  const syncAllUBPrices = async () => {
+    if (!token || !id || !isUBSet(formData.setCode)) return;
+
+    try {
+      setSyncingAllPrices(true);
+      setError('');
+      
+      // Calculate for each inventory item
+      for (let i = 0; i < formData.inventory.length; i++) {
+        const item = formData.inventory[i];
+        try {
+          const result = await ubPricingApi.calculateUBPrice(token, id, item.finish);
+          if (result.success && result.ubPrice) {
+            updateInventoryItem(i, 'sellPrice', result.ubPrice);
+          }
+        } catch (err) {
+          console.error(`Failed to calculate price for item ${i}:`, err);
+        }
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to sync all prices');
+    } finally {
+      setSyncingAllPrices(false);
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <Link to="/admin/cards" className="hover:underline mb-4 inline-block" style={{ color: 'var(--color-accent)' }}>
         ← Back to Card List
       </Link>
 
-      <h1 className="text-4xl font-bold mb-8" style={{ color: 'var(--color-text)' }}>
-        {isEdit ? 'Edit Card' : 'Add New Card'}
-      </h1>
+      <div className="flex items-center gap-4 mb-8">
+        <h1 className="text-4xl font-bold" style={{ color: 'var(--color-text)' }}>
+          {isEdit ? 'Edit Card' : 'Add New Card'}
+        </h1>
+        {isUBSet(formData.setCode) && (
+          <span className="px-4 py-2 rounded-lg font-bold text-sm" style={{ background: 'linear-gradient(to right, #8B5CF6, #EC4899)', color: 'white' }}>
+            🌌 UB SET - Special Pricing
+          </span>
+        )}
+      </div>
 
       {error && (
         <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
@@ -455,10 +511,34 @@ const AdminCardFormPage: React.FC = () => {
         {/* Inventory Management */}
         <div className="rounded-lg shadow p-6" style={{ backgroundColor: 'var(--color-panel)' }}>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold" style={{ color: 'var(--color-text)' }}>Inventory</h2>
-            <button type="button" onClick={addInventoryItem} className="btn-primary">
-              + Add Inventory Item
-            </button>
+            <div>
+              <h2 className="text-2xl font-bold" style={{ color: 'var(--color-text)' }}>Inventory</h2>
+              {isUBSet(formData.setCode) && isEdit && (
+                <p className="text-sm mt-1" style={{ color: 'var(--color-text-secondary)' }}>
+                  UB Set: CK price &lt;$5 = ×20,000 | CK price ≥$5 = ×15,000
+                </p>
+              )}
+            </div>
+            <div className="flex gap-2">
+              {isUBSet(formData.setCode) && isEdit && formData.inventory.length > 0 && (
+                <button 
+                  type="button" 
+                  onClick={syncAllUBPrices}
+                  disabled={syncingAllPrices}
+                  className="px-4 py-2 rounded-lg font-semibold text-sm transition-all"
+                  style={{ 
+                    background: syncingAllPrices ? 'var(--color-text-secondary)' : 'linear-gradient(to right, #8B5CF6, #EC4899)',
+                    color: 'white',
+                    opacity: syncingAllPrices ? 0.6 : 1
+                  }}
+                >
+                  {syncingAllPrices ? '⏳ Syncing...' : '🔄 Sync All UB Prices'}
+                </button>
+              )}
+              <button type="button" onClick={addInventoryItem} className="btn-primary">
+                + Add Inventory Item
+              </button>
+            </div>
           </div>
 
           {formData.inventory.length === 0 ? (
@@ -529,22 +609,47 @@ const AdminCardFormPage: React.FC = () => {
 
                     <div>
                       <label className="label text-sm">Sell Price</label>
-                      <input
-                        type="number"
-                        value={item.sellPrice}
-                        onChange={(e) => updateInventoryItem(index, 'sellPrice', Number(e.target.value))}
-                        min="0"
-                        className="input text-sm"
-                      />
+                      <div className="flex gap-1">
+                        <input
+                          type="number"
+                          value={item.sellPrice}
+                          onChange={(e) => updateInventoryItem(index, 'sellPrice', Number(e.target.value))}
+                          min="0"
+                          className="input text-sm flex-1"
+                        />
+                        {isUBSet(formData.setCode) && isEdit && (
+                          <button
+                            type="button"
+                            onClick={() => calculateUBPrice(index)}
+                            disabled={calculatingPrice === index}
+                            className="px-2 py-1 rounded text-xs font-medium whitespace-nowrap"
+                            style={{
+                              background: calculatingPrice === index ? 'var(--color-text-secondary)' : 'linear-gradient(to right, #8B5CF6, #EC4899)',
+                              color: 'white',
+                              opacity: calculatingPrice === index ? 0.6 : 1
+                            }}
+                            title="Auto-calculate from CK price"
+                          >
+                            {calculatingPrice === index ? '...' : 'Auto'}
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => removeInventoryItem(index)}
-                    className="mt-2 text-red-600 hover:text-red-800 text-sm"
-                  >
-                    Remove
-                  </button>
+                  <div className="flex items-center justify-between mt-2">
+                    <button
+                      type="button"
+                      onClick={() => removeInventoryItem(index)}
+                      className="text-red-600 hover:text-red-800 text-sm"
+                    >
+                      Remove
+                    </button>
+                    {isUBSet(formData.setCode) && item.sellPrice > 0 && (
+                      <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+                        ≈ ${(item.sellPrice / (item.sellPrice < 100000 ? 20000 : 15000)).toFixed(2)} CK
+                      </span>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
