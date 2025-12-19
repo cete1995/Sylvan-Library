@@ -71,7 +71,7 @@ const CardCard: React.FC<CardCardProps> = ({ card }) => {
         {/* Card Name and Set */}
         <h3 className="font-bold text-xs md:text-sm mb-1 line-clamp-2 min-h-[2rem] md:min-h-[2.5rem]" style={{ color: 'var(--color-text)' }}>{card.name}</h3>
         <p className="text-xs mb-2 flex items-center justify-center gap-1" style={{ color: 'var(--color-text-secondary)' }}>
-          <i className={`ss ss-${card.setCode.toLowerCase()} ss-${card.rarity.toLowerCase()} ss-2x`}></i>
+          <i className={`ss ss-${card.setCode.toLowerCase()} ss-${card.rarity.toLowerCase()} ss-2x`} style={{ color: card.rarity.toLowerCase() === 'common' ? 'var(--color-text)' : undefined }}></i>
           {card.setCode} #{card.collectorNumber}
         </p>
         

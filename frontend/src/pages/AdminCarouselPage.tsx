@@ -302,7 +302,7 @@ const AdminCarouselPage: React.FC = () => {
       )}
 
       {/* Images List */}
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
+      <div className="rounded-lg shadow-md overflow-hidden" style={{ backgroundColor: 'var(--color-panel)' }}>
         <div className="overflow-x-auto">
           <table className="min-w-full">
             <thead className="bg-gray-50">

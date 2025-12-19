@@ -50,7 +50,7 @@ const AdminLoginPage: React.FC = () => {
           <p className="text-gray-600">Authorized access only</p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="rounded-2xl shadow-xl p-8" style={{ backgroundColor: 'var(--color-panel)' }}>
           {error && (
             <div className="mb-6 bg-red-50 border-l-4 border-red-500 text-red-700 px-4 py-4 rounded-lg">
               <div className="flex items-start">

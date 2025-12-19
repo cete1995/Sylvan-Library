@@ -16,4 +16,20 @@ export const cardApi = {
     const response = await api.get<{ sets: SetInfo[] }>('/cards/sets/list');
     return response.data;
   },
+
+  addInventory: async (
+    cardId: string,
+    data: {
+      condition: 'NM' | 'LP' | 'P';
+      finish: 'nonfoil' | 'foil';
+      quantity: number;
+      quantityForSale: number;
+    }
+  ): Promise<{ message: string; card: Card }> => {
+    const response = await api.post<{ message: string; card: Card }>(
+      `/cards/${cardId}/inventory`,
+      data
+    );
+    return response.data;
+  },
 };

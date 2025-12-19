@@ -1,5 +1,6 @@
 import { Router } from 'express';
-import { getCards, getCardById, getSets } from '../controllers/card.controller';
+import { getCards, getCardById, getSets, addInventory } from '../controllers/card.controller';
+import { authenticate, requireAdminOrSeller } from '../middleware/auth.middleware';
 
 const router = Router();
 
@@ -23,5 +24,12 @@ router.get('/', getCards);
  * @access  Public
  */
 router.get('/:id', getCardById);
+
+/**
+ * @route   POST /api/cards/:id/inventory
+ * @desc    Add inventory to a card
+ * @access  Private (Admin or Seller)
+ */
+router.post('/:id/inventory', authenticate, requireAdminOrSeller, addInventory);
 
 export default router;

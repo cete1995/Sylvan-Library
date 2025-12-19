@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import { cardApi } from '../api/cards';
 import { Card, SetInfo } from '../types';
 import CardCard from '../components/CardCard';
@@ -7,9 +7,13 @@ import Pagination from '../components/Pagination';
 
 const CatalogPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [cards, setCards] = useState<Card[]>([]);
   const [sets, setSets] = useState<SetInfo[]>([]);
   const [loading, setLoading] = useState(false);
+  const hasInitialized = useRef(false);
+  const isRestoring = useRef(false);
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 25,
@@ -19,23 +23,101 @@ const CatalogPage: React.FC = () => {
     hasPrevPage: false,
   });
 
-  // Form state
-  const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
-  const [selectedSet, setSelectedSet] = useState(searchParams.get('set') || '');
-  const [selectedRarity, setSelectedRarity] = useState(searchParams.get('rarity') || '');
-  const [selectedTags, setSelectedTags] = useState<string[]>(
-    searchParams.get('tags') ? searchParams.get('tags')!.split(',') : []
-  );
-  const [minPrice, setMinPrice] = useState(searchParams.get('minPrice') || '');
-  const [maxPrice, setMaxPrice] = useState(searchParams.get('maxPrice') || '');
-  const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'name_asc');
+  // Form state - sync with URL params
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedSet, setSelectedSet] = useState('');
+  const [selectedRarity, setSelectedRarity] = useState('');
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
+  const [sortBy, setSortBy] = useState('name_asc');
   const [isFilterOpen, setIsFilterOpen] = useState(true);
+
+  // On mount, restore from sessionStorage if URL has no params
+  useEffect(() => {
+    if (!hasInitialized.current) {
+      hasInitialized.current = true;
+      
+      const currentParams = Object.fromEntries(searchParams.entries());
+      const hasParams = Object.keys(currentParams).length > 0;
+      
+      console.log('Init - has params?', hasParams, currentParams);
+      
+      // If no params in URL, try to restore from sessionStorage
+      if (!hasParams) {
+        const savedUrl = sessionStorage.getItem('catalogLastUrl');
+        console.log('Saved URL:', savedUrl);
+        
+        if (savedUrl) {
+          const url = new URL(savedUrl, window.location.origin);
+          const savedParams = Object.fromEntries(url.searchParams.entries());
+          
+          if (Object.keys(savedParams).length > 0) {
+            console.log('Restoring params:', savedParams);
+            isRestoring.current = true;
+            setSearchParams(savedParams, { replace: true });
+            return; // Exit early, loadCards will run after params are set
+          }
+        }
+      }
+    }
+  }, []);
+
+  // Save current URL to sessionStorage whenever searchParams change
+  useEffect(() => {
+    if (Object.keys(Object.fromEntries(searchParams.entries())).length > 0) {
+      const fullUrl = `${location.pathname}${location.search}`;
+      sessionStorage.setItem('catalogLastUrl', fullUrl);
+      console.log('Saved URL:', fullUrl);
+    }
+  }, [searchParams, location]);
+
+  // Save scroll position to sessionStorage
+  useEffect(() => {
+    const handleScroll = () => {
+      sessionStorage.setItem('catalogScrollY', window.scrollY.toString());
+    };
+    
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Sync form state with URL params whenever they change
+  useEffect(() => {
+    setSearchQuery(searchParams.get('q') || '');
+    setSelectedSet(searchParams.get('set') || '');
+    setSelectedRarity(searchParams.get('rarity') || '');
+    setSelectedTags(searchParams.get('tags') ? searchParams.get('tags')!.split(',') : []);
+    setMinPrice(searchParams.get('minPrice') || '');
+    setMaxPrice(searchParams.get('maxPrice') || '');
+    setSortBy(searchParams.get('sort') || 'name_asc');
+  }, [searchParams]);
+
+  // Restore scroll position after cards load
+  useEffect(() => {
+    if (!loading && cards.length > 0) {
+      const savedScrollY = sessionStorage.getItem('catalogScrollY');
+      if (savedScrollY) {
+        setTimeout(() => {
+          window.scrollTo(0, parseInt(savedScrollY, 10));
+        }, 100);
+      }
+    }
+  }, [cards, loading]);
 
   useEffect(() => {
     loadSets();
   }, []);
 
   useEffect(() => {
+    // Don't load if we're in the middle of restoring params
+    if (isRestoring.current) {
+      console.log('Skipping load - still restoring');
+      isRestoring.current = false;
+      return;
+    }
+    
+    console.log('loadCards effect - searchParams:', Object.fromEntries(searchParams.entries()));
     loadCards();
   }, [searchParams]);
 
@@ -63,9 +145,11 @@ const CatalogPage: React.FC = () => {
         sort: (searchParams.get('sort') as any) || 'name_asc',
       };
 
+      console.log('Loading cards with params:', params);
       const data = await cardApi.getCards(params);
       setCards(data.cards);
       setPagination(data.pagination);
+      console.log('Loaded page:', data.pagination.page);
     } catch (error) {
       console.error('Failed to load cards:', error);
     } finally {
@@ -86,6 +170,7 @@ const CatalogPage: React.FC = () => {
     if (sortBy) params.sort = sortBy;
 
     setSearchParams(params);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handlePageChange = (page: number) => {
@@ -104,6 +189,7 @@ const CatalogPage: React.FC = () => {
     setMaxPrice('');
     setSortBy('name_asc');
     setSearchParams({});
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (

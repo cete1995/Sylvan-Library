@@ -11,6 +11,8 @@ export interface IInventoryItem {
   quantityForSale: number;
   buyPrice: number;
   sellPrice: number;
+  sellerId?: string;
+  sellerName?: string;
 }
 
 export interface ICard extends Document {
@@ -77,6 +79,14 @@ const inventoryItemSchema = new Schema<IInventoryItem>({
     required: true,
     min: 0,
     default: 0,
+  },
+  sellerId: {
+    type: String,
+    required: false,
+  },
+  sellerName: {
+    type: String,
+    required: false,
   },
 }, { _id: false });
 

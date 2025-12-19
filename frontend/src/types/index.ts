@@ -17,6 +17,8 @@ export interface InventoryItem {
   quantityForSale: number;
   buyPrice: number;
   sellPrice: number;
+  sellerId?: string;
+  sellerName?: string;
 }
 
 export interface Card {

@@ -107,7 +107,7 @@ const LoginPage: React.FC = () => {
         </div>
 
         {/* Form Card */}
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="rounded-2xl shadow-xl p-8" style={{ backgroundColor: 'var(--color-panel)' }}>
           {error && (
             <div className="bg-red-50 border-l-4 border-red-500 text-red-700 px-4 py-4 rounded-lg relative mb-6">
               <div className="flex items-start">

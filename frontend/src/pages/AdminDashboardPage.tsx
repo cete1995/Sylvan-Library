@@ -95,7 +95,7 @@ const AdminDashboardPage: React.FC = () => {
           {/* Total Quantity */}
           <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg p-6 text-white transform hover:scale-105 transition-transform">
             <div className="flex items-center justify-between mb-4">
-              <div className="bg-white bg-opacity-20 p-3 rounded-lg">
+              <div className="p-3 rounded-lg" style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}>
                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                 </svg>
@@ -109,8 +109,8 @@ const AdminDashboardPage: React.FC = () => {
           {/* Inventory Value */}
           <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-6 text-white transform hover:scale-105 transition-transform">
             <div className="flex items-center justify-between mb-4">
-              <div className="bg-white bg-opacity-20 p-3 rounded-lg">
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="p-3 rounded-lg" style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}>
+                <svg className="w-8 h-8 md:w-10 md:h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
@@ -123,7 +123,7 @@ const AdminDashboardPage: React.FC = () => {
           {/* Listing Value */}
           <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl shadow-lg p-6 text-white transform hover:scale-105 transition-transform">
             <div className="flex items-center justify-between mb-4">
-              <div className="bg-white bg-opacity-20 p-3 rounded-lg">
+              <div className="p-3 rounded-lg" style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}>
                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                 </svg>
@@ -256,6 +256,13 @@ const AdminDashboardPage: React.FC = () => {
                 style={{ background: 'linear-gradient(to right, #6366F1, #8B5CF6)', color: 'white' }}
               >
                 ⚙️ UB Settings
+              </Link>
+              <Link
+                to="/admin/sellers"
+                className="block w-full px-4 py-3 rounded-lg font-medium text-center hover:opacity-90 shadow-sm"
+                style={{ background: 'linear-gradient(to right, #10B981, #059669)', color: 'white' }}
+              >
+                👥 Seller Management
               </Link>
             </div>
           </div>

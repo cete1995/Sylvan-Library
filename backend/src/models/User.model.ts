@@ -4,7 +4,7 @@ export interface IUser extends Document {
   email: string;
   passwordHash: string;
   name?: string;
-  role: 'admin' | 'customer';
+  role: 'admin' | 'customer' | 'seller';
   address?: string;
   phoneNumber?: string;
   courierNotes?: string;
@@ -34,7 +34,7 @@ const userSchema = new Schema<IUser>(
     },
     role: {
       type: String,
-      enum: ['admin', 'customer'],
+      enum: ['admin', 'customer', 'seller'],
       default: 'customer',
       required: true,
     },

@@ -227,3 +227,69 @@ export const getSets = asyncHandler(async (req: Request, res: Response) => {
     })),
   });
 });
+
+/**
+ * Add inventory to a card
+ * POST /api/cards/:id/inventory
+ */
+export const addInventory = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { condition, finish, quantity, quantityForSale } = req.body;
+  const user = (req as any).user;
+
+  // Validate input
+  if (!condition || !finish) {
+    throw new AppError(400, 'Condition and finish are required');
+  }
+
+  if (typeof quantity !== 'number' || quantity < 0) {
+    throw new AppError(400, 'Valid quantity is required');
+  }
+
+  if (typeof quantityForSale !== 'number' || quantityForSale < 0) {
+    throw new AppError(400, 'Valid quantity for sale is required');
+  }
+
+  if (quantityForSale > quantity) {
+    throw new AppError(400, 'Quantity for sale cannot exceed total quantity');
+  }
+
+  // Find the card
+  const card = await Card.findById(id);
+  if (!card) {
+    throw new AppError(404, 'Card not found');
+  }
+
+  // Check if this exact inventory item already exists for this seller
+  const existingInventoryIndex = card.inventory.findIndex(
+    (inv) =>
+      inv.condition === condition &&
+      inv.finish === finish &&
+      inv.sellerId === user.id
+  );
+
+  if (existingInventoryIndex !== -1) {
+    // Update existing inventory
+    card.inventory[existingInventoryIndex].quantityOwned += quantity;
+    card.inventory[existingInventoryIndex].quantityForSale += quantityForSale;
+  } else {
+    // Add new inventory item with seller info
+    card.inventory.push({
+      condition,
+      finish,
+      quantityOwned: quantity,
+      quantityForSale,
+      buyPrice: 0,
+      sellPrice: 0,
+      sellerId: user.id,
+      sellerName: user.name || user.email,
+    });
+  }
+
+  await card.save();
+
+  res.status(200).json({
+    message: 'Inventory added successfully',
+    card,
+  });
+});

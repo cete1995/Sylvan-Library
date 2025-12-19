@@ -430,7 +430,7 @@ const AdminCardFormPage: React.FC = () => {
             {isEdit && allPrices && (
               <div className="md:col-span-2">
                 <label className="label">Latest Prices (Retail)</label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-lg border" style={{ backgroundColor: 'var(--color-background)', borderColor: 'var(--color-border)' }}>
                   {/* CardKingdom Prices */}
                   {allPrices.cardkingdom?.retail && (
                     <div>
@@ -546,7 +546,7 @@ const AdminCardFormPage: React.FC = () => {
           ) : (
             <div className="space-y-4">
               {formData.inventory.map((item, index) => (
-                <div key={index} className="border rounded-lg p-4 bg-gray-50">
+                <div key={index} className="border rounded-lg p-4" style={{ backgroundColor: 'var(--color-background)', borderColor: 'var(--color-border)' }}>
                   <div className="grid md:grid-cols-6 gap-4">
                     <div>
                       <label className="label text-sm">Condition</label>

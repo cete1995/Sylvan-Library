@@ -176,6 +176,11 @@ const Navbar: React.FC = () => {
                 ADMIN DASHBOARD
               </Link>
             )}
+            {user?.role === 'seller' && (
+              <Link to="/seller/dashboard" className="font-bold text-sm md:text-base ml-auto hover:opacity-80" style={{ color: 'var(--color-highlight)' }}>
+                SELLER DASHBOARD
+              </Link>
+            )}
           </div>
         </div>
       </div>

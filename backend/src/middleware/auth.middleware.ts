@@ -61,3 +61,20 @@ export const requireAdmin = (
 
   next();
 };
+
+export const requireAdminOrSeller = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
+  const reqUser = (req as any).user;
+  if (!reqUser) {
+    throw new AppError(401, 'Authentication required');
+  }
+
+  if (reqUser.role !== 'admin' && reqUser.role !== 'seller') {
+    throw new AppError(403, 'Admin or Seller access required');
+  }
+
+  next();
+};
