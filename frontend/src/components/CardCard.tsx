@@ -41,7 +41,7 @@ const CardCard: React.FC<CardCardProps> = ({ card }) => {
   };
 
   return (
-    <Link to={`/cards/${card._id}`} className={`rounded-lg shadow hover:shadow-lg transition-shadow overflow-hidden block ${!isAvailable ? 'opacity-60' : ''}`} style={{ backgroundColor: 'var(--color-panel)' }}>
+    <Link to={`/cards/${card._id}`} className={`rounded-lg shadow hover:shadow-lg transition-shadow overflow-hidden block ${!isAvailable ? 'opacity-70' : ''}`} style={{ backgroundColor: 'var(--color-panel)' }}>
       {/* Card Image */}
       <div className="aspect-[5/7] relative overflow-hidden" style={{ backgroundColor: 'var(--color-background)' }}>
         {card.imageUrl ? (
@@ -59,8 +59,8 @@ const CardCard: React.FC<CardCardProps> = ({ card }) => {
         )}
         {!isAvailable && (
           <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-            <span className="text-sm px-3 py-1 rounded font-bold" style={{ backgroundColor: '#DC2626', color: 'var(--color-panel)' }}>
-              UNAVAILABLE
+            <span className="text-sm px-3 py-1 rounded font-bold" style={{ backgroundColor: '#DC2626', color: 'white' }}>
+              OUT OF STOCK
             </span>
           </div>
         )}
@@ -115,13 +115,13 @@ const CardCard: React.FC<CardCardProps> = ({ card }) => {
             <div className="flex justify-between items-center">
               <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>Near Mint</span>
               <span className="text-xs md:text-sm font-bold text-blue-600">
-                {nmNonfoilPrice > 0 ? `Rp. ${formatPrice(nmNonfoilPrice)}` : '-'}
+                {nmNonfoilPrice > 0 ? `Rp. ${formatPrice(nmNonfoilPrice)}` : 'Price TBD'}
               </span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>Foil</span>
               <span className="text-xs md:text-sm font-bold text-blue-600">
-                {nmFoilPrice > 0 ? `Rp. ${formatPrice(nmFoilPrice)}` : '-'}
+                {nmFoilPrice > 0 ? `Rp. ${formatPrice(nmFoilPrice)}` : 'Price TBD'}
               </span>
             </div>
           </div>

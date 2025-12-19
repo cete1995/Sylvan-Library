@@ -1,22 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { ubPricingApi, PriceTier } from '../api/ubPricing';
+import { regularPricingApi, PriceTier } from '../api/regularPricing';
 
-const AdminUBSettingsPage: React.FC = () => {
+const AdminRegularSettingsPage: React.FC = () => {
   const { token } = useAuth();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
   // Settings state
-  const [ubSets, setUbSets] = useState<string[]>([]);
   const [priceTiers, setPriceTiers] = useState<PriceTier[]>([
     { maxPrice: 5, multiplier: 20000 },
     { maxPrice: 999999, multiplier: 15000 }
   ]);
 
   // Form state
-  const [newSetCode, setNewSetCode] = useState('');
   const [newTierMaxPrice, setNewTierMaxPrice] = useState<number>(10);
   const [newTierMultiplier, setNewTierMultiplier] = useState<number>(18000);
 
@@ -31,16 +29,15 @@ const AdminUBSettingsPage: React.FC = () => {
     setLoading(true);
     setError('');
     try {
-      const result = await ubPricingApi.getUBSettings(token);
+      const result = await regularPricingApi.getRegularSettings(token);
       if (result.success && result.settings) {
-        setUbSets(result.settings.ubSets || []);
         setPriceTiers(result.settings.priceTiers || [
           { maxPrice: 5, multiplier: 20000 },
           { maxPrice: 999999, multiplier: 15000 }
         ]);
       }
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to load UB settings');
+      setError(err.response?.data?.error || 'Failed to load Regular settings');
     } finally {
       setLoading(false);
     }
@@ -54,7 +51,7 @@ const AdminUBSettingsPage: React.FC = () => {
     setMessage('');
 
     try {
-      const result = await ubPricingApi.updatePriceTiers(token, priceTiers);
+      const result = await regularPricingApi.updatePriceTiers(token, priceTiers);
       if (result.success) {
         setMessage('Price tiers updated successfully!');
         setTimeout(() => setMessage(''), 3000);
@@ -102,56 +99,11 @@ const AdminUBSettingsPage: React.FC = () => {
     setPriceTiers(newTiers);
   };
 
-  const handleAddSet = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!token || !newSetCode.trim()) return;
-
-    setLoading(true);
-    setError('');
-    setMessage('');
-
-    try {
-      const result = await ubPricingApi.addUBSet(token, newSetCode.trim());
-      if (result.success) {
-        setMessage(`Set code ${newSetCode.toUpperCase()} added successfully!`);
-        setUbSets(result.ubSets || []);
-        setNewSetCode('');
-        setTimeout(() => setMessage(''), 3000);
-      }
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to add set code');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleRemoveSet = async (setCode: string) => {
-    if (!token) return;
-    if (!confirm(`Are you sure you want to remove ${setCode} from UB sets?`)) return;
-
-    setLoading(true);
-    setError('');
-    setMessage('');
-
-    try {
-      const result = await ubPricingApi.removeUBSet(token, setCode);
-      if (result.success) {
-        setMessage(`Set code ${setCode} removed successfully!`);
-        setUbSets(result.ubSets || []);
-        setTimeout(() => setMessage(''), 3000);
-      }
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to remove set code');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <div className="p-6" style={{ backgroundColor: 'var(--color-background)', minHeight: '100vh' }}>
       <div className="max-w-6xl mx-auto">
         <h1 className="text-3xl font-bold mb-6" style={{ color: 'var(--color-text)' }}>
-          🌌 UB Settings Configuration
+          ⚙️ Regular Sets Pricing Configuration
         </h1>
 
         {/* Messages */}
@@ -166,13 +118,13 @@ const AdminUBSettingsPage: React.FC = () => {
           </div>
         )}
 
-        {/* Multipliers Section */}
+        {/* Price Tiers Section */}
         <div className="mb-8 p-6 rounded-lg shadow" style={{ backgroundColor: 'var(--color-panel)' }}>
           <h2 className="text-2xl font-bold mb-4" style={{ color: 'var(--color-text)' }}>
-            Price Multiplier Tiers
+            Price Multiplier Tiers for Regular Sets
           </h2>
           <p className="mb-4" style={{ color: 'var(--color-text-secondary)' }}>
-            Configure tiered multipliers based on CardKingdom price ranges for Universe Beyond sets.
+            Configure tiered multipliers based on CardKingdom price ranges for all non-Universe Beyond sets.
             Prices are matched to the first tier where CK price ≤ max price.
           </p>
 
@@ -291,7 +243,7 @@ const AdminUBSettingsPage: React.FC = () => {
             
             <div className="mt-4 p-3 rounded" style={{ backgroundColor: 'var(--color-background)' }}>
               <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-                <strong>How it works:</strong> When calculating prices, the system finds the first tier where 
+                <strong>How it works:</strong> When calculating prices for regular (non-UB) sets, the system finds the first tier where 
                 the CK price is ≤ the max price. For your highest tier, use a very large number (e.g., 999999) 
                 to catch all remaining cards.
               </p>
@@ -310,76 +262,9 @@ const AdminUBSettingsPage: React.FC = () => {
             {loading ? 'Saving...' : 'Save All Price Tiers'}
           </button>
         </div>
-
-        {/* UB Sets Management Section */}
-        <div className="mb-8 p-6 rounded-lg shadow" style={{ backgroundColor: 'var(--color-panel)' }}>
-          <h2 className="text-2xl font-bold mb-4" style={{ color: 'var(--color-text)' }}>
-            Universe Beyond Sets
-          </h2>
-          <p className="mb-4" style={{ color: 'var(--color-text-secondary)' }}>
-            Manage which set codes are considered Universe Beyond sets for special pricing.
-          </p>
-
-          {/* Add Set Form */}
-          <form onSubmit={handleAddSet} className="mb-6 flex gap-2">
-            <input
-              type="text"
-              value={newSetCode}
-              onChange={(e) => setNewSetCode(e.target.value.toUpperCase())}
-              placeholder="Enter set code (e.g., SPE)"
-              className="input flex-1"
-              maxLength={10}
-            />
-            <button
-              type="submit"
-              disabled={loading || !newSetCode.trim()}
-              className="px-6 py-2 rounded font-semibold transition-colors disabled:opacity-50"
-              style={{ 
-                backgroundColor: 'var(--color-highlight)',
-                color: 'var(--color-panel)'
-              }}
-            >
-              Add Set
-            </button>
-          </form>
-
-          {/* Sets Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-            {ubSets.length === 0 ? (
-              <p style={{ color: 'var(--color-text-secondary)' }}>No UB sets configured yet.</p>
-            ) : (
-              ubSets.map((setCode) => (
-                <div
-                  key={setCode}
-                  className="flex items-center justify-between p-3 rounded border"
-                  style={{ 
-                    backgroundColor: 'var(--color-background)',
-                    borderColor: 'var(--color-border)'
-                  }}
-                >
-                  <span className="font-mono font-bold" style={{ color: 'var(--color-text)' }}>
-                    {setCode}
-                  </span>
-                  <button
-                    onClick={() => handleRemoveSet(setCode)}
-                    disabled={loading}
-                    className="text-red-600 hover:text-red-800 font-bold disabled:opacity-50"
-                    title="Remove set"
-                  >
-                    ×
-                  </button>
-                </div>
-              ))
-            )}
-          </div>
-
-          <p className="mt-4 text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-            Total UB Sets: {ubSets.length}
-          </p>
-        </div>
       </div>
     </div>
   );
 };
 
-export default AdminUBSettingsPage;
+export default AdminRegularSettingsPage;

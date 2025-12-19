@@ -152,7 +152,6 @@ const AdminCardListPage: React.FC = () => {
                     <tr>
                       <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--color-text)' }}>Card Name</th>
                       <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--color-text)' }}>Set</th>
-                      <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--color-text)' }}>Condition</th>
                       <th className="px-6 py-4 text-right text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--color-text)' }}>
                         <div className="flex items-center justify-end gap-1">
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -189,7 +188,6 @@ const AdminCardListPage: React.FC = () => {
                       const lowestPrice = inventory.length > 0 
                         ? Math.min(...inventory.map(item => item.sellPrice))
                         : 0;
-                      const conditions = [...new Set(inventory.map(item => item.condition))].join(', ') || '-';
                       
                       return (
                         <tr
@@ -198,6 +196,23 @@ const AdminCardListPage: React.FC = () => {
                         >
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-3">
+                              {/* Card Image */}
+                              <div className="flex-shrink-0">
+                                {card.imageUrl ? (
+                                  <img 
+                                    src={card.imageUrl} 
+                                    alt={card.name}
+                                    className="w-12 h-16 object-cover rounded border-2"
+                                    style={{ borderColor: 'var(--color-text-secondary)' }}
+                                  />
+                                ) : (
+                                  <div className="w-12 h-16 rounded border-2 flex items-center justify-center" style={{ backgroundColor: 'var(--color-background)', borderColor: 'var(--color-text-secondary)' }}>
+                                    <svg className="w-6 h-6" style={{ color: 'var(--color-text-secondary)' }} fill="currentColor" viewBox="0 0 20 20">
+                                      <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                                    </svg>
+                                  </div>
+                                )}
+                              </div>
                               <div className="flex-1">
                                 <div className="font-semibold" style={{ color: 'var(--color-text)' }}>{card.name}</div>
                                 {!card.isActive && (
@@ -212,11 +227,13 @@ const AdminCardListPage: React.FC = () => {
                             </div>
                           </td>
                           <td className="px-6 py-4">
-                            <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-800">
-                              {card.setCode}
-                            </span>
+                            <div className="flex items-center gap-2">
+                              <i className={`ss ss-${card.setCode.toLowerCase()} ss-${card.rarity.toLowerCase()} ss-2x`} style={{ color: card.rarity.toLowerCase() === 'common' ? 'var(--color-text)' : undefined }}></i>
+                              <span className="text-xs font-medium" style={{ color: 'var(--color-text-secondary)' }}>
+                                {card.setCode}
+                              </span>
+                            </div>
                           </td>
-                          <td className="px-6 py-4 text-sm" style={{ color: 'var(--color-text)' }}>{conditions}</td>
                           <td className="px-6 py-4 text-right">
                             <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-purple-100 text-purple-800">
                               {totalOwned}

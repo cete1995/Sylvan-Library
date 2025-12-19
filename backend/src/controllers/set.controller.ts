@@ -22,6 +22,7 @@ interface MTGJsonCard {
   borderColor?: string;
   frameEffects?: string[];
   uuid?: string;
+  availability?: string[];
   identifiers?: {
     scryfallId?: string;
   };
@@ -55,10 +56,22 @@ export const uploadSetJson = asyncHandler(async (req: Request, res: Response) =>
   const setCode = setData.data.code.toUpperCase();
   const setName = setData.data.name;
   const createdCards = [];
+  const skipped = [];
   const errors = [];
 
   for (const cardData of cards) {
     try {
+      // Skip cards that are only available on Arena (digital only)
+      if (cardData.availability && 
+          cardData.availability.length === 1 && 
+          cardData.availability[0] === 'arena') {
+        skipped.push({
+          name: cardData.name,
+          reason: 'Arena-only card (digital only)',
+        });
+        continue;
+      }
+
       // Map MTGJson rarity to our schema
       let rarity: 'common' | 'uncommon' | 'rare' | 'mythic' | 'special' | 'bonus' = 'common';
       const rarityLower = cardData.rarity.toLowerCase();
@@ -85,7 +98,7 @@ export const uploadSetJson = asyncHandler(async (req: Request, res: Response) =>
         // Card already exists in catalog - skip
         createdCards.push(existing);
       } else {
-        // Create new card in catalog with empty inventory
+        // Create new card in catalog with default inventory items (0 quantity)
         const newCard = await Card.create({
           name: cardData.name,
           setCode: setCode,
@@ -105,7 +118,30 @@ export const uploadSetJson = asyncHandler(async (req: Request, res: Response) =>
             : undefined,
           language: 'EN',
           isActive: true,
-          inventory: [], // Empty inventory array
+          inventory: [
+            // Default NM nonfoil with 0 quantity
+            {
+              condition: 'NM',
+              finish: 'nonfoil',
+              quantityOwned: 0,
+              quantityForSale: 0,
+              buyPrice: 0,
+              sellPrice: 0,
+              sellerId: undefined,
+              sellerName: undefined,
+            },
+            // Default NM foil with 0 quantity
+            {
+              condition: 'NM',
+              finish: 'foil',
+              quantityOwned: 0,
+              quantityForSale: 0,
+              buyPrice: 0,
+              sellPrice: 0,
+              sellerId: undefined,
+              sellerName: undefined,
+            },
+          ],
         });
         createdCards.push(newCard);
       }
@@ -122,7 +158,9 @@ export const uploadSetJson = asyncHandler(async (req: Request, res: Response) =>
     setCode,
     totalCards: cards.length,
     imported: createdCards.length,
+    skipped: skipped.length,
     errors: errors.length,
+    skippedDetails: skipped.length > 0 ? skipped : undefined,
     errorDetails: errors.length > 0 ? errors : undefined,
   });
 });

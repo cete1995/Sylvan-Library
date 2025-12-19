@@ -164,4 +164,25 @@
   .table-row:hover {
     background-color: var(--color-background);
   }
+
+  /* Mana Symbol Sizing */
+  .ms {
+    font-size: 1.25em;
+    line-height: 1;
+    vertical-align: middle;
+    display: inline-block;
+  }
+  
+  /* Better centering for cost circles */
+  .ms.ms-cost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .ms.ms-cost::before {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 }

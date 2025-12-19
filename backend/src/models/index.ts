@@ -6,3 +6,4 @@ export { default as FeaturedBanner, IFeaturedBanner } from './FeaturedBanner.mod
 export { default as FeaturedProduct, IFeaturedProduct } from './FeaturedProduct.model';
 export { default as Order, IOrder, IOrderItem } from './Order.model';
 export { default as CardPrice, ICardPrice } from './CardPrice';
+export { default as RegularSettings, IRegularSettings } from './RegularSettings.model';

@@ -5,6 +5,7 @@ import { cartApi } from '../api/cart';
 import { Card } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
+import ManaSymbols from '../components/ManaSymbols';
 
 const CardDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -142,7 +143,9 @@ const CardDetailPage: React.FC = () => {
                 </tr>
                 <tr>
                   <td className="font-bold py-1.5 md:py-2 px-2 md:px-3" style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-panel)' }}>Cost</td>
-                  <td className="py-1.5 md:py-2 px-2 md:px-3 font-mono" style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)' }}>{card.manaCost || 'N/A'}</td>
+                  <td className="py-1.5 md:py-2 px-2 md:px-3" style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)' }}>
+                    <ManaSymbols cost={card.manaCost || ''} />
+                  </td>
                 </tr>
                 <tr>
                   <td className="font-bold py-1.5 md:py-2 px-2 md:px-3" style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-panel)' }}>P/T</td>
@@ -250,11 +253,11 @@ const CardDetailPage: React.FC = () => {
                                     onChange={(e) => handleQuantityChange(nonfoilIndex, e.target.value)}
                                     min="1"
                                     max={nonfoilItem.quantityForSale}
-                                    className="w-16 text-sm md:text-base text-center border rounded py-1"
+                                    className="w-16 text-sm md:text-base text-center border-2 rounded py-1 font-semibold"
                                     style={{ 
-                                      borderColor: 'var(--color-text-secondary)',
-                                      backgroundColor: 'var(--color-panel)',
-                                      color: 'var(--color-text)'
+                                      borderColor: 'var(--color-accent)',
+                                      backgroundColor: 'white',
+                                      color: '#1F2937'
                                     }}
                                   />
                                   <button 
@@ -308,11 +311,11 @@ const CardDetailPage: React.FC = () => {
                                     onChange={(e) => handleQuantityChange(foilIndex, e.target.value)}
                                     min="1"
                                     max={foilItem.quantityForSale}
-                                    className="w-16 text-sm md:text-base text-center border rounded py-1"
+                                    className="w-16 text-sm md:text-base text-center border-2 rounded py-1 font-semibold"
                                     style={{ 
-                                      borderColor: 'var(--color-text-secondary)',
-                                      backgroundColor: 'var(--color-panel)',
-                                      color: 'var(--color-text)'
+                                      borderColor: 'var(--color-accent)',
+                                      backgroundColor: 'white',
+                                      color: '#1F2937'
                                     }}
                                   />
                                   <button 

@@ -250,37 +250,54 @@ export const bulkUploadCards = asyncHandler(async (req: Request, res: Response) 
 });
 
 /**
- * Clear entire database (cards, non-admin users, carts, price data)
+ * Clear entire database (cards, non-admin users, carts, orders, featured items, carousel, UB settings, Regular settings, price data)
  * POST /api/admin/clear-database
  */
 export const clearDatabase = asyncHandler(async (req: Request, res: Response) => {
   // Import models
   const { User, Cart, Carousel } = require('../models');
   const { default: CardPrice } = require('../models/CardPrice');
+  const { default: Order } = require('../models/Order.model');
+  const { default: FeaturedProduct } = require('../models/FeaturedProduct.model');
+  const { default: FeaturedBanner } = require('../models/FeaturedBanner.model');
+  const { default: UBSettings } = require('../models/UBSettings.model');
+  const { default: RegularSettings } = require('../models/RegularSettings.model');
 
   // Delete all cards
   const deletedCards = await Card.deleteMany({});
   
-  // Delete all non-admin users
-  const deletedUsers = await User.deleteMany({ role: { $ne: 'admin' } });
+  // Delete all non-admin users (keep admin and seller accounts)
+  const deletedUsers = await User.deleteMany({ role: { $nin: ['admin', 'seller'] } });
   
   // Delete all carts
   const deletedCarts = await Cart.deleteMany({});
 
+  // Delete all orders
+  const deletedOrders = await Order.deleteMany({});
+
   // Delete all carousel images
   const deletedCarousel = await Carousel.deleteMany({});
 
-  // Delete all price data
-  const deletedPrices = await CardPrice.deleteMany({});
+  // Delete all featured products
+  const deletedFeaturedProducts = await FeaturedProduct.deleteMany({});
+
+  // Delete all featured banners
+  const deletedFeaturedBanners = await FeaturedBanner.deleteMany({});
+
+  // Keep UB pricing settings
+  // Keep Regular pricing settings
+  // Keep price data (CardPrice)
 
   res.json({
-    message: 'Database cleared successfully',
+    message: 'Database cleared successfully (pricing settings and price data preserved)',
     deletedCounts: {
       cards: deletedCards.deletedCount,
       users: deletedUsers.deletedCount,
       carts: deletedCarts.deletedCount,
+      orders: deletedOrders.deletedCount,
       carousel: deletedCarousel.deletedCount,
-      prices: deletedPrices.deletedCount,
+      featuredProducts: deletedFeaturedProducts.deletedCount,
+      featuredBanners: deletedFeaturedBanners.deletedCount,
     },
   });
 });

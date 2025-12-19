@@ -23,8 +23,10 @@ router.get('/ub-settings', authenticate, requireAdmin, async (req: Request, res:
           "FIN", "FCA", "FIC", "MAR", "SPE", "SPM", "TLA", "TLE", 
           "PZA", "TMC", "TMT"
         ],
-        multiplierUnder5: 20000,
-        multiplier5AndAbove: 15000,
+        priceTiers: [
+          { maxPrice: 5, multiplier: 20000 },
+          { maxPrice: 999999, multiplier: 15000 }
+        ],
       });
     }
 
@@ -32,8 +34,7 @@ router.get('/ub-settings', authenticate, requireAdmin, async (req: Request, res:
       success: true,
       settings: {
         ubSets: settings.ubSets,
-        multiplierUnder5: settings.multiplierUnder5,
-        multiplier5AndAbove: settings.multiplier5AndAbove,
+        priceTiers: settings.priceTiers,
       }
     });
     return;
@@ -48,31 +49,38 @@ router.get('/ub-settings', authenticate, requireAdmin, async (req: Request, res:
 });
 
 /**
- * Update UB multipliers
- * PUT /api/admin/ub-settings/multipliers
+ * Update UB price tiers
+ * PUT /api/admin/ub-settings/price-tiers
  */
-router.put('/ub-settings/multipliers', authenticate, requireAdmin, async (req: Request, res: Response) => {
+router.put('/ub-settings/price-tiers', authenticate, requireAdmin, async (req: Request, res: Response) => {
   try {
-    const { multiplierUnder5, multiplier5AndAbove } = req.body;
+    const { priceTiers } = req.body;
 
-    if (!multiplierUnder5 || !multiplier5AndAbove) {
-      return res.status(400).json({ error: 'Both multipliers are required' });
+    if (!priceTiers || !Array.isArray(priceTiers)) {
+      return res.status(400).json({ error: 'Price tiers array is required' });
     }
 
-    if (multiplierUnder5 <= 0 || multiplier5AndAbove <= 0) {
-      return res.status(400).json({ error: 'Multipliers must be positive numbers' });
+    // Validate each tier
+    for (const tier of priceTiers) {
+      if (!tier.maxPrice || !tier.multiplier) {
+        return res.status(400).json({ error: 'Each tier must have maxPrice and multiplier' });
+      }
+      if (tier.maxPrice <= 0 || tier.multiplier <= 0) {
+        return res.status(400).json({ error: 'maxPrice and multiplier must be positive numbers' });
+      }
     }
+
+    // Sort tiers by maxPrice ascending
+    const sortedTiers = priceTiers.sort((a: any, b: any) => a.maxPrice - b.maxPrice);
 
     let settings = await UBSettings.findOne();
     if (!settings) {
       settings = await UBSettings.create({
         ubSets: [],
-        multiplierUnder5,
-        multiplier5AndAbove,
+        priceTiers: sortedTiers,
       });
     } else {
-      settings.multiplierUnder5 = multiplierUnder5;
-      settings.multiplier5AndAbove = multiplier5AndAbove;
+      settings.priceTiers = sortedTiers;
       await settings.save();
     }
 
@@ -80,17 +88,16 @@ router.put('/ub-settings/multipliers', authenticate, requireAdmin, async (req: R
 
     res.json({
       success: true,
-      message: 'UB multipliers updated successfully',
+      message: 'Price tiers updated successfully',
       settings: {
-        multiplierUnder5: settings.multiplierUnder5,
-        multiplier5AndAbove: settings.multiplier5AndAbove,
+        priceTiers: settings.priceTiers,
       }
     });
     return;
   } catch (error: any) {
-    console.error('Update UB multipliers error:', error);
+    console.error('Update price tiers error:', error);
     res.status(500).json({
-      error: 'Failed to update UB multipliers',
+      error: 'Failed to update price tiers',
       message: error.message
     });
     return;
@@ -118,8 +125,10 @@ router.post('/ub-settings/sets', authenticate, requireAdmin, async (req: Request
     if (!settings) {
       settings = await UBSettings.create({
         ubSets: [upperSetCode],
-        multiplierUnder5: 20000,
-        multiplier5AndAbove: 15000,
+        priceTiers: [
+          { maxPrice: 5, multiplier: 20000 },
+          { maxPrice: 999999, multiplier: 15000 }
+        ],
       });
     } else {
       if (settings.ubSets.includes(upperSetCode)) {
@@ -229,6 +238,8 @@ router.post('/sync-ub-prices', authenticate, requireAdmin, async (req: Request, 
 
     for (const card of cardsToUpdate) {
       try {
+        const cardIdentifier = `${card.name} (${card.setCode} #${card.collectorNumber})`;
+        
         // Skip if not a UB set (shouldn't happen but safety check)
         if (!(await isUBSet(card.setCode))) {
           skippedCount++;
@@ -238,7 +249,7 @@ router.post('/sync-ub-prices', authenticate, requireAdmin, async (req: Request, 
         // Get latest CK prices for this card
         if (!card.uuid) {
           skippedCount++;
-          errors.push(`${card.name} (${card.setCode}): No UUID`);
+          errors.push(`${cardIdentifier}: No UUID`);
           continue;
         }
 
@@ -248,7 +259,7 @@ router.post('/sync-ub-prices', authenticate, requireAdmin, async (req: Request, 
 
         if (!latestPrice || !latestPrice.prices?.cardkingdom?.retail) {
           skippedCount++;
-          errors.push(`${card.name} (${card.setCode}): No CK price data`);
+          errors.push(`${cardIdentifier}: No CK price data`);
           continue;
         }
 
@@ -270,9 +281,12 @@ router.post('/sync-ub-prices', authenticate, requireAdmin, async (req: Request, 
             // Calculate UB price
             const newSellPrice = await calculateUBPrice(ckPrice);
             
-            // Update only if different (to avoid unnecessary writes)
-            if (Math.abs(item.sellPrice - newSellPrice) > 0.01) {
-              item.sellPrice = newSellPrice;
+            // Always update if sellPrice is 0 or different (round to 2 decimals for comparison)
+            const currentPrice = Math.round(item.sellPrice * 100) / 100;
+            const calculatedPrice = Math.round(newSellPrice * 100) / 100;
+            
+            if (item.sellPrice === 0 || Math.abs(currentPrice - calculatedPrice) > 0.01) {
+              item.sellPrice = calculatedPrice;
               updated = true;
             }
           }
@@ -286,7 +300,8 @@ router.post('/sync-ub-prices', authenticate, requireAdmin, async (req: Request, 
         }
 
       } catch (err: any) {
-        errors.push(`${card.name} (${card.setCode}): ${err.message}`);
+        const cardIdentifier = `${card.name} (${card.setCode} #${card.collectorNumber})`;
+        errors.push(`${cardIdentifier}: ${err.message}`);
         skippedCount++;
       }
     }

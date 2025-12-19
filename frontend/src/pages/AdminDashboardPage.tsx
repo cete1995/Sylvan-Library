@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { adminApi } from '../api/admin';
+import { pricingApi } from '../api/pricing';
 import { Stats } from '../types';
 
 const AdminDashboardPage: React.FC = () => {
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
   const [clearing, setClearing] = useState(false);
+  const [syncing, setSyncing] = useState(false);
 
   // Format price with thousands separator
   const formatPrice = (price: string | number): string => {
@@ -29,9 +31,39 @@ const AdminDashboardPage: React.FC = () => {
     }
   };
 
+  const handleSyncAllPrices = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('Please log in to sync prices');
+      return;
+    }
+
+    if (!confirm('This will sync all card prices (both UB and Regular sets) based on latest CardKingdom prices. This may take several minutes. Continue?')) {
+      return;
+    }
+
+    setSyncing(true);
+    try {
+      const result = await pricingApi.syncAllPrices(token);
+      alert(
+        `Price sync completed!\n\n` +
+        `Updated: ${result.updated} cards\n` +
+        `Skipped: ${result.skipped} cards\n` +
+        (result.noInventory ? `No Inventory: ${result.noInventory} cards (catalog-only, add inventory to enable pricing)\n` : '') +
+        `Total: ${result.total} cards\n\n` +
+        (result.errors && result.errors.length > 0 ? `First errors: ${result.errors.slice(0, 5).join(', ')}` : '')
+      );
+      loadStats(); // Reload stats
+    } catch (error: any) {
+      alert('Failed to sync prices: ' + (error.response?.data?.error || error.message));
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   const handleClearDatabase = async () => {
     const confirmation = window.confirm(
-      'Are you sure you want to clear ALL data from the database? This action cannot be undone!\n\nThis will delete:\n- All cards\n- All users (except admins)\n- All carts\n- All carousel images\n- All price data\n\nType "DELETE ALL" in the next prompt to confirm.'
+      'Are you sure you want to clear ALL data from the database? This action cannot be undone!\n\nThis will delete:\n- All cards\n- All users (except admins and sellers)\n- All carts\n- All orders\n- All carousel images\n- All featured products & banners\n\n⚠️ PRESERVED (will NOT be deleted):\n- UB pricing settings\n- Regular pricing settings\n- Price history data (CardKingdom prices)\n\nType "DELETE ALL" in the next prompt to confirm.'
     );
     
     if (!confirmation) return;
@@ -46,7 +78,7 @@ const AdminDashboardPage: React.FC = () => {
     try {
       const result = await adminApi.clearDatabase();
       alert(
-        `Database cleared successfully!\n\nDeleted:\n- ${result.deletedCounts.cards} cards\n- ${result.deletedCounts.users} users\n- ${result.deletedCounts.carts} carts\n- ${result.deletedCounts.carousel} carousel images\n- ${result.deletedCounts.prices} price records`
+        `Database cleared successfully!\n\nDeleted:\n- ${result.deletedCounts.cards} cards\n- ${result.deletedCounts.users} users\n- ${result.deletedCounts.carts} carts\n- ${result.deletedCounts.orders} orders\n- ${result.deletedCounts.carousel} carousel images\n- ${result.deletedCounts.featuredProducts} featured products\n- ${result.deletedCounts.featuredBanners} featured banners\n\n✅ Preserved: UB/Regular pricing settings and price data`
       );
       loadStats(); // Reload stats
     } catch (error: any) {
@@ -258,6 +290,21 @@ const AdminDashboardPage: React.FC = () => {
                 ⚙️ UB Settings
               </Link>
               <Link
+                to="/admin/regular-settings"
+                className="block w-full px-4 py-3 rounded-lg font-medium text-center hover:opacity-90 shadow-sm"
+                style={{ background: 'linear-gradient(to right, #3B82F6, #6366F1)', color: 'white' }}
+              >
+                ⚙️ Regular Sets Pricing
+              </Link>
+              <button
+                onClick={handleSyncAllPrices}
+                disabled={syncing}
+                className="block w-full px-4 py-3 rounded-lg font-bold text-center hover:opacity-90 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ background: 'linear-gradient(to right, #F59E0B, #EF4444)', color: 'white' }}
+              >
+                {syncing ? '⏳ Syncing All Prices...' : '🔄 Sync All Prices Now'}
+              </button>
+              <Link
                 to="/admin/sellers"
                 className="block w-full px-4 py-3 rounded-lg font-medium text-center hover:opacity-90 shadow-sm"
                 style={{ background: 'linear-gradient(to right, #10B981, #059669)', color: 'white' }}
@@ -325,7 +372,7 @@ const AdminDashboardPage: React.FC = () => {
               '🗑️ Clear All Database'
             )}
           </button>
-          <p className="text-xs mt-2" style={{ color: 'var(--color-text-secondary)' }}>This will delete all cards, users (except admins), and carts. This cannot be undone!</p>
+          <p className="text-xs mt-2" style={{ color: 'var(--color-text-secondary)' }}>This will delete all cards, users (except admins & sellers), orders, featured items, and all settings. This cannot be undone!</p>
         </div>
       </div>
     </div>

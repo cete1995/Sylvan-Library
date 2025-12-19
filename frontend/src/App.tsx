@@ -24,6 +24,7 @@ import AdminFeaturedPage from './pages/AdminFeaturedPage';
 import AdminPriceManagementPage from './pages/AdminPriceManagementPage';
 import AdminUBPricingPage from './pages/AdminUBPricingPage';
 import AdminUBSettingsPage from './pages/AdminUBSettingsPage';
+import AdminRegularSettingsPage from './pages/AdminRegularSettingsPage';
 import AdminSellerManagementPage from './pages/AdminSellerManagementPage';
 import SellerDashboardPage from './pages/SellerDashboardPage';
 import SellerInventoryFormPage from './pages/SellerInventoryFormPage';
@@ -155,6 +156,14 @@ const App: React.FC = () => {
                 element={
                   <ProtectedRoute adminOnly={true}>
                     <AdminUBSettingsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/regular-settings"
+                element={
+                  <ProtectedRoute adminOnly={true}>
+                    <AdminRegularSettingsPage />
                   </ProtectedRoute>
                 }
               />

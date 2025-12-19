@@ -2,6 +2,16 @@ import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
+export interface PriceTier {
+  maxPrice: number;
+  multiplier: number;
+}
+
+export interface UBSettings {
+  ubSets: string[];
+  priceTiers: PriceTier[];
+}
+
 export const ubPricingApi = {
   /**
    * Get UB settings
@@ -17,12 +27,12 @@ export const ubPricingApi = {
   },
 
   /**
-   * Update UB multipliers
+   * Update UB price tiers
    */
-  updateMultipliers: async (token: string, multiplierUnder5: number, multiplier5AndAbove: number) => {
+  updatePriceTiers: async (token: string, priceTiers: PriceTier[]) => {
     const response = await axios.put(
-      `${API_URL}/admin/ub-pricing/ub-settings/multipliers`,
-      { multiplierUnder5, multiplier5AndAbove },
+      `${API_URL}/admin/ub-pricing/ub-settings/price-tiers`,
+      { priceTiers },
       {
         headers: { Authorization: `Bearer ${token}` }
       }

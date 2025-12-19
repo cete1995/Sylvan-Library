@@ -381,14 +381,15 @@ const CatalogPageV2: React.FC = () => {
                     </div>
 
                     {/* Price and Stock for Active Condition */}
-                    {activeInventoryItem ? (
+                    {activeInventoryItem && (
                       <>
-                        <div className="text-center text-sm text-emerald-500 font-semibold mb-2">
-                          {`${activeInventoryItem.quantityForSale} pcs @ Rp. ${formatPrice(activeInventoryItem.sellPrice)}`}
+                        <div className="text-center text-lg font-bold text-blue-600 mb-1">
+                          {activeInventoryItem.sellPrice > 0 ? `Rp. ${formatPrice(activeInventoryItem.sellPrice)}` : 'Price TBD'}
+                        </div>
+                        <div className={`text-center text-sm font-semibold mb-2 ${activeInventoryItem.quantityForSale > 0 ? 'text-emerald-500' : 'text-red-600'}`}>
+                          {activeInventoryItem.quantityForSale > 0 ? `${activeInventoryItem.quantityForSale} in stock` : 'Out of stock'}
                         </div>
                       </>
-                    ) : (
-                      <div className="text-center text-sm text-red-600 font-semibold mb-2">Out of stock.</div>
                     )}
                   </div>
 
@@ -507,17 +508,19 @@ const CatalogPageV2: React.FC = () => {
                   {/* Price & Stock */}
                   <div className="text-right">
                     <div className="font-bold text-lg text-blue-600 mb-1">
-                      {conditions.NM?.sellPrice ? `Rp. ${formatPrice(conditions.NM.sellPrice)}` :
-                       conditions.LP?.sellPrice ? `Rp. ${formatPrice(conditions.LP.sellPrice)}` :
-                       conditions.P?.sellPrice ? `Rp. ${formatPrice(conditions.P.sellPrice)}` : '-'}
+                      {conditions.NM?.sellPrice && conditions.NM.sellPrice > 0 ? `Rp. ${formatPrice(conditions.NM.sellPrice)}` :
+                       conditions.LP?.sellPrice && conditions.LP.sellPrice > 0 ? `Rp. ${formatPrice(conditions.LP.sellPrice)}` :
+                       conditions.P?.sellPrice && conditions.P.sellPrice > 0 ? `Rp. ${formatPrice(conditions.P.sellPrice)}` : 'Price TBD'}
                     </div>
-                    {isAvailable ? (
-                      <div className="text-sm text-emerald-500 font-semibold">
-                        {conditions.NM && conditions.NM.quantityForSale > 0 && `${conditions.NM.quantityForSale} @ Rp. ${formatPrice(conditions.NM.sellPrice)}`}
-                      </div>
-                    ) : (
-                      <div className="text-sm text-red-600 font-semibold">Out of stock.</div>
-                    )}
+                    <div className="text-sm font-semibold">
+                      {isAvailable ? (
+                        <span className="text-emerald-500">
+                          {conditions.NM && conditions.NM.quantityForSale > 0 ? `${conditions.NM.quantityForSale} in stock` : 'In stock'}
+                        </span>
+                      ) : (
+                        <span className="text-red-600">Out of stock</span>
+                      )}
+                    </div>
                   </div>
                 </Link>
               );

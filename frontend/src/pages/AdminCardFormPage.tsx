@@ -5,6 +5,7 @@ import { cardApi } from '../api/cards';
 import { priceApi } from '../api/price';
 import { CardFormData, InventoryItem } from '../types';
 import CardPriceChart from '../components/CardPriceChart';
+import ManaSymbols from '../components/ManaSymbols';
 import { useAuth } from '../contexts/AuthContext';
 import { isUBSet } from '../utils/ubPricing';
 import { ubPricingApi } from '../api/ubPricing';
@@ -216,7 +217,7 @@ const AdminCardFormPage: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <div className="container mx-auto px-4 py-8" style={{ maxWidth: '1400px' }}>
       <Link to="/admin/cards" className="hover:underline mb-4 inline-block" style={{ color: 'var(--color-accent)' }}>
         ← Back to Card List
       </Link>
@@ -238,8 +239,27 @@ const AdminCardFormPage: React.FC = () => {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Card Information */}
+      <div className="grid lg:grid-cols-[320px_1fr] gap-6">
+        {/* Left Column - Sticky Card Image (Edit Mode Only) */}
+        {isEdit && formData.imageUrl && (
+          <div className="lg:sticky lg:top-4 self-start">
+            <div className="rounded-lg shadow p-4" style={{ backgroundColor: 'var(--color-panel)' }}>
+              <h2 className="text-xl font-bold mb-3" style={{ color: 'var(--color-text)' }}>Card Image</h2>
+              <img 
+                src={formData.imageUrl} 
+                alt={formData.name}
+                className="w-full rounded-lg shadow-lg border-2"
+                style={{ borderColor: 'var(--color-accent)' }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Right Column - Form */}
+        <div>
+          <form onSubmit={handleSubmit} className="space-y-6">
+
+          {/* Card Information */}
         <div className="rounded-lg shadow p-6" style={{ backgroundColor: 'var(--color-panel)' }}>
           <h2 className="text-2xl font-bold mb-4" style={{ color: 'var(--color-text)' }}>Card Information</h2>
           <div className="grid md:grid-cols-2 gap-4">
@@ -252,7 +272,8 @@ const AdminCardFormPage: React.FC = () => {
                 onChange={handleChange}
                 required
                 disabled={isEdit}
-                className="input disabled:bg-gray-100 disabled:cursor-not-allowed"
+                className="input"
+                style={isEdit ? { backgroundColor: 'var(--color-background)', color: 'var(--color-text)', cursor: 'not-allowed', opacity: 0.8 } : {}}
               />
             </div>
 
@@ -265,7 +286,8 @@ const AdminCardFormPage: React.FC = () => {
                 onChange={handleChange}
                 required
                 disabled={isEdit}
-                className="input disabled:bg-gray-100 disabled:cursor-not-allowed"
+                className="input"
+                style={isEdit ? { backgroundColor: 'var(--color-background)', color: 'var(--color-text)', cursor: 'not-allowed', opacity: 0.8 } : {}}
               />
             </div>
 
@@ -278,7 +300,8 @@ const AdminCardFormPage: React.FC = () => {
                 onChange={handleChange}
                 required
                 disabled={isEdit}
-                className="input disabled:bg-gray-100 disabled:cursor-not-allowed"
+                className="input"
+                style={isEdit ? { backgroundColor: 'var(--color-background)', color: 'var(--color-text)', cursor: 'not-allowed', opacity: 0.8 } : {}}
               />
             </div>
 
@@ -291,7 +314,8 @@ const AdminCardFormPage: React.FC = () => {
                 onChange={handleChange}
                 required
                 disabled={isEdit}
-                className="input disabled:bg-gray-100 disabled:cursor-not-allowed"
+                className="input"
+                style={isEdit ? { backgroundColor: 'var(--color-background)', color: 'var(--color-text)', cursor: 'not-allowed', opacity: 0.8 } : {}}
               />
             </div>
 
@@ -303,7 +327,8 @@ const AdminCardFormPage: React.FC = () => {
                 value={formData.language}
                 onChange={handleChange}
                 disabled={isEdit}
-                className="input disabled:bg-gray-100 disabled:cursor-not-allowed"
+                className="input"
+                style={isEdit ? { backgroundColor: 'var(--color-background)', color: 'var(--color-text)', cursor: 'not-allowed', opacity: 0.8 } : {}}
               />
             </div>
 
@@ -314,7 +339,8 @@ const AdminCardFormPage: React.FC = () => {
                 value={formData.rarity} 
                 onChange={handleChange} 
                 disabled={isEdit}
-                className="input disabled:bg-gray-100 disabled:cursor-not-allowed"
+                className="input"
+                style={isEdit ? { backgroundColor: 'var(--color-background)', color: 'var(--color-text)', cursor: 'not-allowed', opacity: 0.8 } : {}}
               >
                 <option value="common">Common</option>
                 <option value="uncommon">Uncommon</option>
@@ -333,8 +359,15 @@ const AdminCardFormPage: React.FC = () => {
                 value={formData.manaCost}
                 onChange={handleChange}
                 disabled={isEdit}
-                className="input disabled:bg-gray-100 disabled:cursor-not-allowed"
+                className="input"
+                style={isEdit ? { backgroundColor: 'var(--color-background)', color: 'var(--color-text)', cursor: 'not-allowed', opacity: 0.8 } : {}}
+                placeholder="{2}{G}{G}"
               />
+              {formData.manaCost && (
+                <div className="mt-2 text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+                  Preview: <ManaSymbols cost={formData.manaCost} />
+                </div>
+              )}
             </div>
 
             <div className="md:col-span-2">
@@ -374,7 +407,8 @@ const AdminCardFormPage: React.FC = () => {
                 value={formData.typeLine}
                 onChange={handleChange}
                 disabled={isEdit}
-                className="input disabled:bg-gray-100 disabled:cursor-not-allowed"
+                className="input"
+                style={isEdit ? { backgroundColor: 'var(--color-background)', color: 'var(--color-text)', cursor: 'not-allowed', opacity: 0.8 } : {}}
               />
             </div>
 
@@ -386,7 +420,8 @@ const AdminCardFormPage: React.FC = () => {
                 onChange={handleChange}
                 rows={3}
                 disabled={isEdit}
-                className="input disabled:bg-gray-100 disabled:cursor-not-allowed"
+                className="input"
+                style={isEdit ? { backgroundColor: 'var(--color-background)', color: 'var(--color-text)', cursor: 'not-allowed', opacity: 0.8 } : {}}
               />
             </div>
 
@@ -398,7 +433,8 @@ const AdminCardFormPage: React.FC = () => {
                 value={formData.imageUrl}
                 onChange={handleChange}
                 disabled={isEdit}
-                className="input disabled:bg-gray-100 disabled:cursor-not-allowed"
+                className="input"
+                style={isEdit ? { backgroundColor: 'var(--color-background)', color: 'var(--color-text)', cursor: 'not-allowed', opacity: 0.8 } : {}}
               />
             </div>
 
@@ -410,7 +446,8 @@ const AdminCardFormPage: React.FC = () => {
                 value={formData.scryfallId}
                 onChange={handleChange}
                 disabled={isEdit}
-                className="input disabled:bg-gray-100 disabled:cursor-not-allowed"
+                className="input"
+                style={isEdit ? { backgroundColor: 'var(--color-background)', color: 'var(--color-text)', cursor: 'not-allowed', opacity: 0.8 } : {}}
               />
             </div>
 
@@ -422,7 +459,8 @@ const AdminCardFormPage: React.FC = () => {
                 value={formData.uuid}
                 onChange={handleChange}
                 disabled={isEdit}
-                className="input disabled:bg-gray-100 disabled:cursor-not-allowed"
+                className="input"
+                style={isEdit ? { backgroundColor: 'var(--color-background)', color: 'var(--color-text)', cursor: 'not-allowed', opacity: 0.8 } : {}}
                 placeholder="Auto-filled from set JSON"
               />
             </div>
@@ -666,6 +704,8 @@ const AdminCardFormPage: React.FC = () => {
           </Link>
         </div>
       </form>
+        </div>
+      </div>
     </div>
   );
 };

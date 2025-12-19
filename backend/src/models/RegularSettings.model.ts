@@ -5,12 +5,8 @@ export interface IPriceTier {
   multiplier: number;
 }
 
-export interface IUBSettings extends Document {
-  ubSets: string[];
+export interface IRegularSettings extends Document {
   priceTiers: IPriceTier[];
-  // Legacy fields for backward compatibility (deprecated)
-  multiplierUnder5?: number;
-  multiplier5AndAbove?: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -26,17 +22,8 @@ const priceTierSchema = new Schema<IPriceTier>({
   },
 }, { _id: false });
 
-const ubSettingsSchema = new Schema<IUBSettings>(
+const regularSettingsSchema = new Schema<IRegularSettings>(
   {
-    ubSets: {
-      type: [String],
-      default: [
-        "40K", "BOT", "LTR", "LTC", "WHO", "REX", "PIP", "ACR", 
-        "FIN", "FCA", "FIC", "MAR", "SPE", "SPM", "TLA", "TLE", 
-        "PZA", "TMC", "TMT"
-      ],
-      required: true,
-    },
     priceTiers: {
       type: [priceTierSchema],
       default: [
@@ -45,17 +32,10 @@ const ubSettingsSchema = new Schema<IUBSettings>(
       ],
       required: true,
     },
-    // Legacy fields (deprecated)
-    multiplierUnder5: {
-      type: Number,
-    },
-    multiplier5AndAbove: {
-      type: Number,
-    },
   },
   {
     timestamps: true,
   }
 );
 
-export default mongoose.model<IUBSettings>('UBSettings', ubSettingsSchema);
+export default mongoose.model<IRegularSettings>('RegularSettings', regularSettingsSchema);
