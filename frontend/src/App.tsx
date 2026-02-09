@@ -1,15 +1,17 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import Navbar from './components/Navbar';
+import BottomNav from './components/BottomNav';
 import ProtectedRoute from './components/ProtectedRoute';
 
 // Pages
 import HomePage from './pages/HomePage';
 import CatalogPage from './pages/CatalogPage';
 import CatalogPageV2 from './pages/CatalogPageV2';
+import MobileCatalogFeed from './pages/MobileCatalogFeed';
 import CardDetailPage from './pages/CardDetailPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
@@ -32,19 +34,32 @@ import ProfilePage from './pages/ProfilePage';
 import OrderHistoryPage from './pages/OrderHistoryPage';
 
 const App: React.FC = () => {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   return (
     <ThemeProvider>
       <AuthProvider>
         <CartProvider>
           <BrowserRouter>
             <div className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--color-background)' }}>
-            <Navbar />
+            {!isMobile && <Navbar />}
             <main className="flex-1">
               <Routes>
                 {/* Public Routes */}
                 <Route path="/" element={<HomePage />} />
-                <Route path="/catalog" element={<CatalogPage />} />
-                <Route path="/catalog-v2" element={<CatalogPageV2 />} />
+                <Route path="/catalog" element={isMobile ? <MobileCatalogFeed /> : <CatalogPage />} />
+                <Route path="/catalog-v2" element={isMobile ? <MobileCatalogFeed /> : <CatalogPageV2 />} />
                 <Route path="/cards/:id" element={<CardDetailPage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
@@ -209,15 +224,20 @@ const App: React.FC = () => {
             </Routes>
           </main>
 
-          {/* Footer */}
-          <footer className="py-8 mt-12" style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)' }}>
-            <div className="container mx-auto px-4 text-center">
-              <p>&copy; 2025 MTG Inventory. All rights reserved.</p>
-              <p className="text-sm mt-2" style={{ color: 'var(--color-text-secondary)' }}>
-                Magic: The Gathering is trademark of Wizards of the Coast LLC.
-              </p>
-            </div>
-          </footer>
+          {/* Footer - Hidden on Mobile */}
+          {!isMobile && (
+            <footer className="py-8 mt-12" style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)' }}>
+              <div className="container mx-auto px-4 text-center">
+                <p>© 2025 MTG Inventory. All rights reserved.</p>
+                <p className="text-sm mt-2" style={{ color: 'var(--color-text-secondary)' }}>
+                  Magic: The Gathering is trademark of Wizards of the Coast LLC.
+                </p>
+              </div>
+            </footer>
+          )}
+
+          {/* Bottom Navigation - Mobile Only */}
+          {isMobile && <BottomNav />}
         </div>
       </BrowserRouter>
       </CartProvider>
