@@ -49,6 +49,8 @@ import ubPricingRoutes from './routes/ubPricing.routes';
 import regularPricingRoutes from './routes/regularPricing.routes';
 import pricingRoutes from './routes/pricing.routes';
 import sellerRoutes from './routes/seller.routes';
+import tiktokRoutes from './routes/tiktok.routes';
+import manaboxRoutes from './routes/manabox.routes';
 
 app.get('/api', (_req, res) => {
   res.json({
@@ -84,8 +86,10 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/prices', priceRoutes);
 app.use('/api/admin/ub-pricing', ubPricingRoutes);
 app.use('/api/admin/regular-pricing', regularPricingRoutes);
-app.use('/api/admin/pricing', pricingRoutes);
+app.use('/api/admin/pricing', pricingRoutes)
+app.use('/api/admin/tiktok', tiktokRoutes);;
 app.use('/api/admin/sellers', sellerRoutes);
+app.use('/api/manabox', manaboxRoutes);
 
 // Error handling
 app.use(notFoundHandler);
