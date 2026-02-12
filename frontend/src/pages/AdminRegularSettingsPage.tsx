@@ -102,7 +102,7 @@ const AdminRegularSettingsPage: React.FC = () => {
   return (
     <div className="p-6" style={{ backgroundColor: 'var(--color-background)', minHeight: '100vh' }}>
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6" style={{ color: 'var(--color-text)' }}>
+        <h1 className="text-4xl font-bold mb-6" style={{ color: 'var(--color-text)' }}>
           ⚙️ Regular Sets Pricing Configuration
         </h1>
 

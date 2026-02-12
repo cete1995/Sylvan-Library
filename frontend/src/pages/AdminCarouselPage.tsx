@@ -151,7 +151,7 @@ const AdminCarouselPage: React.FC = () => {
           ← Back to Dashboard
         </Link>
         <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold" style={{ color: 'var(--color-text)' }}>Manage Carousel</h1>
+          <h1 className="text-4xl font-bold mb-2" style={{ color: 'var(--color-text)' }}>Manage Carousel</h1>
           {!showForm && images.length < 8 && (
             <button
               onClick={() => setShowForm(true)}

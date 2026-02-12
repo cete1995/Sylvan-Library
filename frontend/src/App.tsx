@@ -28,6 +28,8 @@ import AdminUBPricingPage from './pages/AdminUBPricingPage';
 import AdminUBSettingsPage from './pages/AdminUBSettingsPage';
 import AdminRegularSettingsPage from './pages/AdminRegularSettingsPage';
 import AdminSellerManagementPage from './pages/AdminSellerManagementPage';
+import AdminTikTokDebugPage from './pages/AdminTikTokDebugPage';
+import ManaboxUploadPage from './pages/ManaboxUploadPage';
 import SellerDashboardPage from './pages/SellerDashboardPage';
 import SellerInventoryFormPage from './pages/SellerInventoryFormPage';
 import ProfilePage from './pages/ProfilePage';
@@ -190,6 +192,14 @@ const App: React.FC = () => {
                   </ProtectedRoute>
                 }
               />
+              <Route
+                path="/admin/tiktok-debug"
+                element={
+                  <ProtectedRoute adminOnly={true}>
+                    <AdminTikTokDebugPage />
+                  </ProtectedRoute>
+                }
+              />
 
               {/* Protected Seller Routes */}
               <Route
@@ -197,6 +207,14 @@ const App: React.FC = () => {
                 element={
                   <ProtectedRoute sellerOnly={true}>
                     <SellerDashboardPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/seller/manabox-upload"
+                element={
+                  <ProtectedRoute sellerOnly={true}>
+                    <ManaboxUploadPage />
                   </ProtectedRoute>
                 }
               />

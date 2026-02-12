@@ -42,8 +42,22 @@ const SellerDashboardPage: React.FC = () => {
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2" style={{ color: 'var(--color-text)' }}>Seller Dashboard</h1>
-          <p style={{ color: 'var(--color-text-secondary)' }}>Add inventory to existing cards in the system</p>
+          <div className="flex justify-between items-start">
+            <div>
+              <h1 className="text-4xl font-bold mb-2" style={{ color: 'var(--color-text)' }}>Seller Dashboard</h1>
+              <p style={{ color: 'var(--color-text-secondary)' }}>Add inventory to existing cards in the system</p>
+            </div>
+            <Link
+              to="/seller/manabox-upload"
+              className="px-6 py-3 rounded-lg font-bold shadow-lg hover:opacity-90 flex items-center gap-2"
+              style={{ background: 'linear-gradient(to right, #8B5CF6, #EC4899)', color: 'white' }}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              </svg>
+              📦 Manabox Upload
+            </Link>
+          </div>
         </div>
 
         {/* Search */}

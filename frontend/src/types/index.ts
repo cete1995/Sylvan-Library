@@ -19,6 +19,10 @@ export interface InventoryItem {
   sellPrice: number;
   sellerId?: string;
   sellerName?: string;
+  // TikTok Shop / Tokopedia sync fields
+  tiktokProductId?: string;
+  tiktokSkuId?: string;
+  sellerSku?: string;
 }
 
 export interface Card {

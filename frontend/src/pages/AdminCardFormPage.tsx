@@ -674,6 +674,61 @@ const AdminCardFormPage: React.FC = () => {
                       </div>
                     </div>
                   </div>
+                  
+                  {/* TikTok Shop / Tokopedia Sync Fields */}
+                  <div className="grid md:grid-cols-3 gap-4 mt-4 pt-4 border-t" style={{ borderColor: 'var(--color-border)' }}>
+                    <div>
+                      <label className="label text-sm">
+                        <svg className="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                        TikTok Product ID
+                      </label>
+                      <input
+                        type="text"
+                        value={item.tiktokProductId || ''}
+                        onChange={(e) => updateInventoryItem(index, 'tiktokProductId', e.target.value)}
+                        placeholder="e.g., 1729409636071801988"
+                        className="input text-sm font-mono"
+                        style={{ fontSize: '0.75rem' }}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="label text-sm">
+                        <svg className="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                        </svg>
+                        TikTok SKU ID
+                      </label>
+                      <input
+                        type="text"
+                        value={item.tiktokSkuId || ''}
+                        onChange={(e) => updateInventoryItem(index, 'tiktokSkuId', e.target.value)}
+                        placeholder="SKU ID from TikTok"
+                        className="input text-sm font-mono"
+                        style={{ fontSize: '0.75rem' }}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="label text-sm">
+                        <svg className="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                        Seller SKU
+                      </label>
+                      <input
+                        type="text"
+                        value={item.sellerSku || ''}
+                        onChange={(e) => updateInventoryItem(index, 'sellerSku', e.target.value)}
+                        placeholder="Your custom SKU"
+                        className="input text-sm font-mono"
+                        style={{ fontSize: '0.75rem' }}
+                      />
+                    </div>
+                  </div>
+                  
                   <div className="flex items-center justify-between mt-2">
                     <button
                       type="button"

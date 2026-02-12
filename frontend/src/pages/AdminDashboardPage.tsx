@@ -313,6 +313,28 @@ const AdminDashboardPage: React.FC = () => {
               </Link>
             </div>
           </div>
+
+          {/* API Tools */}
+          <div className="rounded-xl shadow-md p-6 border-t-4 border-pink-500" style={{ backgroundColor: 'var(--color-panel)' }}>
+            <div className="flex items-center mb-4">
+              <div className="bg-pink-100 p-3 rounded-lg mr-3">
+                <svg className="w-6 h-6 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold" style={{ color: 'var(--color-text)' }}>API Tools</h3>
+            </div>
+            <p className="mb-6 text-sm" style={{ color: 'var(--color-text-secondary)' }}>Integrate and test marketplace APIs</p>
+            <div className="space-y-3">
+              <Link
+                to="/admin/tiktok-debug"
+                className="block w-full px-4 py-3 rounded-lg font-medium text-center hover:opacity-90 shadow-sm"
+                style={{ background: 'linear-gradient(to right, #EC4899, #F43F5E)', color: 'white' }}
+              >
+                🛍️ TikTok Shop API
+              </Link>
+            </div>
+          </div>
         </div>
 
         {/* Info Banner */}

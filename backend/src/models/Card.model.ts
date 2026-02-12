@@ -13,6 +13,10 @@ export interface IInventoryItem {
   sellPrice: number;
   sellerId?: string;
   sellerName?: string;
+  // TikTok Shop / Tokopedia sync fields
+  tiktokProductId?: string;
+  tiktokSkuId?: string;
+  sellerSku?: string;
 }
 
 export interface ICard extends Document {
@@ -85,6 +89,19 @@ const inventoryItemSchema = new Schema<IInventoryItem>({
     required: false,
   },
   sellerName: {
+    type: String,
+    required: false,
+  },
+  // TikTok Shop / Tokopedia sync fields
+  tiktokProductId: {
+    type: String,
+    required: false,
+  },
+  tiktokSkuId: {
+    type: String,
+    required: false,
+  },
+  sellerSku: {
     type: String,
     required: false,
   },

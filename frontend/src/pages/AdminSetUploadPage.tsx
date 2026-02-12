@@ -43,8 +43,9 @@ const AdminSetUploadPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6">Upload MTG Set JSON</h1>
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--color-background)' }}>
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
+        <h1 className="text-4xl font-bold mb-8" style={{ color: 'var(--color-text)' }}>Upload MTG Set JSON</h1>
 
       <div className="card mb-6">
         <h2 className="text-xl font-semibold mb-4">Instructions</h2>
@@ -136,6 +137,7 @@ const AdminSetUploadPage: React.FC = () => {
           )}
         </div>
       )}
+      </div>
     </div>
   );
 };

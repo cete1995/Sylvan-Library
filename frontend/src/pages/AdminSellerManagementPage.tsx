@@ -99,7 +99,7 @@ const AdminSellerManagementPage: React.FC = () => {
     <div className="min-h-screen" style={{ backgroundColor: 'var(--color-background)' }}>
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2" style={{ color: 'var(--color-text)' }}>
+          <h1 className="text-4xl font-bold mb-2" style={{ color: 'var(--color-text)' }}>
             Seller Management
           </h1>
           <p style={{ color: 'var(--color-text-secondary)' }}>
