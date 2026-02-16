@@ -7,6 +7,7 @@ import {
   deleteCard,
   getAdminCards,
   getStats,
+  getSets,
   bulkUploadCards,
   clearDatabase,
 } from '../controllers/admin.controller';
@@ -39,6 +40,13 @@ router.use(requireAdmin);
  * @access  Private (Admin)
  */
 router.get('/stats', getStats);
+
+/**
+ * @route   GET /api/admin/sets
+ * @desc    Get all unique sets
+ * @access  Private (Admin)
+ */
+router.get('/sets', getSets);
 
 /**
  * @route   GET /api/admin/cards

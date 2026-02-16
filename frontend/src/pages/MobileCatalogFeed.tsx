@@ -102,30 +102,26 @@ const MobileCatalogFeed: React.FC = () => {
       return;
     }
 
-    const inventoryIndex = card.inventory?.findIndex(
-      item => item.condition === condition && item.finish === 'nonfoil'
-    );
+    // Find items matching condition/finish, prioritize those with stock
+    const matchingIndexes = card.inventory
+      ?.map((item, index) => ({ item, index }))
+      .filter(({ item }) => item.condition === condition && item.finish === 'nonfoil');
 
-    if (inventoryIndex === undefined || inventoryIndex < 0) {
+    if (!matchingIndexes || matchingIndexes.length === 0) {
       alert('This condition is not available');
       return;
     }
 
+    // Prefer item with stock > 0
+    const itemWithStock = matchingIndexes.find(({ item }) => item.quantityForSale > 0);
+    const inventoryIndex = itemWithStock ? itemWithStock.index : matchingIndexes[0].index;
+
     try {
       await cartApi.addToCart(card._id, inventoryIndex, 1);
       await refreshCart();
-      
-      // Show toast notification
-      const toast = document.createElement('div');
-      toast.className = 'fixed bottom-24 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-full shadow-lg z-50 font-semibold';
-      toast.textContent = '✓ Added to cart';
-      document.body.appendChild(toast);
-      
-      setTimeout(() => {
-        toast.remove();
-      }, 2000);
+      toast.success('Added to cart');
     } catch (error: any) {
-      alert(error.message || 'Failed to add to cart');
+      toast.error(error.response?.data?.error || error.message || 'Failed to add to cart');
     }
   };
 
@@ -397,42 +393,78 @@ const MobileCatalogFeed: React.FC = () => {
             )}
 
             <div className="space-y-2">
-              {quickViewCard.inventory?.filter(inv => inv.finish === 'nonfoil').map((inv, idx) => (
-                <div 
-                  key={idx}
-                  className="flex justify-between items-center p-3 rounded-lg border"
-                  style={{ 
-                    backgroundColor: 'var(--color-background)',
-                    borderColor: 'var(--color-border)'
-                  }}
-                >
-                  <div>
-                    <p className="font-semibold" style={{ color: 'var(--color-text)' }}>
-                      {inv.condition}
-                    </p>
-                    <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-                      {inv.quantityForSale} in stock
-                    </p>
+              {(() => {
+                // Aggregate inventory by condition for nonfoil items
+                const nonfoilInventory = quickViewCard.inventory?.filter(inv => inv.finish === 'nonfoil') || [];
+                const calculatedPrices = (quickViewCard as any).calculatedPrices;
+                
+                const aggregated = ['NM', 'LP', 'P']
+                  .map(condition => {
+                    const matchingItems = nonfoilInventory.filter(inv => inv.condition === condition);
+                    if (matchingItems.length === 0) {
+                      // If no inventory but we have calculated prices, create a virtual item
+                      if (condition === 'NM' && calculatedPrices?.nonfoil) {
+                        return {
+                          condition,
+                          sellPrice: calculatedPrices.nonfoil,
+                          quantityForSale: 0,
+                          hasMultipleSellers: false
+                        };
+                      }
+                      return null;
+                    }
+                    
+                    const totalQuantity = matchingItems.reduce((sum, item) => sum + item.quantityForSale, 0);
+                    const firstItemWithStock = matchingItems.find(item => item.quantityForSale > 0);
+                    const baseItem = firstItemWithStock || matchingItems[0];
+                    
+                    return {
+                      condition,
+                      sellPrice: baseItem.sellPrice || (condition === 'NM' ? calculatedPrices?.nonfoil : 0) || 0,
+                      quantityForSale: totalQuantity,
+                      hasMultipleSellers: matchingItems.length > 1
+                    };
+                  })
+                  .filter((item): item is NonNullable<typeof item> => item !== null);
+
+                return aggregated.map((inv, idx) => (
+                  <div 
+                    key={idx}
+                    className="flex justify-between items-center p-3 rounded-lg border"
+                    style={{ 
+                      backgroundColor: 'var(--color-background)',
+                      borderColor: 'var(--color-border)'
+                    }}
+                  >
+                    <div>
+                      <p className="font-semibold" style={{ color: 'var(--color-text)' }}>
+                        {inv.condition}
+                      </p>
+                      <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+                        {inv.quantityForSale} in stock
+                        {inv.hasMultipleSellers && <span className="ml-1 text-xs">(multiple sellers)</span>}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-lg" style={{ color: 'var(--color-accent)' }}>
+                        {inv.sellPrice > 0 ? `Rp. ${formatPrice(inv.sellPrice)}` : 'Price TBD'}
+                      </p>
+                      {inv.quantityForSale > 0 && (
+                        <button
+                          onClick={() => {
+                            handleAddToCart(quickViewCard, inv.condition as 'NM' | 'LP' | 'P');
+                            setShowQuickView(false);
+                          }}
+                          className="mt-2 px-4 py-1 rounded-full text-sm font-semibold text-white"
+                          style={{ backgroundColor: '#10b981' }}
+                        >
+                          Add to Cart
+                        </button>
+                      )}
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className="font-bold text-lg" style={{ color: 'var(--color-accent)' }}>
-                      {inv.sellPrice > 0 ? `Rp. ${formatPrice(inv.sellPrice)}` : 'Price TBD'}
-                    </p>
-                    {inv.quantityForSale > 0 && (
-                      <button
-                        onClick={() => {
-                          handleAddToCart(quickViewCard, inv.condition as 'NM' | 'LP' | 'P');
-                          setShowQuickView(false);
-                        }}
-                        className="mt-2 px-4 py-1 rounded-full text-sm font-semibold text-white"
-                        style={{ backgroundColor: 'var(--color-accent)' }}
-                      >
-                        Add to Cart
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))}
+                ));
+              })()}
             </div>
           </div>
         )}

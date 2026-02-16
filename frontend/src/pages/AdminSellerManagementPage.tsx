@@ -5,9 +5,14 @@ const AdminSellerManagementPage: React.FC = () => {
   const [sellers, setSellers] = useState<Seller[]>([]);
   const [loading, setLoading] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [editingSeller, setEditingSeller] = useState<Seller | null>(null);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
+    name: '',
+  });
+  const [editFormData, setEditFormData] = useState({
+    email: '',
     name: '',
   });
   const [error, setError] = useState('');
@@ -75,6 +80,41 @@ const AdminSellerManagementPage: React.FC = () => {
     }
   };
 
+  const handleEditSeller = (seller: Seller) => {
+    setEditingSeller(seller);
+    setEditFormData({
+      email: seller.email,
+      name: seller.name || '',
+    });
+    setError('');
+    setSuccess('');
+  };
+
+  const handleUpdateSeller = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingSeller) return;
+
+    setError('');
+    setSuccess('');
+
+    if (!editFormData.email) {
+      setError('Email is required');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await sellerApi.updateSeller(editingSeller._id, editFormData);
+      setSuccess('Seller updated successfully');
+      setEditingSeller(null);
+      loadSellers();
+    } catch (error: any) {
+      setError(error.response?.data?.message || 'Failed to update seller');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleResetPassword = async (id: string, email: string) => {
     const newPassword = prompt(`Enter new password for "${email}":`);
     if (!newPassword) return;
@@ -133,6 +173,72 @@ const AdminSellerManagementPage: React.FC = () => {
             {showCreateForm ? 'Cancel' : '+ Create New Seller'}
           </button>
         </div>
+
+        {/* Edit Seller Modal */}
+        {editingSeller && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="rounded-lg p-6 max-w-md w-full mx-4" style={{ backgroundColor: 'var(--color-panel)' }}>
+              <h2 className="text-xl font-bold mb-4" style={{ color: 'var(--color-text)' }}>
+                Edit Seller
+              </h2>
+              <form onSubmit={handleUpdateSeller} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--color-text)' }}>
+                    Email *
+                  </label>
+                  <input
+                    type="email"
+                    value={editFormData.email}
+                    onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })}
+                    className="w-full px-4 py-2 rounded-lg border"
+                    style={{
+                      backgroundColor: 'var(--color-background)',
+                      color: 'var(--color-text)',
+                      borderColor: 'var(--color-border)',
+                    }}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--color-text)' }}>
+                    Name
+                  </label>
+                  <input
+                    type="text"
+                    value={editFormData.name}
+                    onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+                    className="w-full px-4 py-2 rounded-lg border"
+                    style={{
+                      backgroundColor: 'var(--color-background)',
+                      color: 'var(--color-text)',
+                      borderColor: 'var(--color-border)',
+                    }}
+                  />
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="px-6 py-2 rounded-lg font-semibold"
+                    style={{ backgroundColor: 'var(--color-accent)', color: 'white' }}
+                  >
+                    {loading ? 'Updating...' : 'Update Seller'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditingSeller(null)}
+                    className="px-6 py-2 rounded-lg font-semibold"
+                    style={{ backgroundColor: 'var(--color-text-secondary)', color: 'white' }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
 
         {/* Create Seller Form */}
         {showCreateForm && (
@@ -267,6 +373,14 @@ const AdminSellerManagementPage: React.FC = () => {
                         {new Date(seller.createdAt).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4 text-right">
+                        <button
+                          onClick={() => handleEditSeller(seller)}
+                          className="px-3 py-1 rounded text-sm font-semibold mr-2"
+                          style={{ backgroundColor: 'var(--color-accent)', color: 'white' }}
+                          disabled={loading}
+                        >
+                          Edit
+                        </button>
                         <button
                           onClick={() => handleResetPassword(seller._id, seller.email)}
                           className="px-3 py-1 rounded text-sm font-semibold mr-2"

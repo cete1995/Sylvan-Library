@@ -18,6 +18,24 @@ const AdminTikTokDebugPage: React.FC = () => {
   const [priceResponse, setPriceResponse] = useState('');
   const [priceLoading, setPriceLoading] = useState(false);
   const [priceProgress, setPriceProgress] = useState({ current: 0, total: 0, percentage: 0, successful: 0, failed: 0 });
+  const [showAllResults, setShowAllResults] = useState(false);
+  
+  // Store completion data for rebuilding response
+  const [completionData, setCompletionData] = useState<{
+    summary: string;
+    failed: string;
+    detailed: string;
+    json: string;
+  } | null>(null);
+
+  // Store failed rows for retry
+  const [failedRows, setFailedRows] = useState<Array<{
+    productId: string;
+    skuId: string;
+    price?: number;
+    stock?: number;
+    error: string;
+  }>>([]);
 
   // Shared TikTok Shop credentials - Load from localStorage
   const [appKey, setAppKey] = useState(localStorage.getItem('tiktok_app_key') || '');
@@ -46,6 +64,21 @@ const AdminTikTokDebugPage: React.FC = () => {
     else localStorage.removeItem('tiktok_shop_cipher');
   }, [shopCipher]);
 
+  // Rebuild response when showAllResults toggle changes
+  useEffect(() => {
+    if (completionData) {
+      const detailedSection = showAllResults && completionData.detailed 
+        ? completionData.detailed 
+        : '';
+      setPriceResponse(
+        completionData.summary + 
+        completionData.failed + 
+        detailedSection + 
+        completionData.json
+      );
+    }
+  }, [showAllResults, completionData]);
+
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -66,17 +99,56 @@ const AdminTikTokDebugPage: React.FC = () => {
     reader.readAsText(file);
   };
 
+  const [originalCsvData, setOriginalCsvData] = useState<Array<{
+    productId: string;
+    skuId: string;
+    productName?: string;
+    price?: string;
+    stock?: string;
+  }>>([]);
+
   const handlePriceInventoryCsvUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setCsvFile(file);
+    setFailedRows([]); // Clear previous failed rows when new file is uploaded
 
     const reader = new FileReader();
     reader.onload = (event) => {
       const text = event.target?.result as string;
-      const lines = text.split('\n').slice(0, 6);
-      setCsvPreview(lines.join('\n'));
+      const lines = text.split('\n');
+      
+      // Show preview
+      setCsvPreview(lines.slice(0, 6).join('\n'));
+      
+      // Parse and store original CSV data for retry functionality
+      const headers = lines[0].toLowerCase().split(',').map(h => h.trim());
+      const parsedData: any[] = [];
+      
+      for (let i = 1; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+        
+        const values = line.split(',').map(v => v.trim().replace(/^['"]/, ''));
+        const row: any = {};
+        
+        headers.forEach((header, index) => {
+          row[header] = values[index];
+        });
+        
+        if (row.productid && row.skuid) {
+          parsedData.push({
+            productId: row.productid,
+            skuId: row.skuid,
+            productName: row.productname || '',
+            price: row.price || '',
+            stock: row.stock || ''
+          });
+        }
+      }
+      
+      setOriginalCsvData(parsedData);
     };
     reader.readAsText(file);
   };
@@ -95,6 +167,7 @@ const AdminTikTokDebugPage: React.FC = () => {
     setPriceLoading(true);
     setPriceResponse('Uploading CSV and processing updates...\n\n');
     setPriceProgress({ current: 0, total: 0, percentage: 0, successful: 0, failed: 0 });
+    setFailedRows([]); // Clear previous failed rows
 
     try {
       const formData = new FormData();
@@ -127,6 +200,7 @@ const AdminTikTokDebugPage: React.FC = () => {
       const decoder = new TextDecoder();
       let buffer = '';
       let detailedLog = '';
+      let failedLog = '';
 
       if (!reader) {
         throw new Error('Could not get reader from response');
@@ -162,6 +236,7 @@ const AdminTikTokDebugPage: React.FC = () => {
                 `${'='.repeat(60)}\n\n`
               );
               detailedLog = '';
+              failedLog = '';
 
             } else if (data.type === 'progress') {
               setPriceProgress({
@@ -177,7 +252,26 @@ const AdminTikTokDebugPage: React.FC = () => {
               const logEntry = `${status} ${productDisplay} (${data.skuCount || 0} SKUs) - ${data.status}\n`;
               
               if (data.status === 'failed') {
-                detailedLog += logEntry + `   Error: ${data.error}\n`;
+                const errorEntry = logEntry + `   Error: ${data.error}\n`;
+                detailedLog += errorEntry;
+                failedLog += errorEntry;
+                
+                // Track failed rows for retry with SKU details from original CSV
+                const failedProductSkus = originalCsvData.filter(
+                  row => row.productId === data.productId
+                );
+                
+                setFailedRows(prev => [
+                  ...prev,
+                  ...failedProductSkus.map(sku => ({
+                    productId: data.productId,
+                    skuId: sku.skuId,
+                    productName: data.productName,
+                    price: sku.price ? Number(sku.price) : undefined,
+                    stock: sku.stock ? Number(sku.stock) : undefined,
+                    error: data.error || 'Unknown error'
+                  }))
+                ]);
               } else {
                 detailedLog += logEntry;
               }
@@ -187,7 +281,7 @@ const AdminTikTokDebugPage: React.FC = () => {
                 `${'='.repeat(60)}\n\n` +
                 `Progress: ${data.processed}/${data.total} (${data.percentage}%)\n` +
                 `✅ Successful: ${data.successful} | ❌ Failed: ${data.failed}\n\n` +
-                detailedLog
+                (data.failed > 0 ? `FAILED PRODUCTS:\n${failedLog}\n` : 'All products updated successfully!\n')
               );
 
             } else if (data.type === 'complete') {
@@ -199,7 +293,34 @@ const AdminTikTokDebugPage: React.FC = () => {
                 failed: data.failed
               });
 
-              setPriceResponse(
+              // Extract and store failed rows with SKU details
+              const extractedFailedRows: Array<{
+                productId: string;
+                skuId: string;
+                price?: number;
+                stock?: number;
+                error: string;
+                productName?: string;
+              }> = [];
+
+              if (data.results && data.results.failed) {
+                // Need to reconstruct SKU-level failures from product-level failures
+                // This requires accessing the original CSV data that failed
+                data.results.failed.forEach((failedProduct: any) => {
+                  // Store product-level failure info
+                  // Note: We'll need the original SKU data from the request
+                  extractedFailedRows.push({
+                    productId: failedProduct.productId,
+                    skuId: '', // Will be populated from original data
+                    error: failedProduct.error || 'Unknown error',
+                    productName: failedProduct.productName
+                  });
+                });
+              }
+
+              setFailedRows(extractedFailedRows);
+
+              const summarySection = 
                 `${'='.repeat(60)}\n` +
                 `✅ BULK UPDATE COMPLETED\n` +
                 `${'='.repeat(60)}\n\n` +
@@ -207,10 +328,29 @@ const AdminTikTokDebugPage: React.FC = () => {
                 `✅ Successful: ${data.successful}\n` +
                 `❌ Failed: ${data.failed}\n` +
                 `Success Rate: ${((data.successful / data.totalProducts) * 100).toFixed(1)}%\n\n` +
-                `${'='.repeat(60)}\n\n` +
-                detailedLog +
-                `\n\n📊 Full Results:\n${JSON.stringify(data.results, null, 2)}`
-              );
+                `${'='.repeat(60)}\n\n`;
+
+              const failedSection = data.failed > 0 
+                ? `❌ FAILED PRODUCTS (${data.failed}):\n\n${failedLog}\n\n${'='.repeat(60)}\n\n`
+                : '✅ All products updated successfully!\n\n';
+
+              // Detailed section for all products (only shown when showAllResults is true)
+              const detailedSection = data.failed > 0 && detailedLog 
+                ? `📋 ALL PRODUCTS:\n\n${detailedLog}\n\n${'='.repeat(60)}\n\n`
+                : '';
+
+              const fullResultsSection = `📊 Full Results (JSON):\n${JSON.stringify(data.results, null, 2)}`;
+
+              // Store completion data for toggle functionality
+              setCompletionData({
+                summary: summarySection,
+                failed: failedSection,
+                detailed: detailedSection,
+                json: fullResultsSection
+              });
+
+              // Initial response (without detailed section)
+              setPriceResponse(summarySection + failedSection + fullResultsSection);
 
               setPriceLoading(false);
             } else if (data.type === 'error') {
@@ -323,6 +463,253 @@ const AdminTikTokDebugPage: React.FC = () => {
       setCategoryLoading(false);
       setProgress({ current: 0, total: 0 });
     }
+  };
+
+  const handleRetryFailedRows = async () => {
+    if (failedRows.length === 0) {
+      alert('No failed rows to retry');
+      return;
+    }
+
+    if (!appKey || !appSecret || !accessToken) {
+      alert('Please fill in all credentials');
+      return;
+    }
+
+    // Convert failed rows back to CSV format
+    const csvHeader = 'productId,skuId,productName,price,stock\n';
+    const csvRows = failedRows.map(row => {
+      const price = row.price !== undefined ? row.price : '';
+      const stock = row.stock !== undefined ? row.stock : '';
+      const productName = row.productName || '';
+      return `${row.productId},${row.skuId},${productName},${price},${stock}`;
+    }).join('\n');
+    
+    const csvContent = csvHeader + csvRows;
+    
+    // Create a Blob and File from the CSV content
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const retryFile = new File([blob], 'retry-failed-rows.csv', { type: 'text/csv' });
+    
+    // Update originalCsvData with retry data
+    const retryData = failedRows.map(row => ({
+      productId: row.productId,
+      skuId: row.skuId,
+      productName: row.productName || '',
+      price: row.price !== undefined ? row.price.toString() : '',
+      stock: row.stock !== undefined ? row.stock.toString() : ''
+    }));
+    setOriginalCsvData(retryData);
+    
+    // Set the retry file and clear failed rows for new attempt
+    setCsvFile(retryFile);
+    setCsvPreview(csvContent.split('\n').slice(0, 6).join('\n'));
+    
+    // Automatically trigger the bulk update with the retry file
+    setPriceLoading(true);
+    setPriceResponse(`Retrying ${failedRows.length} failed rows...\n\n`);
+    setPriceProgress({ current: 0, total: 0, percentage: 0, successful: 0, failed: 0 });
+    
+    const previousFailedRows = [...failedRows]; // Store for reference
+    setFailedRows([]); // Clear for new attempt
+
+    try {
+      const formData = new FormData();
+      formData.append('file', retryFile);
+      formData.append('appKey', appKey);
+      formData.append('appSecret', appSecret);
+      formData.append('accessToken', accessToken);
+      if (shopCipher) {
+        formData.append('shopCipher', shopCipher);
+      }
+
+      // Use fetch to upload, then connect to SSE
+      const uploadRes = await fetch('/api/admin/tiktok/bulk-update-csv-stream', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: formData
+      });
+
+      if (!uploadRes.ok) {
+        const errorData = await uploadRes.json();
+        setPriceResponse(`❌ Retry Error: ${errorData.error}\n\n${JSON.stringify(errorData, null, 2)}`);
+        setFailedRows(previousFailedRows); // Restore failed rows
+        setPriceLoading(false);
+        return;
+      }
+
+      // Read SSE stream (same logic as handleBulkPriceInventoryUpdate)
+      const reader = uploadRes.body?.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let detailedLog = '';
+      let failedLog = '';
+
+      if (!reader) {
+        throw new Error('Could not get reader from response');
+      }
+
+      while (true) {
+        const { done, value } = await reader.read();
+        
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (!line.trim() || !line.startsWith('data: ')) continue;
+
+          try {
+            const data = JSON.parse(line.substring(6));
+
+            if (data.type === 'start') {
+              setPriceProgress({
+                current: 0,
+                total: data.totalProducts,
+                percentage: 0,
+                successful: 0,
+                failed: 0
+              });
+              setPriceResponse(
+                `🔄 Retrying failed rows...\n` +
+                `Total Products: ${data.totalProducts}\n` +
+                `Total Rows: ${data.totalRows}\n\n` +
+                `${'='.repeat(60)}\n\n`
+              );
+              detailedLog = '';
+              failedLog = '';
+
+            } else if (data.type === 'progress') {
+              setPriceProgress({
+                current: data.processed,
+                total: data.total,
+                percentage: data.percentage,
+                successful: data.successful,
+                failed: data.failed
+              });
+
+              const status = data.status === 'success' ? '✅' : '❌';
+              const productDisplay = data.productName || `Product ${data.productId}`;
+              const logEntry = `${status} ${productDisplay} (${data.skuCount || 0} SKUs) - ${data.status}\n`;
+              
+              if (data.status === 'failed') {
+                const errorEntry = logEntry + `   Error: ${data.error}\n`;
+                detailedLog += errorEntry;
+                failedLog += errorEntry;
+                
+                // Track failed rows for potential retry again
+                const failedProductSkus = originalCsvData.filter(
+                  row => row.productId === data.productId
+                );
+                
+                setFailedRows(prev => [
+                  ...prev,
+                  ...failedProductSkus.map(sku => ({
+                    productId: data.productId,
+                    skuId: sku.skuId,
+                    productName: data.productName,
+                    price: sku.price ? Number(sku.price) : undefined,
+                    stock: sku.stock ? Number(sku.stock) : undefined,
+                    error: data.error || 'Unknown error'
+                  }))
+                ]);
+              } else {
+                detailedLog += logEntry;
+              }
+
+              setPriceResponse(prev => 
+                prev.split('='.repeat(60))[0] + 
+                `${'='.repeat(60)}\n\n` +
+                `Progress: ${data.processed}/${data.total} (${data.percentage}%)\n` +
+                `✅ Successful: ${data.successful} | ❌ Failed: ${data.failed}\n\n` +
+                (data.failed > 0 ? `FAILED PRODUCTS:\n${failedLog}\n` : 'All products updated successfully!\n')
+              );
+
+            } else if (data.type === 'complete') {
+              setPriceProgress({
+                current: data.totalProducts,
+                total: data.totalProducts,
+                percentage: 100,
+                successful: data.successful,
+                failed: data.failed
+              });
+
+              const summarySection = 
+                `${'='.repeat(60)}\n` +
+                `✅ RETRY COMPLETED\n` +
+                `${'='.repeat(60)}\n\n` +
+                `Total Products: ${data.totalProducts}\n` +
+                `✅ Successful: ${data.successful}\n` +
+                `❌ Failed: ${data.failed}\n` +
+                `Success Rate: ${((data.successful / data.totalProducts) * 100).toFixed(1)}%\n\n` +
+                `${'='.repeat(60)}\n\n`;
+
+              const failedSection = data.failed > 0 
+                ? `❌ FAILED PRODUCTS (${data.failed}):\n\n${failedLog}\n\n${'='.repeat(60)}\n\n`
+                : '✅ All retried products updated successfully!\n\n';
+
+              const detailedSection = data.failed > 0 && detailedLog 
+                ? `📋 ALL PRODUCTS:\n\n${detailedLog}\n\n${'='.repeat(60)}\n\n`
+                : '';
+
+              const fullResultsSection = `📊 Full Results (JSON):\n${JSON.stringify(data.results, null, 2)}`;
+
+              setCompletionData({
+                summary: summarySection,
+                failed: failedSection,
+                detailed: detailedSection,
+                json: fullResultsSection
+              });
+
+              setPriceResponse(summarySection + failedSection + fullResultsSection);
+              setPriceLoading(false);
+              
+            } else if (data.type === 'error') {
+              setPriceResponse(`❌ Error: ${data.error}`);
+              setFailedRows(previousFailedRows); // Restore failed rows on error
+              setPriceLoading(false);
+            }
+
+          } catch (e) {
+            console.error('Error parsing SSE data:', e);
+          }
+        }
+      }
+
+    } catch (error: any) {
+      setPriceResponse(`❌ Retry Failed: ${error.message}`);
+      setFailedRows(previousFailedRows); // Restore failed rows on error
+      setPriceLoading(false);
+    }
+  };
+
+  const downloadFailedRowsCsv = () => {
+    if (failedRows.length === 0) {
+      alert('No failed rows to download');
+      return;
+    }
+
+    const csvHeader = 'productId,skuId,productName,price,stock,error\n';
+    const csvRows = failedRows.map(row => {
+      const price = row.price !== undefined ? row.price : '';
+      const stock = row.stock !== undefined ? row.stock : '';
+      const productName = row.productName || '';
+      const error = row.error.replace(/,/g, ';'); // Replace commas in error message
+      return `${row.productId},${row.skuId},${productName},${price},${stock},"${error}"`;
+    }).join('\n');
+    
+    const csvContent = csvHeader + csvRows;
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `failed-rows-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
   };
 
   return (
@@ -699,8 +1086,8 @@ productId,skuId,price,stock{'\n'}
                 </div>
               )}
 
-              {/* Action Button */}
-              <div className="mb-6">
+              {/* Action Buttons */}
+              <div className="mb-6 space-y-3">
                 <button
                   onClick={handleBulkPriceInventoryUpdate}
                   disabled={priceLoading || !csvFile || !appKey || !appSecret || !accessToken}
@@ -712,14 +1099,55 @@ productId,skuId,price,stock{'\n'}
                     : `🚀 Bulk Update ${csvFile ? 'from ' + csvFile.name : 'Prices & Inventory'}`
                   }
                 </button>
+
+                {/* Retry and Download Failed Rows Buttons */}
+                {failedRows.length > 0 && !priceLoading && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      onClick={handleRetryFailedRows}
+                      className="py-4 rounded-lg font-bold text-lg transition-all hover:scale-[1.01]"
+                      style={{ backgroundColor: '#f59e0b', color: 'white' }}
+                    >
+                      🔄 Retry {failedRows.length} Failed
+                    </button>
+                    <button
+                      onClick={downloadFailedRowsCsv}
+                      className="py-4 rounded-lg font-bold text-lg transition-all hover:scale-[1.01]"
+                      style={{ backgroundColor: '#3b82f6', color: 'white' }}
+                    >
+                      📥 Download Failed CSV
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Response Section */}
               {priceResponse && (
                 <div className="mb-6 p-4 rounded-lg" style={{ backgroundColor: 'var(--color-background)' }}>
-                  <h3 className="text-lg font-bold mb-3" style={{ color: 'var(--color-text)' }}>
-                    📊 Results
-                  </h3>
+                  <div className="flex justify-between items-center mb-3">
+                    <h3 className="text-lg font-bold" style={{ color: 'var(--color-text)' }}>
+                      📊 Results
+                    </h3>
+                    <div className="flex gap-2">
+                      {failedRows.length > 0 && !priceLoading && (
+                        <div className="px-4 py-2 rounded-lg text-sm font-semibold" style={{ backgroundColor: '#fbbf24', color: '#78350f' }}>
+                          ⚠️ {failedRows.length} Failed Row{failedRows.length !== 1 ? 's' : ''}
+                        </div>
+                      )}
+                      {priceProgress.failed > 0 && priceProgress.total > 0 && (
+                        <button
+                          onClick={() => setShowAllResults(!showAllResults)}
+                          className="px-4 py-2 rounded-lg text-sm font-semibold transition-all hover:opacity-80"
+                          style={{ 
+                            backgroundColor: showAllResults ? '#10b981' : '#6b7280',
+                            color: 'white'
+                          }}
+                        >
+                          {showAllResults ? '✅ Showing All' : '🔍 Show All Products'}
+                        </button>
+                      )}
+                    </div>
+                  </div>
                   <pre
                     className="p-4 rounded-lg overflow-auto font-mono text-sm whitespace-pre-wrap"
                     style={{ 

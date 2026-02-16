@@ -66,12 +66,22 @@ export const isUBSet = async (setCode: string): Promise<boolean> => {
 };
 
 /**
+ * Round price up to nearest 500
+ * If already a multiple of 500, returns as is
+ */
+const roundToNearest500 = (price: number): number => {
+  return Math.ceil(price / 500) * 500;
+};
+
+/**
  * Calculate sell price for UB set cards based on CK price using tiered multipliers
  * Finds the appropriate tier based on price thresholds and applies the multiplier
+ * Result is rounded up to nearest 500
  */
 export const calculateUBPrice = async (ckPriceUSD: number): Promise<number> => {
   const multiplier = await getUBMultiplier(ckPriceUSD);
-  return ckPriceUSD * multiplier;
+  const rawPrice = ckPriceUSD * multiplier;
+  return roundToNearest500(rawPrice);
 };
 
 /**

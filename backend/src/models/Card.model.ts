@@ -23,6 +23,7 @@ export interface ICard extends Document {
   name: string;
   setCode: string;
   setName: string;
+  releaseDate?: string;
   collectorNumber: string;
   language: string;
   imageUrl?: string;
@@ -125,6 +126,11 @@ const cardSchema = new Schema<ICard>(
     setName: {
       type: String,
       required: [true, 'Set name is required'],
+      trim: true,
+    },
+    releaseDate: {
+      type: String,
+      required: false,
       trim: true,
     },
     collectorNumber: {

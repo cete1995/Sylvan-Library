@@ -39,6 +39,19 @@ export const sellerApi = {
     return response.data;
   },
 
+  // Update seller info
+  updateSeller: async (id: string, data: { email?: string; name?: string }): Promise<{ seller: Seller; message: string }> => {
+    const token = localStorage.getItem('token');
+    const response = await axios.put(
+      `${API_URL}/admin/sellers/${id}`,
+      data,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    return response.data;
+  },
+
   // Update seller password
   updateSellerPassword: async (id: string, password: string): Promise<{ message: string }> => {
     const token = localStorage.getItem('token');

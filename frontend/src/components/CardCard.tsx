@@ -10,15 +10,19 @@ const CardCard: React.FC<CardCardProps> = ({ card }) => {
   // Get inventory data
   const inventory = card.inventory || [];
   
-  // Find Near Mint nonfoil
-  const nmNonfoil = inventory.find(item => item.condition === 'NM' && item.finish === 'nonfoil');
-  const nmNonfoilStock = nmNonfoil?.quantityForSale || 0;
-  const nmNonfoilPrice = nmNonfoil?.sellPrice || 0;
+  // Aggregate Near Mint nonfoil from all sellers
+  const nmNonfoilItems = inventory.filter(item => item.condition === 'NM' && item.finish === 'nonfoil');
+  const nmNonfoilStock = nmNonfoilItems.reduce((sum, item) => sum + item.quantityForSale, 0);
+  const nmNonfoilPrice = nmNonfoilItems.find(item => item.quantityForSale > 0)?.sellPrice || 
+                        nmNonfoilItems[0]?.sellPrice || 
+                        (card as any).calculatedPrices?.nonfoil || 0;
   
-  // Find Near Mint foil
-  const nmFoil = inventory.find(item => item.condition === 'NM' && item.finish === 'foil');
-  const nmFoilStock = nmFoil?.quantityForSale || 0;
-  const nmFoilPrice = nmFoil?.sellPrice || 0;
+  // Aggregate Near Mint foil from all sellers
+  const nmFoilItems = inventory.filter(item => item.condition === 'NM' && item.finish === 'foil');
+  const nmFoilStock = nmFoilItems.reduce((sum, item) => sum + item.quantityForSale, 0);
+  const nmFoilPrice = nmFoilItems.find(item => item.quantityForSale > 0)?.sellPrice || 
+                     nmFoilItems[0]?.sellPrice || 
+                     (card as any).calculatedPrices?.foil || 0;
 
   // Check if ANY condition has stock available
   const totalForSale = inventory.reduce((sum, item) => sum + item.quantityForSale, 0);

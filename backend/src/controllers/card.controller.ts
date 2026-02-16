@@ -1,10 +1,13 @@
 import { Request, Response } from 'express';
 import { Card } from '../models';
+import CardPrice from '../models/CardPrice';
 import { AppError } from '../middleware/errorHandler';
 import { asyncHandler } from '../middleware/asyncHandler';
 import { searchCardsSchema } from '../validators/card.validator';
 import { FilterQuery } from 'mongoose';
 import { ICard } from '../models/Card.model';
+import { calculateRegularPrice } from '../utils/regularPricing';
+import { calculateUBPrice, isUBSet } from '../utils/ubPricing';
 
 /**
  * Get all cards with search, filter, and pagination
@@ -77,6 +80,18 @@ export const getCards = asyncHandler(async (req: Request, res: Response) => {
       filter.$and = filter.$and || [];
       filter.$and.push({ $or: tagConditions });
     }
+  }
+
+  // Filter by in-stock only
+  if (params.instock === 'true') {
+    filter.$and = filter.$and || [];
+    filter.$and.push({
+      inventory: {
+        $elemMatch: {
+          quantityForSale: { $gt: 0 }
+        }
+      }
+    });
   }
 
   // Note: Price filtering removed - prices are now in inventory array
@@ -171,10 +186,76 @@ export const getCards = asyncHandler(async (req: Request, res: Response) => {
     ]);
   }
 
+  // Fetch and calculate prices for all cards in one batch
+  const uuids = cards.map((c: any) => c.uuid).filter(Boolean);
+  const priceMap = new Map();
+  
+  if (uuids.length > 0) {
+    // Fetch latest prices for all uuids in one query
+    const prices = await CardPrice.aggregate([
+      { $match: { uuid: { $in: uuids } } },
+      { $sort: { uuid: 1, date: -1 } },
+      {
+        $group: {
+          _id: '$uuid',
+          prices: { $first: '$prices' }
+        }
+      }
+    ]);
+    
+    // Build price map
+    for (const priceDoc of prices) {
+      priceMap.set(priceDoc._id, priceDoc.prices);
+    }
+  }
+  
+  // Determine which sets are UB sets (batch check)
+  const setCodes = [...new Set(cards.map((c: any) => c.setCode))];
+  const ubSetResults = await Promise.all(setCodes.map(async (code) => {
+    return { code, isUB: await isUBSet(code) };
+  }));
+  const ubSetMap = new Map(ubSetResults.map(r => [r.code, r.isUB]));
+  
+  // Add calculated prices to each card
+  const cardsWithPrices = await Promise.all(cards.map(async (card: any) => {
+    let calculatedPrices = null;
+    
+    if (card.uuid && priceMap.has(card.uuid)) {
+      const prices = priceMap.get(card.uuid);
+      const ckRetail = prices?.cardkingdom?.retail;
+      
+      if (ckRetail) {
+        const isUB = ubSetMap.get(card.setCode) || false;
+        
+        calculatedPrices = {
+          nonfoil: 0,
+          foil: 0
+        };
+        
+        if (ckRetail.normal) {
+          calculatedPrices.nonfoil = isUB 
+            ? await calculateUBPrice(ckRetail.normal)
+            : await calculateRegularPrice(ckRetail.normal);
+        }
+        
+        if (ckRetail.foil) {
+          calculatedPrices.foil = isUB 
+            ? await calculateUBPrice(ckRetail.foil)
+            : await calculateRegularPrice(ckRetail.foil);
+        }
+      }
+    }
+    
+    return {
+      ...card,
+      calculatedPrices
+    };
+  }));
+
   const totalPages = Math.ceil(total / limit);
 
   res.json({
-    cards,
+    cards: cardsWithPrices,
     pagination: {
       page,
       limit,
@@ -199,7 +280,41 @@ export const getCardById = asyncHandler(async (req: Request, res: Response) => {
     throw new AppError(404, 'Card not found');
   }
 
-  res.json({ card });
+  // Fetch latest pricing data if card has uuid
+  let calculatedPrices = null;
+  if (card.uuid) {
+    const latestPrice = await CardPrice.findOne({ uuid: card.uuid }).sort({ date: -1 });
+    
+    if (latestPrice?.prices?.cardkingdom?.retail) {
+      const ckRetail = latestPrice.prices.cardkingdom.retail;
+      
+      // Determine if this is a UB set
+      const isUB = await isUBSet(card.setCode);
+      
+      // Calculate prices for both normal and foil
+      calculatedPrices = {
+        nonfoil: 0,
+        foil: 0
+      };
+      
+      if (ckRetail.normal) {
+        calculatedPrices.nonfoil = isUB 
+          ? await calculateUBPrice(ckRetail.normal)
+          : await calculateRegularPrice(ckRetail.normal);
+      }
+      
+      if (ckRetail.foil) {
+        calculatedPrices.foil = isUB 
+          ? await calculateUBPrice(ckRetail.foil)
+          : await calculateRegularPrice(ckRetail.foil);
+      }
+    }
+  }
+
+  res.json({ 
+    card,
+    calculatedPrices 
+  });
 });
 
 /**

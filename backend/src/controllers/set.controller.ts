@@ -37,6 +37,7 @@ interface SetJsonData {
     baseSetSize?: number;
     code: string;
     name: string;
+    releaseDate?: string;
     cards: MTGJsonCard[];
   };
 }
@@ -55,7 +56,9 @@ export const uploadSetJson = asyncHandler(async (req: Request, res: Response) =>
   const cards = setData.data.cards;
   const setCode = setData.data.code.toUpperCase();
   const setName = setData.data.name;
+  const releaseDate = setData.data.releaseDate;
   const createdCards = [];
+  const updatedCards = [];
   const skipped = [];
   const errors = [];
 
@@ -95,14 +98,33 @@ export const uploadSetJson = asyncHandler(async (req: Request, res: Response) =>
       });
 
       if (existing) {
-        // Card already exists in catalog - skip
-        createdCards.push(existing);
+        // Card exists - update it with new metadata while preserving inventory
+        existing.setName = setName;
+        existing.releaseDate = releaseDate;
+        existing.rarity = rarity;
+        existing.colorIdentity = cardData.colorIdentity || [];
+        existing.manaCost = cardData.manaCost || '';
+        existing.typeLine = typeLine;
+        existing.oracleText = cardData.text || '';
+        existing.scryfallId = cardData.identifiers?.scryfallId || '';
+        existing.uuid = cardData.uuid || '';
+        existing.borderColor = cardData.borderColor || 'black';
+        existing.frameEffects = cardData.frameEffects || [];
+        
+        // Update image URL if we have scryfallId
+        if (cardData.identifiers?.scryfallId) {
+          existing.imageUrl = `https://cards.scryfall.io/normal/front/${cardData.identifiers.scryfallId.charAt(0)}/${cardData.identifiers.scryfallId.charAt(1)}/${cardData.identifiers.scryfallId}.jpg`;
+        }
+        
+        await existing.save();
+        updatedCards.push(existing);
       } else {
         // Create new card in catalog with default inventory items (0 quantity)
         const newCard = await Card.create({
           name: cardData.name,
           setCode: setCode,
           setName: setName,
+          releaseDate: releaseDate,
           collectorNumber: cardData.number,
           rarity: rarity,
           colorIdentity: cardData.colorIdentity || [],
@@ -156,8 +178,10 @@ export const uploadSetJson = asyncHandler(async (req: Request, res: Response) =>
   res.json({
     message: 'Set upload completed',
     setCode,
+    setName,
     totalCards: cards.length,
-    imported: createdCards.length,
+    created: createdCards.length,
+    updated: updatedCards.length,
     skipped: skipped.length,
     errors: errors.length,
     skippedDetails: skipped.length > 0 ? skipped : undefined,

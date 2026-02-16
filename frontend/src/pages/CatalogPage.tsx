@@ -31,6 +31,7 @@ const CatalogPage: React.FC = () => {
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
   const [sortBy, setSortBy] = useState('name_asc');
+  const [onlyInStock, setOnlyInStock] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(true);
 
   // On mount, restore from sessionStorage if URL has no params
@@ -91,6 +92,7 @@ const CatalogPage: React.FC = () => {
     setMinPrice(searchParams.get('minPrice') || '');
     setMaxPrice(searchParams.get('maxPrice') || '');
     setSortBy(searchParams.get('sort') || 'name_asc');
+    setOnlyInStock(searchParams.get('instock') === 'true');
   }, [searchParams]);
 
   // Restore scroll position after cards load
@@ -140,6 +142,7 @@ const CatalogPage: React.FC = () => {
         tags: searchParams.get('tags') || undefined,
         minPrice: searchParams.get('minPrice') ? Number(searchParams.get('minPrice')) : undefined,
         maxPrice: searchParams.get('maxPrice') ? Number(searchParams.get('maxPrice')) : undefined,
+        instock: searchParams.get('instock') || undefined,
         page: searchParams.get('page') ? Number(searchParams.get('page')) : 1,
         limit: 25,
         sort: (searchParams.get('sort') as any) || 'name_asc',
@@ -168,6 +171,7 @@ const CatalogPage: React.FC = () => {
     if (minPrice) params.minPrice = minPrice;
     if (maxPrice) params.maxPrice = maxPrice;
     if (sortBy) params.sort = sortBy;
+    if (onlyInStock) params.instock = 'true';
 
     setSearchParams(params);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -188,6 +192,7 @@ const CatalogPage: React.FC = () => {
     setMinPrice('');
     setMaxPrice('');
     setSortBy('name_asc');
+    setOnlyInStock(false);
     setSearchParams({});
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -369,6 +374,25 @@ const CatalogPage: React.FC = () => {
                   </div>
                 </div>
 
+                {/* In Stock Only */}
+                <div>
+                  <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--color-text)' }}>
+                    <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Availability
+                  </label>
+                  <label className="flex items-center gap-3 px-4 py-3 border-2 rounded-lg cursor-pointer hover:bg-blue-50 dark:hover:bg-gray-700 transition-all" style={{ borderColor: onlyInStock ? '#10b981' : 'var(--color-text-secondary)', backgroundColor: onlyInStock ? '#ecfdf5' : 'var(--color-background)' }}>
+                    <input
+                      type="checkbox"
+                      checked={onlyInStock}
+                      onChange={(e) => setOnlyInStock(e.target.checked)}
+                      className="w-5 h-5 text-green-600 rounded focus:ring-2 focus:ring-green-500"
+                    />
+                    <span className="text-sm font-semibold" style={{ color: onlyInStock ? '#059669' : 'var(--color-text)' }}>Show In Stock Only</span>
+                  </label>
+                </div>
+
                 {/* Sort */}
                 <div>
                   <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--color-text)' }}>
@@ -427,7 +451,9 @@ const CatalogPage: React.FC = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <p className="text-2xl mb-3 font-bold" style={{ color: 'var(--color-text)' }}>No cards found</p>
-                <p className="mb-8 text-base" style={{ color: 'var(--color-text-secondary)' }}>Try adjusting your filters or search terms</p>
+                <p className="mb-8 text-base" style={{ color: 'var(--color-text-secondary)' }}>
+                  {onlyInStock ? 'No cards in stock match your filters.' : 'Try adjusting your filters or search terms'}
+                </p>
                 <button onClick={clearFilters} className="inline-flex items-center px-6 py-3.5 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300" style={{ background: 'linear-gradient(to right, var(--color-accent), var(--color-highlight))', color: 'var(--color-panel)' }}>
                   <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -437,17 +463,28 @@ const CatalogPage: React.FC = () => {
               </div>
             ) : (
               <>
-                <div className="rounded-xl shadow-lg px-5 py-4 mb-6 flex items-center justify-between" style={{ backgroundColor: 'var(--color-panel)' }}>
-                  <div className="text-sm flex items-center gap-2" style={{ color: 'var(--color-text-secondary)' }}>
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--color-accent)' }}>
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    <div>
-                      <span className="font-bold text-lg" style={{ color: 'var(--color-text)' }}>{pagination.total}</span> 
-                      <span className="ml-1.5">card{pagination.total !== 1 ? 's' : ''} found</span>
+                <div className="rounded-xl shadow-lg px-5 py-4 mb-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-3" style={{ backgroundColor: 'var(--color-panel)' }}>
+                  <div className="flex items-center gap-3">
+                    <div className="bg-blue-100 dark:bg-blue-900 px-4 py-2 rounded-lg">
+                      <div className="text-sm flex items-center gap-2" style={{ color: 'var(--color-text-secondary)' }}>
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--color-accent)' }}>
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <div>
+                          <span className="font-bold text-lg" style={{ color: 'var(--color-text)' }}>{pagination.total}</span>
+                          <span className="ml-1.5">card{pagination.total !== 1 ? 's' : ''}</span>
+                        </div>
+                      </div>
                     </div>
+                    {onlyInStock && (
+                      <div className="bg-green-100 dark:bg-green-900 px-3 py-1 rounded-full">
+                        <span className="text-xs font-semibold text-green-800 dark:text-green-200">
+                          ✓ In Stock Only
+                        </span>
+                      </div>
+                    )}
                   </div>
-                  <div className="text-sm font-medium px-3 py-1.5 rounded-lg" style={{ backgroundColor: 'var(--color-background)', color: 'var(--color-text)' }}>
+                  <div className="text-sm font-medium px-4 py-2 rounded-lg" style={{ backgroundColor: 'var(--color-background)', color: 'var(--color-text)' }}>
                     Page {pagination.page} of {pagination.totalPages}
                   </div>
                 </div>

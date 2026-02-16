@@ -7,6 +7,11 @@ export const adminApi = {
     return response.data;
   },
 
+  getSets: async (): Promise<{ sets: Array<{ setCode: string; setName: string; cardCount: number }> }> => {
+    const response = await api.get('/admin/sets');
+    return response.data;
+  },
+
   getAdminCards: async (params: {
     q?: string;
     set?: string;

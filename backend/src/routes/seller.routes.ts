@@ -80,6 +80,48 @@ router.delete('/:id', authenticate, requireAdmin, async (req: Request, res: Resp
   }
 });
 
+// Update seller info (admin only)
+router.put('/:id', authenticate, requireAdmin, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { email, name } = req.body;
+
+    const seller = await User.findById(id);
+    if (!seller) {
+      res.status(404).json({ message: 'Seller not found' });
+      return;
+    }
+
+    if (seller.role !== 'seller') {
+      res.status(400).json({ message: 'User is not a seller' });
+      return;
+    }
+
+    // Check if email is being changed and if it's already in use
+    if (email && email.toLowerCase() !== seller.email) {
+      const existingUser = await User.findOne({ email: email.toLowerCase() });
+      if (existingUser) {
+        res.status(400).json({ message: 'Email already in use' });
+        return;
+      }
+      seller.email = email.toLowerCase();
+    }
+
+    // Update name if provided
+    if (name !== undefined) {
+      seller.name = name;
+    }
+
+    await seller.save();
+
+    const updatedSeller = await User.findById(id).select('-passwordHash');
+    res.json({ seller: updatedSeller, message: 'Seller updated successfully' });
+  } catch (error) {
+    console.error('Error updating seller:', error);
+    res.status(500).json({ message: 'Failed to update seller' });
+  }
+});
+
 // Update seller password (admin only)
 router.put('/:id/password', authenticate, requireAdmin, async (req: Request, res: Response): Promise<void> => {
   try {

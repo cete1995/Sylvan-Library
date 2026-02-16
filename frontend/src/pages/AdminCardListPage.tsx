@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { adminApi } from '../api/admin';
 import { Card } from '../types';
 
 const AdminCardListPage: React.FC = () => {
+  const [searchParams] = useSearchParams();
   const [cards, setCards] = useState<Card[]>([]);
   const [loading, setLoading] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('set') || '');
   const [includeInactive, setIncludeInactive] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
@@ -14,6 +15,14 @@ const AdminCardListPage: React.FC = () => {
   useEffect(() => {
     loadCards();
   }, [page, includeInactive]);
+
+  // Load initial search from URL params
+  useEffect(() => {
+    const setParam = searchParams.get('set');
+    if (setParam) {
+      setSearchQuery(setParam);
+    }
+  }, [searchParams]);
 
   const loadCards = async () => {
     setLoading(true);

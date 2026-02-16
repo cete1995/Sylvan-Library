@@ -9,6 +9,8 @@ const AdminDashboardPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [clearing, setClearing] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [sets, setSets] = useState<Array<{setCode: string; setName: string; cardCount: number}>>([]);
+  const [setsLoading, setSetsLoading] = useState(false);
 
   // Format price with thousands separator
   const formatPrice = (price: string | number): string => {
@@ -18,6 +20,7 @@ const AdminDashboardPage: React.FC = () => {
 
   useEffect(() => {
     loadStats();
+    loadSets();
   }, []);
 
   const loadStats = async () => {
@@ -28,6 +31,18 @@ const AdminDashboardPage: React.FC = () => {
       console.error('Failed to load stats:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadSets = async () => {
+    setSetsLoading(true);
+    try {
+      const data = await adminApi.getSets();
+      setSets(data.sets);
+    } catch (error) {
+      console.error('Failed to load sets:', error);
+    } finally {
+      setSetsLoading(false);
     }
   };
 
@@ -254,6 +269,69 @@ const AdminDashboardPage: React.FC = () => {
                 Featured Section
               </Link>
             </div>
+          </div>
+
+          {/* Set Management */}
+          <div className="rounded-xl shadow-md p-6 border-t-4 border-indigo-500" style={{ backgroundColor: 'var(--color-panel)' }}>
+            <div className="flex items-center mb-4">
+              <div className="bg-indigo-100 p-3 rounded-lg mr-3">
+                <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold" style={{ color: 'var(--color-text)' }}>Set Management</h3>
+            </div>
+            <p className="mb-4 text-sm" style={{ color: 'var(--color-text-secondary)' }}>View all sets uploaded via JSON import</p>
+            
+            {setsLoading ? (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+              </div>
+            ) : sets.length === 0 ? (
+              <div className="text-center py-8" style={{ color: 'var(--color-text-secondary)' }}>
+                <p className="text-sm">No sets uploaded yet</p>
+                <Link
+                  to="/admin/set-upload"
+                  className="inline-block mt-3 px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90"
+                  style={{ backgroundColor: 'var(--color-highlight)', color: 'var(--color-panel)' }}
+                >
+                  Upload First Set
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-2 max-h-96 overflow-y-auto" style={{ 
+                scrollbarWidth: 'thin',
+                scrollbarColor: 'var(--color-accent) var(--color-panel)'
+              }}>
+                {sets.map((set) => (
+                  <Link
+                    key={set.setCode}
+                    to={`/admin/cards?set=${set.setCode}`}
+                    className="flex items-center p-3 rounded-lg hover:opacity-80 transition-all border"
+                    style={{ 
+                      backgroundColor: 'var(--color-background)',
+                      borderColor: 'var(--color-border)'
+                    }}
+                  >
+                    <i 
+                      className={`ss ss-${set.setCode.toLowerCase()} ss-2x mr-3`}
+                      style={{ color: 'var(--color-text)' }}
+                    ></i>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium truncate" style={{ color: 'var(--color-text)' }}>
+                        {set.setName}
+                      </div>
+                      <div className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+                        {set.setCode.toUpperCase()} • {set.cardCount} cards
+                      </div>
+                    </div>
+                    <svg className="w-5 h-5 flex-shrink-0" style={{ color: 'var(--color-text-secondary)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Price Data Management */}

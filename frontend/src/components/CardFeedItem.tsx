@@ -20,13 +20,24 @@ const CardFeedItem: React.FC<CardFeedItemProps> = ({ card, onAddToCart, onQuickV
     return price.toLocaleString('id-ID');
   };
 
-  // Get default condition (NM nonfoil)
+  // Get default condition (NM nonfoil) - aggregate from all sellers
   const getDefaultInventory = () => {
-    return card.inventory?.find(item => item.condition === 'NM' && item.finish === 'nonfoil');
+    const matchingItems = card.inventory?.filter(item => item.condition === 'NM' && item.finish === 'nonfoil') || [];
+    if (matchingItems.length === 0) return null;
+    
+    // Aggregate quantity from all sellers
+    const totalQuantity = matchingItems.reduce((sum, item) => sum + item.quantityForSale, 0);
+    const firstItemWithStock = matchingItems.find(item => item.quantityForSale > 0);
+    const baseItem = firstItemWithStock || matchingItems[0];
+    
+    return {
+      ...baseItem,
+      quantityForSale: totalQuantity
+    };
   };
 
   const inventory = getDefaultInventory();
-  const price = inventory?.sellPrice || 0;
+  const price = inventory?.sellPrice || (card as any).calculatedPrices?.nonfoil || 0;
   const stock = inventory?.quantityForSale || 0;
   const isAvailable = stock > 0;
 
@@ -179,7 +190,7 @@ const CardFeedItem: React.FC<CardFeedItemProps> = ({ card, onAddToCart, onQuickV
             disabled={!isAvailable}
             className="flex items-center gap-2 px-6 py-2 rounded-lg font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ 
-              backgroundColor: isAvailable ? 'var(--color-accent)' : '#6b7280',
+              backgroundColor: isAvailable ? '#10b981' : '#6b7280',
               color: 'white'
             }}
           >

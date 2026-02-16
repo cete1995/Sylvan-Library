@@ -64,6 +64,39 @@ export const deleteCard = asyncHandler(async (req: Request, res: Response) => {
 });
 
 /**
+ * Get all unique sets from cards uploaded via JSON
+ * Only returns sets where cards have imageUrl and updatedAt (JSON uploaded)
+ * Sorted by release date (newest first)
+ * GET /api/admin/sets
+ */
+export const getSets = asyncHandler(async (req: Request, res: Response) => {
+  const sets = await Card.aggregate([
+    {
+      // Filter for cards with images (JSON uploaded) and updatedAt timestamp
+      $match: {
+        imageUrl: { $ne: null },
+        updatedAt: { $exists: true },
+      },
+    },
+    {
+      $group: {
+        _id: '$setCode',
+        setCode: { $first: '$setCode' },
+        setName: { $first: '$setName' },
+        releaseDate: { $first: '$releaseDate' },
+        cardCount: { $sum: 1 },
+        lastUpdated: { $max: '$updatedAt' },
+      },
+    },
+    {
+      $sort: { releaseDate: -1 },
+    },
+  ]);
+
+  res.json({ sets });
+});
+
+/**
  * Get all cards (including inactive) with admin filters
  * GET /api/admin/cards
  */

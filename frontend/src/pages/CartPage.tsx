@@ -4,6 +4,7 @@ import { cartApi } from '../api/cart';
 import { Cart } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
+import { toast } from '../utils/toast';
 
 const CartPage: React.FC = () => {
   const navigate = useNavigate();
@@ -46,7 +47,9 @@ const CartPage: React.FC = () => {
       setCart(data.cart);
       await refreshCart(); // Update cart count in navbar
     } catch (error: any) {
-      alert(error.response?.data?.error || 'Failed to update quantity');
+      const errorMsg = error.response?.data?.error || error.message || 'Failed to update quantity';
+      toast.error(errorMsg);
+      loadCart(); // Reload to reset to actual quantity
     } finally {
       setUpdating(null);
     }
@@ -60,8 +63,9 @@ const CartPage: React.FC = () => {
       const data = await cartApi.removeFromCart(itemId);
       setCart(data.cart);
       await refreshCart(); // Update cart count in navbar
+      toast.success('Item removed from cart');
     } catch (error) {
-      alert('Failed to remove item');
+      toast.error('Failed to remove item');
     } finally {
       setUpdating(null);
     }
@@ -74,8 +78,9 @@ const CartPage: React.FC = () => {
       const data = await cartApi.clearCart();
       setCart(data.cart);
       await refreshCart(); // Update cart count in navbar
+      toast.success('Cart cleared');
     } catch (error) {
-      alert('Failed to clear cart');
+      toast.error('Failed to clear cart');
     }
   };
 
@@ -112,7 +117,26 @@ const CartPage: React.FC = () => {
     );
   }
 
-  const totalPrice = cart.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  // Calculate total price with fallback to current inventory price if stored price is 0
+  const totalPrice = cart.items.reduce((sum, item) => {
+    const inventoryItem = item.card.inventory[item.inventoryIndex];
+    let currentPrice = item.price || inventoryItem?.sellPrice || 0;
+    
+    // If price is still 0, search for matching condition/finish with stock
+    if (currentPrice === 0 && inventoryItem) {
+      const matchingWithPrice = item.card.inventory.find(inv => 
+        inv.condition === inventoryItem.condition &&
+        inv.finish === inventoryItem.finish &&
+        inv.sellPrice > 0 &&
+        inv.quantityForSale > 0
+      );
+      if (matchingWithPrice) {
+        currentPrice = matchingWithPrice.sellPrice;
+      }
+    }
+    
+    return sum + currentPrice * item.quantity;
+  }, 0);
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--color-background)' }}>
@@ -142,6 +166,23 @@ const CartPage: React.FC = () => {
           <div className="lg:col-span-2 space-y-4">
             {cart.items.map((item) => {
               const inventoryItem = item.card.inventory[item.inventoryIndex];
+              
+              // Find the best price: stored price > current inventory price > any matching inventory with stock > 0
+              let currentPrice = item.price || inventoryItem?.sellPrice || 0;
+              
+              // If price is still 0, search for matching condition/finish with stock
+              if (currentPrice === 0 && inventoryItem) {
+                const matchingWithPrice = item.card.inventory.find(inv => 
+                  inv.condition === inventoryItem.condition &&
+                  inv.finish === inventoryItem.finish &&
+                  inv.sellPrice > 0 &&
+                  inv.quantityForSale > 0
+                );
+                if (matchingWithPrice) {
+                  currentPrice = matchingWithPrice.sellPrice;
+                }
+              }
+              
               return (
                 <div 
                   key={item._id} 
@@ -207,8 +248,8 @@ const CartPage: React.FC = () => {
 
                         {/* Price */}
                         <div className="text-left sm:text-center">
-                          <div className="text-xs md:text-sm mb-1" style={{ color: 'var(--color-text-secondary)' }}>Rp. {formatPrice(item.price)} × {item.quantity}</div>
-                          <div className="font-bold text-lg md:text-xl" style={{ color: 'var(--color-accent)' }}>Rp. {formatPrice(item.price * item.quantity)}</div>
+                          <div className="text-xs md:text-sm mb-1" style={{ color: 'var(--color-text-secondary)' }}>Rp. {formatPrice(currentPrice)} × {item.quantity}</div>
+                          <div className="font-bold text-lg md:text-xl" style={{ color: 'var(--color-accent)' }}>Rp. {formatPrice(currentPrice * item.quantity)}</div>
                         </div>
 
                         {/* Remove Button */}

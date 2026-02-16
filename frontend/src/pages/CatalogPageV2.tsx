@@ -5,6 +5,7 @@ import { cartApi } from '../api/cart';
 import { Card, SetInfo } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
+import { toast } from '../utils/toast';
 
 const CatalogPageV2: React.FC = () => {
   const navigate = useNavigate();
@@ -34,6 +35,7 @@ const CatalogPageV2: React.FC = () => {
   const [selectedRarity, setSelectedRarity] = useState(searchParams.get('rarity') || '');
   const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'price_high');
   const [perPage, setPerPage] = useState(100);
+  const [onlyInStock, setOnlyInStock] = useState(searchParams.get('instock') === 'true');
 
   useEffect(() => {
     loadSets();
@@ -59,6 +61,7 @@ const CatalogPageV2: React.FC = () => {
         q: searchParams.get('q') || undefined,
         set: searchParams.get('set') || undefined,
         rarity: searchParams.get('rarity') || undefined,
+        instock: searchParams.get('instock') || undefined,
         page: searchParams.get('page') ? Number(searchParams.get('page')) : 1,
         limit: perPage,
         sort: (searchParams.get('sort') as any) || 'price_desc',
@@ -81,6 +84,7 @@ const CatalogPageV2: React.FC = () => {
     if (selectedSet) params.set = selectedSet;
     if (selectedRarity) params.rarity = selectedRarity;
     if (sortBy) params.sort = sortBy;
+    if (onlyInStock) params.instock = 'true';
 
     setSearchParams(params);
   };
@@ -91,8 +95,20 @@ const CatalogPageV2: React.FC = () => {
 
   const getCardConditions = (card: Card) => {
     const inventory = card.inventory || [];
+    const calculatedPrices = (card as any).calculatedPrices;
+    
     const conditions = {
-      NM: inventory.find(item => item.condition === 'NM' && item.finish === 'nonfoil'),
+      NM: inventory.find(item => item.condition === 'NM' && item.finish === 'nonfoil') || 
+          (calculatedPrices?.nonfoil ? {
+            condition: 'NM' as const,
+            finish: 'nonfoil' as const,
+            quantityOwned: 0,
+            quantityForSale: 0,
+            buyPrice: 0,
+            sellPrice: calculatedPrices.nonfoil,
+            sellerName: undefined,
+            sellerId: undefined
+          } : undefined),
       LP: inventory.find(item => item.condition === 'LP' && item.finish === 'nonfoil'),
       P: inventory.find(item => item.condition === 'P' && item.finish === 'nonfoil'),
     };
@@ -118,10 +134,10 @@ const CatalogPageV2: React.FC = () => {
     try {
       await cartApi.addToCart(cardId, inventoryIndex, quantity);
       await refreshCart();
-      alert('Item added to cart!');
+      toast.success('Item added to cart!');
       setShowQuantitySelector(null);
     } catch (error: any) {
-      alert(error.message || 'Failed to add to cart');
+      toast.error(error.response?.data?.error || error.message || 'Failed to add to cart');
     } finally {
       setAddingToCart(null);
     }
@@ -177,115 +193,182 @@ const CatalogPageV2: React.FC = () => {
           </button>
         </div>
 
-        {/* Filters Bar */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-6">
-          {/* Card Name Search */}
-          <div className="md:col-span-3">
-            <label className="block text-sm font-medium mb-1" style={{ color: 'var(--color-text)' }}>Card Name</label>
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-              placeholder="Search"
-              className="w-full px-3 py-2 border rounded"
-              style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)', borderColor: 'var(--color-text-secondary)' }}
-            />
-          </div>
+        {/* Filters Bar - Enhanced Design */}
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700 rounded-xl p-6 shadow-md mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+            {/* Card Name Search */}
+            <div className="md:col-span-3">
+              <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--color-text)' }}>
+                <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                Card Name
+              </label>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                placeholder="Search by name..."
+                className="w-full px-4 py-2.5 border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)', borderColor: 'var(--color-text-secondary)' }}
+              />
+            </div>
 
-          {/* Edition */}
-          <div className="md:col-span-3">
-            <label className="block text-sm font-medium mb-1" style={{ color: 'var(--color-text)' }}>Edition</label>
-            <select
-              value={selectedSet}
-              onChange={(e) => setSelectedSet(e.target.value)}
-              className="w-full px-3 py-2 border rounded"
-              style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)', borderColor: 'var(--color-text-secondary)' }}
-            >
-              <option value="">All Editions</option>
-              {sets.map((set) => (
-                <option key={set.code} value={set.code}>
-                  {set.name}
-                </option>
-              ))}
-            </select>
-          </div>
+            {/* Edition */}
+            <div className="md:col-span-3">
+              <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--color-text)' }}>
+                <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+                Edition
+              </label>
+              <select
+                value={selectedSet}
+                onChange={(e) => setSelectedSet(e.target.value)}
+                className="w-full px-4 py-2.5 border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)', borderColor: 'var(--color-text-secondary)' }}
+              >
+                <option value="">All Editions</option>
+                {sets.map((set) => (
+                  <option key={set.code} value={set.code}>
+                    {set.name}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-          {/* Format (Placeholder) */}
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium mb-1" style={{ color: 'var(--color-text)' }}>Format</label>
-            <select className="w-full px-3 py-2 border rounded" style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)', borderColor: 'var(--color-text-secondary)' }}>
-              <option>All Formats</option>
-            </select>
-          </div>
+            {/* Rarity */}
+            <div className="md:col-span-2">
+              <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--color-text)' }}>
+                <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                </svg>
+                Rarity
+              </label>
+              <select
+                value={selectedRarity}
+                onChange={(e) => setSelectedRarity(e.target.value)}
+                className="w-full px-4 py-2.5 border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)', borderColor: 'var(--color-text-secondary)' }}
+              >
+                <option value="">All Rarities</option>
+                <option value="common">Common</option>
+                <option value="uncommon">Uncommon</option>
+                <option value="rare">Rare</option>
+                <option value="mythic">Mythic</option>
+              </select>
+            </div>
 
-          {/* Availability */}
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium mb-1" style={{ color: 'var(--color-text)' }}>Availability</label>
-            <div className="flex items-center gap-2 pt-2">
-              <input type="checkbox" id="instock" className="w-4 h-4" />
-              <label htmlFor="instock" className="text-sm" style={{ color: 'var(--color-text)' }}>In-Stock</label>
+            {/* Sort By */}
+            <div className="md:col-span-2">
+              <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--color-text)' }}>
+                <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
+                </svg>
+                Sort
+              </label>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="w-full px-4 py-2.5 border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)', borderColor: 'var(--color-text-secondary)' }}
+              >
+                <option value="price_desc">Price: High to Low</option>
+                <option value="price_asc">Price: Low to High</option>
+                <option value="name_asc">Name: A-Z</option>
+                <option value="name_desc">Name: Z-A</option>
+                <option value="number_asc">Collector Number ↑</option>
+                <option value="number_desc">Collector Number ↓</option>
+              </select>
+            </div>
+
+            {/* In Stock Toggle */}
+            <div className="md:col-span-2">
+              <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--color-text)' }}>
+                <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Availability
+              </label>
+              <label className="flex items-center gap-3 px-4 py-2.5 border-2 rounded-lg cursor-pointer hover:bg-blue-50 dark:hover:bg-gray-600 transition-all" style={{ borderColor: onlyInStock ? '#10b981' : 'var(--color-text-secondary)', backgroundColor: onlyInStock ? '#ecfdf5' : 'var(--color-panel)' }}>
+                <input
+                  type="checkbox"
+                  checked={onlyInStock}
+                  onChange={(e) => setOnlyInStock(e.target.checked)}
+                  className="w-5 h-5 text-green-600 rounded focus:ring-2 focus:ring-green-500"
+                />
+                <span className="text-sm font-semibold" style={{ color: onlyInStock ? '#059669' : 'var(--color-text)' }}>In Stock Only</span>
+              </label>
             </div>
           </div>
 
-          {/* Rarity (Card Color) */}
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium mb-1" style={{ color: 'var(--color-text)' }}>Rarity</label>
-            <select
-              value={selectedRarity}
-              onChange={(e) => setSelectedRarity(e.target.value)}
-              className="w-full px-3 py-2 border rounded"
-              style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)', borderColor: 'var(--color-text-secondary)' }}
+          {/* Search Button */}
+          <div className="mt-4 flex gap-3">
+            <button
+              onClick={handleSearch}
+              className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all flex items-center gap-2"
             >
-              <option value="">All</option>
-              <option value="common">Common</option>
-              <option value="uncommon">Uncommon</option>
-              <option value="rare">Rare</option>
-              <option value="mythic">Mythic</option>
-            </select>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              Search
+            </button>
+            <button
+              onClick={() => {
+                setSearchQuery('');
+                setSelectedSet('');
+                setSelectedRarity('');
+                setSortBy('price_desc');
+                setOnlyInStock(false);
+                setSearchParams({});
+              }}
+              className="px-6 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-lg shadow-md hover:shadow-lg transition-all flex items-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Clear Filters
+            </button>
           </div>
         </div>
 
         {/* Results Info & Controls */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-          <div className="text-sm" style={{ color: 'var(--color-text)' }}>
-            <span className="font-semibold">1 - {Math.min(perPage, pagination.total)} of {pagination.total} results</span>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="bg-blue-100 dark:bg-blue-900 px-4 py-2 rounded-lg">
+              <span className="text-sm font-bold text-blue-800 dark:text-blue-200">
+                {pagination.total} cards
+              </span>
+            </div>
+            {onlyInStock && (
+              <div className="bg-green-100 dark:bg-green-900 px-3 py-1 rounded-full">
+                <span className="text-xs font-semibold text-green-800 dark:text-green-200">
+                  ✓ In Stock Only
+                </span>
+              </div>
+            )}
           </div>
 
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-2">
-              <label className="text-sm font-medium" style={{ color: 'var(--color-text)' }}>Sort By:</label>
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="px-3 py-1 border rounded text-sm"
-                style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)', borderColor: 'var(--color-text-secondary)' }}
-              >
-                <option value="price_desc">Price High to Low</option>
-                <option value="price_asc">Price Low to High</option>
-                <option value="name_asc">Name A-Z</option>
-                <option value="name_desc">Name Z-A</option>
-              </select>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-medium" style={{ color: 'var(--color-text)' }}>Show:</label>
+              <label className="text-sm font-medium" style={{ color: 'var(--color-text)' }}>Per Page:</label>
               <select
                 value={perPage}
                 onChange={(e) => setPerPage(Number(e.target.value))}
-                className="px-3 py-1 border rounded text-sm"
+                className="px-3 py-2 border-2 rounded-lg text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)', borderColor: 'var(--color-text-secondary)' }}
               >
-                <option value="25">25 per page</option>
-                <option value="50">50 per page</option>
-                <option value="100">100 per page</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
               </select>
             </div>
 
-            <div className="flex items-center gap-1 border rounded" style={{ borderColor: 'var(--color-text-secondary)' }}>
+            <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
               <button
                 onClick={() => setViewMode('grid')}
-                className={`p-2 ${viewMode === 'grid' ? 'bg-gray-200' : ''}`}
+                className={`px-4 py-2 rounded-md font-medium text-sm transition-all ${viewMode === 'grid' ? 'bg-white dark:bg-gray-600 shadow-md' : 'hover:bg-gray-200 dark:hover:bg-gray-600'}`}
                 style={{ color: 'var(--color-text)' }}
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -294,7 +377,7 @@ const CatalogPageV2: React.FC = () => {
               </button>
               <button
                 onClick={() => setViewMode('list')}
-                className={`p-2 ${viewMode === 'list' ? 'bg-gray-200' : ''}`}
+                className={`px-4 py-2 rounded-md font-medium text-sm transition-all ${viewMode === 'list' ? 'bg-white dark:bg-gray-600 shadow-md' : 'hover:bg-gray-200 dark:hover:bg-gray-600'}`}
                 style={{ color: 'var(--color-text)' }}
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -307,9 +390,32 @@ const CatalogPageV2: React.FC = () => {
 
         {/* Cards Display */}
         {loading ? (
-          <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-            <div className="text-xl" style={{ color: 'var(--color-text-secondary)' }}>Loading cards...</div>
+          <div className="text-center py-20 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
+            <div className="inline-block animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600 mb-4"></div>
+            <div className="text-xl font-semibold" style={{ color: 'var(--color-text-secondary)' }}>Loading cards...</div>
+          </div>
+        ) : cards.length === 0 ? (
+          <div className="text-center py-20 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
+            <svg className="w-24 h-24 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <h3 className="text-2xl font-bold mb-2" style={{ color: 'var(--color-text)' }}>No cards found</h3>
+            <p className="text-lg mb-6" style={{ color: 'var(--color-text-secondary)' }}>
+              {onlyInStock ? 'No cards in stock match your filters.' : 'Try adjusting your search filters.'}
+            </p>
+            <button
+              onClick={() => {
+                setSearchQuery('');
+                setSelectedSet('');
+                setSelectedRarity('');
+                setSortBy('price_desc');
+                setOnlyInStock(false);
+                setSearchParams({});
+              }}
+              className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all"
+            >
+              Clear All Filters
+            </button>
           </div>
         ) : viewMode === 'grid' ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
@@ -327,14 +433,14 @@ const CatalogPageV2: React.FC = () => {
               return (
                 <div
                   key={card._id}
-                  className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow relative"
-                  style={{ backgroundColor: 'var(--color-panel)', borderColor: 'var(--color-text-secondary)' }}
+                  className="group border-2 rounded-xl overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 relative bg-white dark:bg-gray-800"
+                  style={{ borderColor: isAvailable ? 'var(--color-text-secondary)' : '#ef4444' }}
                 >
                   <Link to={`/cards/${card._id}`}>
                     {/* Card Image */}
-                    <div className="aspect-[5/7] relative" style={{ backgroundColor: 'var(--color-background)' }}>
+                    <div className="aspect-[5/7] relative overflow-hidden" style={{ backgroundColor: 'var(--color-background)' }}>
                       {card.imageUrl ? (
-                        <img src={card.imageUrl} alt={card.name} className="w-full h-full object-cover" />
+                        <img src={card.imageUrl} alt={card.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-gray-400">
                           <svg className="w-16 h-16" fill="currentColor" viewBox="0 0 20 20">
@@ -343,21 +449,30 @@ const CatalogPageV2: React.FC = () => {
                         </div>
                       )}
                       {!isAvailable && (
-                        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                          <span className="text-white text-xs font-bold bg-red-600 px-2 py-1 rounded">Out of stock</span>
+                        <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center backdrop-blur-sm">
+                          <span className="text-white text-sm font-bold bg-red-600 px-4 py-2 rounded-lg shadow-lg">OUT OF STOCK</span>
+                        </div>
+                      )}
+                      {/* Stock Badge */}
+                      {isAvailable && (
+                        <div className="absolute top-2 right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
+                          {stock} in stock
                         </div>
                       )}
                     </div>
 
                     {/* Card Info */}
-                    <div className="p-2">
-                      <h3 className="text-sm font-semibold mb-2 line-clamp-2" style={{ color: 'var(--color-text)' }}>{card.name}</h3>
+                    <div className="p-3">
+                      <h3 className="text-sm font-bold mb-1 line-clamp-2 min-h-[2.5rem]" style={{ color: 'var(--color-text)' }}>{card.name}</h3>
+                      <p className="text-xs mb-2" style={{ color: 'var(--color-text-secondary)' }}>
+                        {card.setName}
+                      </p>
                     </div>
                   </Link>
 
                   {/* Condition Tabs */}
                   <div className="px-2">
-                    <div className="flex gap-1 mb-2 border rounded" style={{ borderColor: 'var(--color-text-secondary)' }}>
+                    <div className="flex gap-1 mb-2 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
                       {['NM', 'LP', 'P'].map((condition) => {
                         const hasCondition = conditions[condition as 'NM' | 'LP' | 'P'];
                         const isActive = activeTab === condition;
@@ -366,8 +481,8 @@ const CatalogPageV2: React.FC = () => {
                             key={condition}
                             onClick={(e) => setCardCondition(card._id, condition as 'NM' | 'LP' | 'P', e)}
                             disabled={!hasCondition}
-                            className={`flex-1 py-1 px-2 text-xs font-semibold transition-colors ${
-                              !hasCondition ? 'opacity-30 cursor-not-allowed' : ''
+                            className={`flex-1 py-1.5 px-2 text-xs font-bold rounded-md transition-all ${
+                              !hasCondition ? 'opacity-30 cursor-not-allowed' : 'hover:opacity-80'
                             }`}
                             style={{
                               backgroundColor: isActive ? 'var(--color-accent)' : 'transparent',
@@ -383,11 +498,17 @@ const CatalogPageV2: React.FC = () => {
                     {/* Price and Stock for Active Condition */}
                     {activeInventoryItem && (
                       <>
-                        <div className="text-center text-lg font-bold text-blue-600 mb-1">
-                          {activeInventoryItem.sellPrice > 0 ? `Rp. ${formatPrice(activeInventoryItem.sellPrice)}` : 'Price TBD'}
+                        <div className="text-center mb-2">
+                          <div className="inline-block bg-blue-50 dark:bg-blue-900 px-4 py-2 rounded-lg">
+                            <div className="text-lg font-bold text-blue-600 dark:text-blue-300">
+                              {activeInventoryItem.sellPrice > 0 ? `Rp. ${formatPrice(activeInventoryItem.sellPrice)}` : 'Price TBD'}
+                            </div>
+                          </div>
                         </div>
-                        <div className={`text-center text-sm font-semibold mb-2 ${activeInventoryItem.quantityForSale > 0 ? 'text-emerald-500' : 'text-red-600'}`}>
-                          {activeInventoryItem.quantityForSale > 0 ? `${activeInventoryItem.quantityForSale} in stock` : 'Out of stock'}
+                        <div className="text-center mb-3">
+                          <span className={`inline-block text-sm font-bold px-3 py-1 rounded-full ${activeInventoryItem.quantityForSale > 0 ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200' : 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-200'}`}>
+                            {activeInventoryItem.quantityForSale > 0 ? `✓ ${activeInventoryItem.quantityForSale} available` : '✕ Out of stock'}
+                          </span>
                         </div>
                       </>
                     )}
@@ -400,7 +521,7 @@ const CatalogPageV2: React.FC = () => {
                         onClick={(e) => toggleQuantitySelector(card._id, e)}
                         disabled={addingToCart === `${card._id}-${activeInventoryIndex}`}
                         className="w-full text-white font-semibold py-1.5 px-3 rounded text-xs hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-1"
-                        style={{ backgroundColor: 'var(--color-highlight)' }}
+                        style={{ backgroundColor: '#10b981' }}
                       >
                         Add to Cart
                         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -530,7 +651,7 @@ const CatalogPageV2: React.FC = () => {
 
         {/* Pagination */}
         {pagination.totalPages > 1 && (
-          <div className="mt-8 flex justify-center gap-2">
+          <div className="mt-10 flex justify-center items-center gap-3 bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
             <button
               onClick={() => {
                 const params = Object.fromEntries(searchParams.entries());
@@ -538,14 +659,18 @@ const CatalogPageV2: React.FC = () => {
                 setSearchParams(params);
               }}
               disabled={!pagination.hasPrevPage}
-              className="px-4 py-2 border rounded disabled:opacity-50"
-              style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)', borderColor: 'var(--color-text-secondary)' }}
+              className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600 flex items-center gap-2"
             >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
               Previous
             </button>
-            <span className="px-4 py-2" style={{ color: 'var(--color-text)' }}>
-              Page {pagination.page} of {pagination.totalPages}
-            </span>
+            <div className="bg-gray-100 dark:bg-gray-700 px-6 py-2.5 rounded-lg">
+              <span className="font-bold text-lg" style={{ color: 'var(--color-text)' }}>
+                Page {pagination.page} of {pagination.totalPages}
+              </span>
+            </div>
             <button
               onClick={() => {
                 const params = Object.fromEntries(searchParams.entries());
@@ -553,10 +678,12 @@ const CatalogPageV2: React.FC = () => {
                 setSearchParams(params);
               }}
               disabled={!pagination.hasNextPage}
-              className="px-4 py-2 border rounded disabled:opacity-50"
-              style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)', borderColor: 'var(--color-text-secondary)' }}
+              className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600 flex items-center gap-2"
             >
               Next
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
             </button>
           </div>
         )}

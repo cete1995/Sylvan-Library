@@ -38,6 +38,7 @@ export const searchCardsSchema = z.object({
   tags: z.string().optional(), // Comma-separated tags (Borderless, Extended Art, etc.)
   minPrice: z.string().transform(Number).pipe(z.number().min(0)).optional(),
   maxPrice: z.string().transform(Number).pipe(z.number().min(0)).optional(),
+  instock: z.string().optional(), // Filter for cards with inventory > 0
   page: z.string().transform(Number).pipe(z.number().min(1)).default('1'),
   limit: z.string().transform(Number).pipe(z.number().min(1).max(100)).default('24'),
   sort: z

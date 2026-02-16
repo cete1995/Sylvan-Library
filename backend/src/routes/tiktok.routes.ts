@@ -706,8 +706,8 @@ router.post('/bulk-update-csv-stream', authenticate, requireAdmin, upload.single
       .filter((record: any) => record.productId && record.skuId) // Skip rows with empty productId or skuId
       .map((record: any) => {
         const update: any = {
-          productId: record.productId.trim(),
-          skuId: record.skuId.trim()
+          productId: record.productId.trim().replace(/^['"]/, ''), // Remove leading apostrophe or quote
+          skuId: record.skuId.trim().replace(/^['"]/, '') // Remove leading apostrophe or quote
         };
 
         if (record.productName) {
@@ -1041,9 +1041,13 @@ router.post('/bulk-update-csv', authenticate, requireAdmin, upload.single('file'
       .filter((record: any) => record.productId && record.skuId) // Skip rows with empty productId or skuId
       .map((record: any) => {
         const update: any = {
-          productId: record.productId.trim(),
-          skuId: record.skuId.trim()
+          productId: record.productId.trim().replace(/^['"]/, ''), // Remove leading apostrophe or quote
+          skuId: record.skuId.trim().replace(/^['"]/, '') // Remove leading apostrophe or quote
         };
+
+        if (record.productName) {
+          update.productName = record.productName.trim();
+        }
 
         if (record.price) {
           update.price = record.price.trim();

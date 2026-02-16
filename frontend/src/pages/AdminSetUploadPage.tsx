@@ -113,13 +113,39 @@ const AdminSetUploadPage: React.FC = () => {
             </div>
             <div className="bg-green-100 p-4 rounded">
               <div className="text-sm text-gray-600">Imported</div>
-              <div className="text-2xl font-bold">{result.imported}</div>
+              <div className="text-2xl font-bold">{(result.created || 0) + (result.updated || 0)}</div>
             </div>
             <div className="bg-red-100 p-4 rounded">
               <div className="text-sm text-gray-600">Errors</div>
               <div className="text-2xl font-bold">{result.errors}</div>
             </div>
           </div>
+
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="bg-purple-100 p-3 rounded">
+              <div className="text-xs text-gray-600">Created</div>
+              <div className="text-xl font-semibold">{result.created || 0}</div>
+            </div>
+            <div className="bg-indigo-100 p-3 rounded">
+              <div className="text-xs text-gray-600">Updated</div>
+              <div className="text-xl font-semibold">{result.updated || 0}</div>
+            </div>
+          </div>
+
+          {result.skippedDetails && result.skippedDetails.length > 0 && (
+            <div className="mb-4">
+              <h3 className="font-semibold mb-2">Skipped ({result.skipped}):</h3>
+              <div className="bg-yellow-50 p-4 rounded max-h-64 overflow-y-auto">
+                <ul className="list-disc list-inside space-y-1 text-sm">
+                  {result.skippedDetails.map((skip: any, idx: number) => (
+                    <li key={idx} className="text-yellow-800">
+                      <strong>{skip.name}:</strong> {skip.reason}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )}
 
           {result.errorDetails && result.errorDetails.length > 0 && (
             <div>

@@ -6,6 +6,7 @@ import { Card } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
 import ManaSymbols from '../components/ManaSymbols';
+import { toast } from '../utils/toast';
 
 const CardDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -19,6 +20,7 @@ const CardDetailPage: React.FC = () => {
   const [activeFinish, setActiveFinish] = useState<'nonfoil' | 'foil'>('nonfoil');
   const [quantities, setQuantities] = useState<{ [key: number]: number }>({});
   const [isMobile, setIsMobile] = useState(false);
+  const [calculatedPrices, setCalculatedPrices] = useState<{ nonfoil: number; foil: number } | null>(null);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -40,6 +42,7 @@ const CardDetailPage: React.FC = () => {
     try {
       const data = await cardApi.getCardById(cardId);
       setCard(data.card);
+      setCalculatedPrices(data.calculatedPrices || null);
     } catch (error) {
       console.error('Failed to load card:', error);
     } finally {
@@ -60,9 +63,9 @@ const CardDetailPage: React.FC = () => {
     try {
       await cartApi.addToCart(card._id, inventoryIndex, quantity);
       await refreshCart(); // Update cart count in navbar
-      alert('Item added to cart!');
+      toast.success('Item added to cart!');
     } catch (error: any) {
-      alert(error.message || 'Failed to add to cart');
+      toast.error(error.response?.data?.error || error.message || 'Failed to add to cart');
     } finally {
       setAddingToCart(null);
     }
@@ -95,15 +98,41 @@ const CardDetailPage: React.FC = () => {
     setQuantities({ ...quantities, [index]: Math.min(Math.max(1, numValue), maxQty) });
   };
 
-  // Get current inventory item
+  // Get current inventory item - prioritize items with stock
   const getCurrentInventoryItem = () => {
     if (!card) return null;
-    return card.inventory.find(item => item.condition === activeTab && item.finish === activeFinish);
+    // Find all matching items
+    const matchingItems = card.inventory.filter(item => item.condition === activeTab && item.finish === activeFinish);
+    if (matchingItems.length === 0) return null;
+    
+    // If there are multiple sellers, aggregate the data
+    if (matchingItems.length > 1) {
+      const totalQuantity = matchingItems.reduce((sum, item) => sum + item.quantityForSale, 0);
+      const firstItemWithStock = matchingItems.find(item => item.quantityForSale > 0);
+      const baseItem = firstItemWithStock || matchingItems[0];
+      
+      // Return aggregated item
+      return {
+        ...baseItem,
+        quantityForSale: totalQuantity,
+        sellerName: matchingItems.length > 1 ? `Multiple sellers (${matchingItems.length})` : baseItem.sellerName
+      };
+    }
+    
+    return matchingItems[0];
   };
 
   const getCurrentInventoryIndex = () => {
     if (!card) return -1;
-    return card.inventory.findIndex(item => item.condition === activeTab && item.finish === activeFinish);
+    // Find first item with stock, or first matching item
+    const matchingItems = card.inventory
+      .map((item, index) => ({ item, index }))
+      .filter(({ item }) => item.condition === activeTab && item.finish === activeFinish);
+    
+    if (matchingItems.length === 0) return -1;
+    
+    const itemWithStock = matchingItems.find(({ item }) => item.quantityForSale > 0);
+    return itemWithStock ? itemWithStock.index : matchingItems[0].index;
   };
 
   const currentItem = getCurrentInventoryItem();
@@ -348,93 +377,99 @@ const CardDetailPage: React.FC = () => {
 
   // Desktop Layout (existing code)
   return (
-    <div className="container mx-auto px-4 py-6 md:py-8 max-w-7xl" style={{ minHeight: '100vh', backgroundColor: 'var(--color-background)' }}>
-      <Link to="/catalog" className="inline-block mb-4 md:mb-6 font-bold py-2 px-4 md:px-6 rounded text-sm md:text-base hover:opacity-90" style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-panel)' }}>
-        Back
-      </Link>
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--color-background)' }}>
+      <div className="container mx-auto px-4 py-6 md:py-8 max-w-7xl">
+        <Link 
+          to="/catalog" 
+          className="inline-flex items-center gap-2 mb-6 font-bold py-3 px-6 rounded-lg text-base hover:opacity-90 shadow-md transition-all" 
+          style={{ backgroundColor: 'var(--color-accent)', color: 'white' }}
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          Back to Catalog
+        </Link>
 
-      <div className="grid lg:grid-cols-[320px_1fr] gap-4 md:gap-6">
-        {/* Left Column - Card Image and Info */}
-        <div>
-          {/* Card Image with Yellow Border */}
-          <div className="border-4 border-yellow-400 rounded-lg overflow-hidden mb-4">
-            {card.imageUrl ? (
-              <img src={card.imageUrl} alt={card.name} className="w-full" />
-            ) : (
-              <div className="aspect-[5/7] bg-gray-200 flex items-center justify-center">
-                <svg className="w-24 h-24 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
-                </svg>
-              </div>
-            )}
+        <div className="grid lg:grid-cols-[400px_1fr] gap-8">
+          {/* Left Column - Card Image and Info */}
+          <div>
+            {/* Card Image with Yellow Border */}
+            <div className="border-4 border-yellow-400 rounded-xl overflow-hidden mb-6 shadow-lg">
+              {card.imageUrl ? (
+                <img src={card.imageUrl} alt={card.name} className="w-full" />
+              ) : (
+                <div className="aspect-[5/7] bg-gray-200 flex items-center justify-center">
+                  <svg className="w-32 h-32 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                  </svg>
+                </div>
+              )}
+            </div>
+
+            {/* Card Info Table */}
+            <div className="border-2 border-yellow-400 rounded-xl overflow-hidden shadow-md">
+              <table className="w-full">
+                <tbody>
+                  <tr className="border-b border-yellow-200">
+                    <td className="font-bold py-3 px-4 text-sm" style={{ backgroundColor: 'var(--color-accent)', color: 'white' }}>Name</td>
+                    <td className="py-3 px-4 font-medium" style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)' }}>{card.name}</td>
+                  </tr>
+                  <tr className="border-b border-yellow-200">
+                    <td className="font-bold py-3 px-4 text-sm" style={{ backgroundColor: 'var(--color-accent)', color: 'white' }}>Rarity</td>
+                    <td className="py-3 px-4 capitalize font-medium" style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)' }}>{card.rarity}</td>
+                  </tr>
+                  <tr className="border-b border-yellow-200">
+                    <td className="font-bold py-3 px-4 text-sm" style={{ backgroundColor: 'var(--color-accent)', color: 'white' }}>Type</td>
+                    <td className="py-3 px-4 font-medium" style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)' }}>{card.typeLine || 'N/A'}</td>
+                  </tr>
+                  <tr className="border-b border-yellow-200">
+                    <td className="font-bold py-3 px-4 text-sm" style={{ backgroundColor: 'var(--color-accent)', color: 'white' }}>Cost</td>
+                    <td className="py-3 px-4" style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)' }}>
+                      <ManaSymbols cost={card.manaCost || ''} />
+                    </td>
+                  </tr>
+                  <tr className="border-b border-yellow-200">
+                    <td className="font-bold py-3 px-4 text-sm" style={{ backgroundColor: 'var(--color-accent)', color: 'white' }}>P/T</td>
+                    <td className="py-3 px-4 font-medium" style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)' }}>
+                      {card.typeLine?.includes('Creature') ? (card.oracleText?.match(/\d+\/\d+/) || 'N/A') : 'N/A'}
+                    </td>
+                  </tr>
+                  <tr className="border-b border-yellow-200">
+                    <td className="font-bold py-3 px-4 text-sm" style={{ backgroundColor: 'var(--color-accent)', color: 'white' }}>Edition</td>
+                    <td className="py-3 px-4 font-medium" style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)' }}>{card.setName}</td>
+                  </tr>
+                  <tr>
+                    <td className="font-bold py-3 px-4 text-sm" style={{ backgroundColor: 'var(--color-accent)', color: 'white' }}>Illust</td>
+                    <td className="py-3 px-4 font-medium" style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)' }}>-</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
 
-          {/* Card Info Table */}
-          <div className="border-2 border-yellow-400 rounded-lg overflow-hidden">
-            <table className="w-full text-xs md:text-sm">
-              <tbody>
-                <tr>
-                  <td className="font-bold py-1.5 md:py-2 px-2 md:px-3 w-20 md:w-24" style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-panel)' }}>Name</td>
-                  <td className="py-1.5 md:py-2 px-2 md:px-3" style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)' }}>{card.name}</td>
-                </tr>
-                <tr>
-                  <td className="font-bold py-1.5 md:py-2 px-2 md:px-3" style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-panel)' }}>Rarity</td>
-                  <td className="py-1.5 md:py-2 px-2 md:px-3 capitalize" style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)' }}>{card.rarity}</td>
-                </tr>
-                <tr>
-                  <td className="font-bold py-1.5 md:py-2 px-2 md:px-3" style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-panel)' }}>Type</td>
-                  <td className="py-1.5 md:py-2 px-2 md:px-3" style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)' }}>{card.typeLine || 'N/A'}</td>
-                </tr>
-                <tr>
-                  <td className="font-bold py-1.5 md:py-2 px-2 md:px-3" style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-panel)' }}>Cost</td>
-                  <td className="py-1.5 md:py-2 px-2 md:px-3" style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)' }}>
-                    <ManaSymbols cost={card.manaCost || ''} />
-                  </td>
-                </tr>
-                <tr>
-                  <td className="font-bold py-1.5 md:py-2 px-2 md:px-3" style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-panel)' }}>P/T</td>
-                  <td className="py-1.5 md:py-2 px-2 md:px-3" style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)' }}>
-                    {card.typeLine?.includes('Creature') ? (card.oracleText?.match(/\d+\/\d+/) || 'N/A') : 'N/A'}
-                  </td>
-                </tr>
-                <tr>
-                  <td className="font-bold py-1.5 md:py-2 px-2 md:px-3" style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-panel)' }}>Edition</td>
-                  <td className="py-1.5 md:py-2 px-2 md:px-3" style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)' }}>{card.setName}</td>
-                </tr>
-                <tr>
-                  <td className="font-bold py-1.5 md:py-2 px-2 md:px-3" style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-panel)' }}>Illust</td>
-                  <td className="py-1.5 md:py-2 px-2 md:px-3" style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)' }}>-</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Right Column - Inventory Tabs */}
-        <div>
-          {card.inventory && card.inventory.length > 0 ? (
-            <div className="border-2 rounded-lg overflow-hidden" style={{ borderColor: 'var(--color-text-secondary)' }}>
-              {/* Tab Headers */}
-              <div className="flex border-b" style={{ borderColor: 'var(--color-text-secondary)' }}>
-                {['NM', 'LP', 'P'].map((condition) => {
-                  const hasInventory = card.inventory.some(item => item.condition === condition && item.finish === 'nonfoil');
+          {/* Right Column - Inventory Tabs */}
+          <div>
+            {card.inventory && card.inventory.length > 0 ? (
+              <div className="rounded-xl overflow-hidden shadow-lg" style={{ backgroundColor: 'var(--color-panel)' }}>
+                {/* Tab Headers */}
+                <div className="flex border-b-2" style={{ borderColor: 'var(--color-border)' }}>
+                  {['NM', 'LP', 'P'].map((condition) => {
+                    const hasInventory = card.inventory.some(item => item.condition === condition && item.finish === 'nonfoil');
                   return (
                     <button
                       key={condition}
                       onClick={() => setActiveTab(condition as 'NM' | 'LP' | 'P')}
                       disabled={!hasInventory}
-                      className={`flex-1 py-3 px-4 font-bold text-sm md:text-base transition-colors ${
-                        activeTab === condition 
-                          ? 'border-b-4' 
-                          : 'opacity-60'
-                      } ${!hasInventory ? 'opacity-30 cursor-not-allowed' : 'hover:opacity-100'}`}
+                      className={`flex-1 py-4 px-6 font-bold text-lg transition-all ${
+                        !hasInventory ? 'opacity-40 cursor-not-allowed' : 'hover:opacity-90'
+                      }`}
                       style={{ 
                         backgroundColor: activeTab === condition ? 'var(--color-accent)' : 'var(--color-panel)',
-                        color: activeTab === condition ? 'var(--color-panel)' : 'var(--color-text)',
-                        borderBottomColor: activeTab === condition ? 'var(--color-highlight)' : 'transparent'
+                        color: activeTab === condition ? 'white' : 'var(--color-text)',
+                        borderBottom: activeTab === condition ? '3px solid var(--color-highlight)' : 'none'
                       }}
                     >
-                      {condition}
+                      {condition === 'NM' ? 'Near Mint' : condition === 'LP' ? 'Lightly Played' : 'Played'}
                     </button>
                   );
                 })}
@@ -443,10 +478,54 @@ const CardDetailPage: React.FC = () => {
               {/* Tab Content */}
               <div className="p-4 md:p-6" style={{ backgroundColor: 'var(--color-panel)' }}>
                 {(() => {
-                  const nonfoilItem = card.inventory.find(item => item.condition === activeTab && item.finish === 'nonfoil');
-                  const foilItem = card.inventory.find(item => item.condition === activeTab && item.finish === 'foil');
-                  const nonfoilIndex = card.inventory.findIndex(item => item.condition === activeTab && item.finish === 'nonfoil');
-                  const foilIndex = card.inventory.findIndex(item => item.condition === activeTab && item.finish === 'foil');
+                  // Aggregate inventory by finish type
+                  const nonfoilItems = card.inventory.filter(item => item.condition === activeTab && item.finish === 'nonfoil');
+                  const foilItems = card.inventory.filter(item => item.condition === activeTab && item.finish === 'foil');
+                  
+                  const nonfoilItem = nonfoilItems.length > 0 ? {
+                    ...nonfoilItems[0],
+                    quantityForSale: nonfoilItems.reduce((sum, item) => sum + item.quantityForSale, 0),
+                    sellPrice: nonfoilItems.find(i => i.quantityForSale > 0)?.sellPrice || nonfoilItems[0].sellPrice || (calculatedPrices?.nonfoil || 0),
+                    sellerName: nonfoilItems.length > 1 ? `Multiple sellers (${nonfoilItems.length})` : nonfoilItems[0].sellerName
+                  } : null;
+                  
+                  const foilItem = foilItems.length > 0 ? {
+                    ...foilItems[0],
+                    quantityForSale: foilItems.reduce((sum, item) => sum + item.quantityForSale, 0),
+                    sellPrice: foilItems.find(i => i.quantityForSale > 0)?.sellPrice || foilItems[0].sellPrice || (calculatedPrices?.foil || 0),
+                    sellerName: foilItems.length > 1 ? `Multiple sellers (${foilItems.length})` : foilItems[0].sellerName
+                  } : (calculatedPrices?.foil ? {
+                    condition: activeTab,
+                    finish: 'foil' as const,
+                    quantityOwned: 0,
+                    quantityForSale: 0,
+                    buyPrice: 0,
+                    sellPrice: calculatedPrices.foil,
+                    sellerName: undefined
+                  } : null);
+                  
+                  // Find first item with stock for each finish type
+                  const nonfoilWithStock = nonfoilItems.find(i => i.quantityForSale > 0) || nonfoilItems[0];
+                  const nonfoilIndex = nonfoilWithStock
+                    ? card.inventory.findIndex(item => 
+                        item.condition === activeTab && 
+                        item.finish === 'nonfoil' && 
+                        item.sellerId === nonfoilWithStock.sellerId &&
+                        item.sellPrice === nonfoilWithStock.sellPrice &&
+                        item.quantityForSale === nonfoilWithStock.quantityForSale
+                      )
+                    : -1;
+                  
+                  const foilWithStock = foilItems.find(i => i.quantityForSale > 0) || foilItems[0];
+                  const foilIndex = foilWithStock
+                    ? card.inventory.findIndex(item => 
+                        item.condition === activeTab && 
+                        item.finish === 'foil' && 
+                        item.sellerId === foilWithStock.sellerId &&
+                        item.sellPrice === foilWithStock.sellPrice &&
+                        item.quantityForSale === foilWithStock.quantityForSale
+                      )
+                    : -1;
 
                   if (!nonfoilItem && !foilItem) {
                     return (
@@ -458,36 +537,36 @@ const CardDetailPage: React.FC = () => {
 
                   return (
                     <div className="overflow-x-auto">
-                      <table className="w-full min-w-[600px]">
+                      <table className="w-full">
                         <thead>
-                          <tr style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-panel)' }}>
-                            <th className="py-3 px-4 text-center text-sm md:text-base font-bold border-r border-white">Quality</th>
-                            <th className="py-3 px-4 text-center text-sm md:text-base font-bold border-r border-white">Price</th>
-                            <th className="py-3 px-4 text-center text-sm md:text-base font-bold border-r border-white">Stock</th>
-                            <th className="py-3 px-4 text-center text-sm md:text-base font-bold border-r border-white">Quantity</th>
-                            <th className="py-3 px-4 text-center text-sm md:text-base font-bold">Add to Cart</th>
+                          <tr style={{ backgroundColor: 'var(--color-accent)', color: 'white' }}>
+                            <th className="py-4 px-6 text-center text-base font-bold border-r border-white/30">Quality</th>
+                            <th className="py-4 px-6 text-center text-base font-bold border-r border-white/30">Price</th>
+                            <th className="py-4 px-6 text-center text-base font-bold border-r border-white/30">Stock</th>
+                            <th className="py-4 px-6 text-center text-base font-bold border-r border-white/30">Quantity</th>
+                            <th className="py-4 px-6 text-center text-base font-bold">Add to Cart</th>
                           </tr>
                         </thead>
                         <tbody>
                           {nonfoilItem && (
-                            <tr className="border-t" style={{ backgroundColor: 'var(--color-background)', borderColor: 'var(--color-text-secondary)' }}>
-                              <td className="py-3 px-4 text-center text-sm md:text-base font-semibold border-r" style={{ color: 'var(--color-text)', borderColor: 'var(--color-text-secondary)' }}>
+                            <tr className="border-b" style={{ backgroundColor: 'var(--color-background)', borderColor: 'var(--color-border)' }}>
+                              <td className="py-4 px-6 text-center text-base font-semibold border-r" style={{ color: 'var(--color-text)', borderColor: 'var(--color-border)' }}>
                                 {getConditionLabel(activeTab)} (Non Foil)
                               </td>
-                              <td className="py-3 px-4 text-center text-sm md:text-base border-r" style={{ color: 'var(--color-text)', borderColor: 'var(--color-text-secondary)' }}>
+                              <td className="py-4 px-6 text-center text-base font-bold border-r" style={{ color: 'var(--color-text)', borderColor: 'var(--color-border)' }}>
                                 Rp. {formatPrice(nonfoilItem.sellPrice)}
                               </td>
-                              <td className="py-3 px-4 text-center border-r" style={{ borderColor: 'var(--color-text-secondary)' }}>
-                                <span className={nonfoilItem.quantityForSale > 0 ? 'text-emerald-500 font-bold text-sm md:text-base' : 'text-red-600 font-semibold text-sm md:text-base'}>
+                              <td className="py-4 px-6 text-center border-r" style={{ borderColor: 'var(--color-border)' }}>
+                                <span className={nonfoilItem.quantityForSale > 0 ? 'text-emerald-500 font-bold text-lg' : 'text-red-600 font-semibold text-lg'}>
                                   {nonfoilItem.quantityForSale}
                                 </span>
                               </td>
-                              <td className="py-3 px-4 text-center border-r" style={{ borderColor: 'var(--color-text-secondary)' }}>
-                                <div className="flex items-center justify-center gap-2">
+                              <td className="py-4 px-6 text-center border-r" style={{ borderColor: 'var(--color-border)' }}>
+                                <div className="flex items-center justify-center gap-3">
                                   <button 
                                     onClick={() => updateQuantity(nonfoilIndex, -1)}
-                                    className="w-8 h-8 text-base font-bold rounded hover:opacity-90" 
-                                    style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-panel)' }}
+                                    className="w-10 h-10 text-lg font-bold rounded-lg hover:opacity-90 shadow-sm transition-all" 
+                                    style={{ backgroundColor: 'var(--color-accent)', color: 'white' }}
                                   >
                                     −
                                   </button>
@@ -497,7 +576,7 @@ const CardDetailPage: React.FC = () => {
                                     onChange={(e) => handleQuantityChange(nonfoilIndex, e.target.value)}
                                     min="1"
                                     max={nonfoilItem.quantityForSale}
-                                    className="w-16 text-sm md:text-base text-center border-2 rounded py-1 font-semibold"
+                                    className="w-20 text-base text-center border-2 rounded-lg py-2 font-semibold"
                                     style={{ 
                                       borderColor: 'var(--color-accent)',
                                       backgroundColor: 'white',
@@ -506,21 +585,21 @@ const CardDetailPage: React.FC = () => {
                                   />
                                   <button 
                                     onClick={() => updateQuantity(nonfoilIndex, 1)}
-                                    className="w-8 h-8 text-base font-bold rounded hover:opacity-90" 
-                                    style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-panel)' }}
+                                    className="w-10 h-10 text-lg font-bold rounded-lg hover:opacity-90 shadow-sm transition-all" 
+                                    style={{ backgroundColor: 'var(--color-accent)', color: 'white' }}
                                   >
                                     +
                                   </button>
                                 </div>
                               </td>
-                              <td className="py-3 px-4 text-center">
+                              <td className="py-4 px-6 text-center">
                                 <button
                                   onClick={() => handleAddToCart(nonfoilIndex)}
                                   disabled={nonfoilItem.quantityForSale === 0 || addingToCart === nonfoilIndex}
-                                  className="font-bold py-2 px-6 rounded disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center mx-auto text-sm md:text-base hover:opacity-90"
-                                  style={{ backgroundColor: 'var(--color-highlight)', color: 'var(--color-panel)' }}
+                                  className="font-bold py-3 px-8 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center mx-auto text-base hover:opacity-90 shadow-md transition-all"
+                                  style={{ backgroundColor: '#10b981', color: 'white' }}
                                 >
-                                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                                     <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
                                   </svg>
                                 </button>
@@ -528,24 +607,24 @@ const CardDetailPage: React.FC = () => {
                             </tr>
                           )}
                           {foilItem && (
-                            <tr className="border-t" style={{ backgroundColor: 'var(--color-background)', borderColor: 'var(--color-text-secondary)' }}>
-                              <td className="py-3 px-4 text-center text-sm md:text-base font-semibold border-r" style={{ color: 'var(--color-text)', borderColor: 'var(--color-text-secondary)' }}>
+                            <tr className="border-b" style={{ backgroundColor: 'var(--color-background)', borderColor: 'var(--color-border)' }}>
+                              <td className="py-4 px-6 text-center text-base font-semibold border-r" style={{ color: 'var(--color-text)', borderColor: 'var(--color-border)' }}>
                                 {getConditionLabel(activeTab)} (Foil)
                               </td>
-                              <td className="py-3 px-4 text-center text-sm md:text-base border-r" style={{ color: 'var(--color-text)', borderColor: 'var(--color-text-secondary)' }}>
+                              <td className="py-4 px-6 text-center text-base font-bold border-r" style={{ color: 'var(--color-text)', borderColor: 'var(--color-border)' }}>
                                 Rp. {formatPrice(foilItem.sellPrice)}
                               </td>
-                              <td className="py-3 px-4 text-center border-r" style={{ borderColor: 'var(--color-text-secondary)' }}>
-                                <span className={foilItem.quantityForSale > 0 ? 'text-emerald-500 font-bold text-sm md:text-base' : 'text-red-600 font-semibold text-sm md:text-base'}>
+                              <td className="py-4 px-6 text-center border-r" style={{ borderColor: 'var(--color-border)' }}>
+                                <span className={foilItem.quantityForSale > 0 ? 'text-emerald-500 font-bold text-lg' : 'text-red-600 font-semibold text-lg'}>
                                   {foilItem.quantityForSale}
                                 </span>
                               </td>
-                              <td className="py-3 px-4 text-center border-r" style={{ borderColor: 'var(--color-text-secondary)' }}>
-                                <div className="flex items-center justify-center gap-2">
+                              <td className="py-4 px-6 text-center border-r" style={{ borderColor: 'var(--color-border)' }}>
+                                <div className="flex items-center justify-center gap-3">
                                   <button 
                                     onClick={() => updateQuantity(foilIndex, -1)}
-                                    className="w-8 h-8 text-base font-bold rounded hover:opacity-90" 
-                                    style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-panel)' }}
+                                    className="w-10 h-10 text-lg font-bold rounded-lg hover:opacity-90 shadow-sm transition-all" 
+                                    style={{ backgroundColor: 'var(--color-accent)', color: 'white' }}
                                   >
                                     −
                                   </button>
@@ -555,7 +634,7 @@ const CardDetailPage: React.FC = () => {
                                     onChange={(e) => handleQuantityChange(foilIndex, e.target.value)}
                                     min="1"
                                     max={foilItem.quantityForSale}
-                                    className="w-16 text-sm md:text-base text-center border-2 rounded py-1 font-semibold"
+                                    className="w-20 text-base text-center border-2 rounded-lg py-2 font-semibold"
                                     style={{ 
                                       borderColor: 'var(--color-accent)',
                                       backgroundColor: 'white',
@@ -564,21 +643,21 @@ const CardDetailPage: React.FC = () => {
                                   />
                                   <button 
                                     onClick={() => updateQuantity(foilIndex, 1)}
-                                    className="w-8 h-8 text-base font-bold rounded hover:opacity-90" 
-                                    style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-panel)' }}
+                                    className="w-10 h-10 text-lg font-bold rounded-lg hover:opacity-90 shadow-sm transition-all" 
+                                    style={{ backgroundColor: 'var(--color-accent)', color: 'white' }}
                                   >
                                     +
                                   </button>
                                 </div>
                               </td>
-                              <td className="py-3 px-4 text-center">
+                              <td className="py-4 px-6 text-center">
                                 <button
                                   onClick={() => handleAddToCart(foilIndex)}
                                   disabled={foilItem.quantityForSale === 0 || addingToCart === foilIndex}
-                                  className="font-bold py-2 px-6 rounded disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center mx-auto text-sm md:text-base hover:opacity-90"
-                                  style={{ backgroundColor: 'var(--color-highlight)', color: 'var(--color-panel)' }}
+                                  className="font-bold py-3 px-8 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center mx-auto text-base hover:opacity-90 shadow-md transition-all"
+                                  style={{ backgroundColor: '#10b981', color: 'white' }}
                                 >
-                                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                                     <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
                                   </svg>
                                 </button>
@@ -600,13 +679,26 @@ const CardDetailPage: React.FC = () => {
           )}
 
           {/* Notice Text */}
-          <div className="mt-4 md:mt-6 p-3 md:p-4 border-2 border-yellow-400 rounded-lg bg-yellow-50">
-            <ul className="space-y-1.5 md:space-y-2 text-xs md:text-sm">
-              <li>• Single cards are drawn from booster packs or purchased from others.</li>
-              <li>• If the ordered card is unavailable, we'll contact you as fast as we can.</li>
-              <li className="text-red-600 font-semibold">• Cancellation or Exchange are unavailable.</li>
-              <li className="text-red-600 font-semibold">• If you order more than 100 cards, we need 2~3 days to prepare the order.</li>
+          <div className="mt-6 p-5 border-2 border-yellow-400 rounded-xl shadow-md" style={{ backgroundColor: 'rgba(254, 243, 199, 0.5)' }}>
+            <ul className="space-y-2 text-sm">
+              <li className="flex items-start gap-2">
+                <span className="text-yellow-600 mt-0.5">•</span>
+                <span style={{ color: 'var(--color-text)' }}>Single cards are drawn from booster packs or purchased from others.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-yellow-600 mt-0.5">•</span>
+                <span style={{ color: 'var(--color-text)' }}>If the ordered card is unavailable, we'll contact you as fast as we can.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-red-600 mt-0.5 font-bold">•</span>
+                <span className="text-red-600 font-semibold">Cancellation or Exchange are unavailable.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-red-600 mt-0.5 font-bold">•</span>
+                <span className="text-red-600 font-semibold">If you order more than 100 cards, we need 2–3 days to prepare the order.</span>
+              </li>
             </ul>
+          </div>
           </div>
         </div>
       </div>
