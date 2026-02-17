@@ -12,6 +12,8 @@ import {
   bulkUploadCards,
   clearDatabase,
   fixSellerNames,
+  regenerateSellerSKUs,
+  fixInventoryQuantities,
 } from '../controllers/admin.controller';
 import { uploadSetJson } from '../controllers/set.controller';
 
@@ -112,5 +114,19 @@ router.post('/clear-database', clearDatabase);
  * @access  Private (Admin)
  */
 router.post('/fix-seller-names', fixSellerNames);
+
+/**
+ * @route   POST /api/admin/regenerate-seller-skus
+ * @desc    Regenerate seller SKUs for all cards (SetCode-CollectorNumber-FoilType-LanguageCode-Rarity)
+ * @access  Private (Admin)
+ */
+router.post('/regenerate-seller-skus', regenerateSellerSKUs);
+
+/**
+ * @route   POST /api/admin/fix-inventory-quantities
+ * @desc    Fix NaN and invalid quantityForSale values in all inventory items
+ * @access  Private (Admin)
+ */
+router.post('/fix-inventory-quantities', fixInventoryQuantities);
 
 export default router;

@@ -51,6 +51,7 @@ import pricingRoutes from './routes/pricing.routes';
 import sellerRoutes from './routes/seller.routes';
 import tiktokRoutes from './routes/tiktok.routes';
 import manaboxRoutes from './routes/manabox.routes';
+import debugRoutes from './routes/debug.routes';
 
 app.get('/api', (_req, res) => {
   res.json({
@@ -90,6 +91,7 @@ app.use('/api/admin/pricing', pricingRoutes)
 app.use('/api/admin/tiktok', tiktokRoutes);;
 app.use('/api/admin/sellers', sellerRoutes);
 app.use('/api/manabox', manaboxRoutes);
+app.use('/api/debug', debugRoutes);
 
 // Error handling
 app.use(notFoundHandler);

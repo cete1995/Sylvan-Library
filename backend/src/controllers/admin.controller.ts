@@ -416,3 +416,146 @@ export const fixSellerNames = asyncHandler(async (req: Request, res: Response) =
     sellers: sellers.map(s => ({ id: s._id.toString(), name: s.name, email: s.email }))
   });
 });
+
+/**
+ * Regenerate seller SKUs for all cards
+ * Format: SetCode-CollectorNumber-FoilType-LanguageCode-Rarity
+ * Example: OTJ-0142-N-EN-Uncommon
+ */
+export const regenerateSellerSKUs = asyncHandler(async (req: Request, res: Response) => {
+  let updatedCards = 0;
+  let updatedItems = 0;
+
+  // Get all cards with inventory
+  const cards = await Card.find({ 'inventory.0': { $exists: true } });
+
+  for (const card of cards) {
+    let cardUpdated = false;
+
+    for (const item of card.inventory) {
+      // Generate SKU for each inventory item
+      const formattedNumber = card.collectorNumber.padStart(4, '0');
+      
+      const foilTypeMap: Record<string, string> = {
+        'nonfoil': 'N',
+        'foil': 'F',
+        'etched': 'E'
+      };
+      const foilType = foilTypeMap[item.finish] || 'N';
+      
+      const langCode = card.language?.toUpperCase() || 'EN';
+      const formattedRarity = card.rarity.charAt(0).toUpperCase() + card.rarity.slice(1);
+      
+      const newSKU = `${card.setCode}-${formattedNumber}-${foilType}-${langCode}-${formattedRarity}`;
+      
+      if (item.sellerSku !== newSKU) {
+        item.sellerSku = newSKU;
+        cardUpdated = true;
+        updatedItems++;
+      }
+    }
+
+    if (cardUpdated) {
+      await card.save();
+      updatedCards++;
+    }
+  }
+
+  res.json({
+    success: true,
+    message: 'Seller SKUs regenerated successfully',
+    updatedCards,
+    updatedItems
+  });
+});
+
+export const fixInventoryQuantities = asyncHandler(async (req: Request, res: Response) => {
+  let updatedCards = 0;
+  let updatedItems = 0;
+  let errors: any[] = [];
+  let totalInventoryItems = 0;
+
+  // Get all cards with inventory
+  const cards = await Card.find({ 'inventory.0': { $exists: true } });
+  console.log(`Scanning ${cards.length} cards for inventory quantity issues...`);
+
+  for (const card of cards) {
+    let cardUpdated = false;
+
+    for (const item of card.inventory) {
+      totalInventoryItems++;
+      
+      const qtyForSale = item.quantityForSale;
+      const qtyOwned = item.quantityOwned;
+      
+      // Debug logging to see actual values
+      const qtyForSaleType = typeof qtyForSale;
+      const qtyForSaleIsNaN = isNaN(qtyForSale as any);
+      
+      if (totalInventoryItems <= 5) { // Log first 5 items for debugging
+        console.log(`Item ${totalInventoryItems}: ${card.name}`, {
+          quantityForSale: qtyForSale,
+          type: qtyForSaleType,
+          isNaN: qtyForSaleIsNaN,
+          quantityOwned: qtyOwned,
+          sellerId: item.sellerId ? 'exists' : 'none'
+        });
+      }
+      
+      // Check if quantityForSale is NaN, null, undefined, or invalid
+      if (
+        item.quantityForSale === null ||
+        item.quantityForSale === undefined ||
+        isNaN(item.quantityForSale as any) ||
+        typeof item.quantityForSale !== 'number'
+      ) {
+        // For sellers, all stock is for sale
+        if (item.sellerId) {
+          item.quantityForSale = item.quantityOwned || 0;
+          console.log(`Fixed ${card.name} - Set quantityForSale to ${item.quantityForSale}`);
+        } else {
+          // For non-seller items, set to 0
+          item.quantityForSale = 0;
+        }
+        cardUpdated = true;
+        updatedItems++;
+      }
+
+      // Also ensure quantityOwned is valid
+      if (
+        item.quantityOwned === null ||
+        item.quantityOwned === undefined ||
+        isNaN(item.quantityOwned as any) ||
+        typeof item.quantityOwned !== 'number'
+      ) {
+        item.quantityOwned = 0;
+        cardUpdated = true;
+        updatedItems++;
+      }
+    }
+
+    if (cardUpdated) {
+      try {
+        await card.save();
+        updatedCards++;
+      } catch (error: any) {
+        errors.push({
+          cardId: card._id,
+          cardName: card.name,
+          error: error.message
+        });
+      }
+    }
+  }
+
+  console.log(`Scan complete: ${totalInventoryItems} total inventory items checked`);
+
+  res.json({
+    success: true,
+    message: 'Inventory quantities fixed successfully',
+    totalInventoryItems,
+    updatedCards,
+    updatedItems,
+    errors: errors.length > 0 ? errors : undefined
+  });
+});

@@ -64,4 +64,16 @@ export const sellerApi = {
     );
     return response.data;
   },
+
+  // Delete all stock for a seller
+  deleteSellerStock: async (id: string): Promise<{ message: string; totalRemoved: number; cardsUpdated: number }> => {
+    const token = localStorage.getItem('token');
+    const response = await axios.delete(
+      `${API_URL}/admin/sellers/${id}/stock`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    return response.data;
+  },
 };

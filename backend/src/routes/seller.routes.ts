@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import User from '../models/User.model';
+import Card from '../models/Card.model';
 import bcrypt from 'bcryptjs';
 import { authenticate, requireAdmin } from '../middleware/auth.middleware';
 
@@ -152,6 +153,55 @@ router.put('/:id/password', authenticate, requireAdmin, async (req: Request, res
   } catch (error) {
     console.error('Error updating seller password:', error);
     res.status(500).json({ message: 'Failed to update password' });
+  }
+});
+
+// Delete all stock for a seller (admin only)
+router.delete('/:id/stock', authenticate, requireAdmin, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    // Verify seller exists
+    const seller = await User.findById(id);
+    if (!seller) {
+      res.status(404).json({ message: 'Seller not found' });
+      return;
+    }
+
+    if (seller.role !== 'seller') {
+      res.status(400).json({ message: 'User is not a seller' });
+      return;
+    }
+
+    // Find all cards that have inventory from this seller
+    const cards = await Card.find({ 'inventory.sellerId': id });
+    
+    let totalRemoved = 0;
+    let cardsUpdated = 0;
+
+    for (const card of cards) {
+      const initialLength = card.inventory.length;
+      
+      // Remove all inventory items belonging to this seller
+      card.inventory = card.inventory.filter(inv => inv.sellerId?.toString() !== id);
+      
+      const removed = initialLength - card.inventory.length;
+      totalRemoved += removed;
+      
+      if (removed > 0) {
+        await card.save();
+        cardsUpdated++;
+      }
+    }
+
+    res.json({ 
+      message: `Removed all stock from ${seller.name || seller.email}`,
+      totalRemoved,
+      cardsUpdated
+    });
+  } catch (error) {
+    console.error('Error deleting seller stock:', error);
+    res.status(500).json({ message: 'Failed to delete seller stock' });
   }
 });
 

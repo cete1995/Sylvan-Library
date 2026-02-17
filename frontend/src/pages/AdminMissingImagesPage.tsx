@@ -30,7 +30,7 @@ const AdminMissingImagesPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Link
-                to="/admin"
+                to="/admin/dashboard"
                 className="p-2 rounded-lg hover:bg-opacity-80 transition-colors"
                 style={{ backgroundColor: 'var(--color-background)' }}
               >

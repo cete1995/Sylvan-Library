@@ -10,6 +10,8 @@ const AdminDashboardPage: React.FC = () => {
   const [clearing, setClearing] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [fixingSellers, setFixingSellers] = useState(false);
+  const [regeneratingSKUs, setRegeneratingSKUs] = useState(false);
+  const [fixingInventory, setFixingInventory] = useState(false);
   const [sets, setSets] = useState<Array<{setCode: string; setName: string; cardCount: number}>>([]);
   const [setsLoading, setSetsLoading] = useState(false);
 
@@ -123,6 +125,62 @@ const AdminDashboardPage: React.FC = () => {
       alert('Failed to fix seller names: ' + (error.response?.data?.error || error.message));
     } finally {
       setFixingSellers(false);
+    }
+  };
+
+  const handleRegenerateSKUs = async () => {
+    if (!confirm('This will regenerate seller SKUs for all card inventory items.\n\nFormat: SetCode-CollectorNumber-FoilType-LanguageCode-Rarity\nExample: OTJ-0142-N-EN-Uncommon\n\nContinue?')) {
+      return;
+    }
+
+    setRegeneratingSKUs(true);
+    try {
+      const result = await adminApi.regenerateSellerSKUs();
+      alert(
+        `Seller SKUs regenerated successfully!\n\n` +
+        `Updated ${result.updatedCards} cards\n` +
+        `Updated ${result.updatedItems} inventory items\n\n` +
+        `Format: SetCode-CollectorNumber-FoilType-LanguageCode-Rarity\n` +
+        `Example: OTJ-0142-N-EN-Uncommon`
+      );
+      loadStats(); // Reload stats
+    } catch (error: any) {
+      alert('Failed to regenerate seller SKUs: ' + (error.response?.data?.error || error.message));
+    } finally {
+      setRegeneratingSKUs(false);
+    }
+  };
+
+  const handleFixInventoryQuantities = async () => {
+    if (!confirm('This will fix all inventory items with invalid or NaN quantityForSale values.\n\nFor sellers: quantityForSale will be set to quantityOwned\nFor others: quantityForSale will be set to 0\n\nContinue?')) {
+      return;
+    }
+
+    setFixingInventory(true);
+    try {
+      const result = await adminApi.fixInventoryQuantities();
+      if (result.errors && result.errors.length > 0) {
+        alert(
+          `Fixed inventory quantities with some errors!\n\n` +
+          `Updated ${result.updatedCards} cards\n` +
+          `Updated ${result.updatedItems} inventory items\n` +
+          `Errors: ${result.errors.length}\n\n` +
+          `First error: ${result.errors[0]?.error}`
+        );
+      } else {
+        alert(
+          `Inventory quantities scanned successfully!\n\n` +
+          `Total inventory items scanned: ${result.totalInventoryItems || 0}\n` +
+          `Updated ${result.updatedCards} cards\n` +
+          `Fixed ${result.updatedItems} inventory items\n\n` +
+          (result.updatedItems === 0 ? 'All inventory quantities are valid! ✓' : '')
+        );
+      }
+      loadStats(); // Reload stats
+    } catch (error: any) {
+      alert('Failed to fix inventory quantities: ' + (error.response?.data?.error || error.message));
+    } finally {
+      setFixingInventory(false);
     }
   };
 
@@ -454,11 +512,18 @@ const AdminDashboardPage: React.FC = () => {
                 📥 Sync Orders to DB
               </Link>
               <Link
-                to="/admin/tiktok-orders"
+                to="/admin/tiktok-saved-orders"
                 className="block w-full px-4 py-3 rounded-lg font-medium text-center hover:opacity-90 shadow-sm"
                 style={{ background: 'linear-gradient(to right, #8b5cf6, #6366f1)', color: 'white' }}
               >
                 📦 View Saved Orders
+              </Link>
+              <Link
+                to="/admin/tiktok-orders"
+                className="block w-full px-4 py-3 rounded-lg font-medium text-center hover:opacity-90 shadow-sm"
+                style={{ background: 'linear-gradient(to right, #10b981, #059669)', color: 'white' }}
+              >
+                🔍 Get Order Detail
               </Link>
             </div>
           </div>
@@ -504,24 +569,74 @@ const AdminDashboardPage: React.FC = () => {
             <h3 className="text-xl font-bold" style={{ color: 'var(--color-text)' }}>Maintenance</h3>
           </div>
           <p className="mb-4 text-sm" style={{ color: 'var(--color-text-secondary)' }}>Fix data inconsistencies and update system information</p>
-          <button
-            onClick={handleFixSellerNames}
-            disabled={fixingSellers}
-            className="px-6 py-3 rounded-lg font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
-            style={{ backgroundColor: '#F59E0B', color: 'white' }}
-          >
-            {fixingSellers ? (
-              <span className="flex items-center">
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Fixing Seller Names...
-              </span>
-            ) : (
-              '🔧 Fix Seller Names'
-            )}
-          </button>
+          <div className="flex gap-3 flex-wrap">
+            <button
+              onClick={handleFixSellerNames}
+              disabled={fixingSellers}
+              className="px-6 py-3 rounded-lg font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+              style={{ backgroundColor: '#F59E0B', color: 'white' }}
+            >
+              {fixingSellers ? (
+                <span className="flex items-center">
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Fixing Seller Names...
+                </span>
+              ) : (
+                '🔧 Fix Seller Names'
+              )}
+            </button>
+            <button
+              onClick={handleRegenerateSKUs}
+              disabled={regeneratingSKUs}
+              className="px-6 py-3 rounded-lg font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+              style={{ backgroundColor: '#10B981', color: 'white' }}
+            >
+              {regeneratingSKUs ? (
+                <span className="flex items-center">
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Regenerating SKUs...
+                </span>
+              ) : (
+                '🏷️ Regenerate Seller SKUs'
+              )}
+            </button>
+            <button
+              onClick={handleFixInventoryQuantities}
+              disabled={fixingInventory}
+              className="px-6 py-3 rounded-lg font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+              style={{ backgroundColor: '#8B5CF6', color: 'white' }}
+            >
+              {fixingInventory ? (
+                <span className="flex items-center">
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Fixing Quantities...
+                </span>
+              ) : (
+                '🔢 Fix Inventory Quantities'
+              )}
+            </button>
+          </div>
+          <div className="mt-4 pt-4 border-t" style={{ borderColor: 'var(--color-border)' }}>
+            <Link
+              to="/admin/debug"
+              className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-lg font-medium text-center hover:opacity-90 shadow-sm"
+              style={{ backgroundColor: '#DC2626', color: 'white' }}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              🐛 Card Inventory Debugger
+            </Link>
+          </div>
         </div>
 
         {/* Danger Zone */}

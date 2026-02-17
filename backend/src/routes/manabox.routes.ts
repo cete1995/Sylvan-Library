@@ -102,6 +102,7 @@ router.post('/upload', authenticate, upload.single('file'), async (req: Request,
           language: (row.Language || 'EN').toUpperCase(),
           scryfallId: row['Scryfall ID']?.trim(),
           quantityOwned: quantity,
+          // For sellers, all stock is for sale by default
           quantityForSale: quantity,
           buyPrice: parseFloat(row['Purchase price'] || '0') * USD_TO_IDR,
           sellPrice: 0 // Will be calculated by pricing tiers
@@ -133,17 +134,17 @@ router.post('/upload', authenticate, upload.single('file'), async (req: Request,
           );
 
           if (existingInventory) {
-            // Update existing inventory
+            // Update existing inventory - for sellers, all stock is for sale
             existingInventory.quantityOwned += cardData.quantityOwned;
-            existingInventory.quantityForSale += cardData.quantityForSale;
+            existingInventory.quantityForSale += cardData.quantityOwned; // Add same amount to quantityForSale
             existingInventory.buyPrice = cardData.buyPrice;
           } else {
-            // Add new inventory item for this seller
+            // Add new inventory item for this seller - all stock is for sale
             existingCard.inventory.push({
               condition: cardData.condition,
               finish: cardData.finish,
               quantityOwned: cardData.quantityOwned,
-              quantityForSale: cardData.quantityForSale,
+              quantityForSale: cardData.quantityOwned, // All owned stock is for sale
               buyPrice: cardData.buyPrice,
               sellPrice: 0,
               sellerId: sellerId,
@@ -154,7 +155,7 @@ router.post('/upload', authenticate, upload.single('file'), async (req: Request,
           await existingCard.save();
           updated++;
         } else {
-          // Create new card with seller inventory
+          // Create new card with seller inventory - all stock is for sale
           const newCard = new Card({
             name: cardData.name,
             setCode: cardData.setCode,
@@ -168,7 +169,7 @@ router.post('/upload', authenticate, upload.single('file'), async (req: Request,
               condition: cardData.condition,
               finish: cardData.finish,
               quantityOwned: cardData.quantityOwned,
-              quantityForSale: cardData.quantityForSale,
+              quantityForSale: cardData.quantityOwned, // All owned stock is for sale
               buyPrice: cardData.buyPrice,
               sellPrice: 0,
               sellerId: sellerId,

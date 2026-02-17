@@ -233,6 +233,55 @@ cardSchema.index({ rarity: 1 });
 // Text index for search
 cardSchema.index({ name: 'text', setName: 'text', typeLine: 'text' });
 
+// Helper function to generate seller SKU
+// Format: SetCode-CollectorNumber-FoilType-LanguageCode-Rarity
+// Example: OTJ-0142-N-EN-Uncommon
+function generateSellerSKU(
+  setCode: string,
+  collectorNumber: string,
+  finish: CardFinish,
+  language: string,
+  rarity: CardRarity
+): string {
+  // Format collector number to 4 digits with leading zeros
+  const formattedNumber = collectorNumber.padStart(4, '0');
+  
+  // Map finish to foil type code
+  const foilTypeMap: Record<CardFinish, string> = {
+    'nonfoil': 'N',
+    'foil': 'F',
+    'etched': 'E'
+  };
+  const foilType = foilTypeMap[finish];
+  
+  // Language code (default to EN)
+  const langCode = language.toUpperCase() || 'EN';
+  
+  // Capitalize first letter of rarity
+  const formattedRarity = rarity.charAt(0).toUpperCase() + rarity.slice(1);
+  
+  return `${setCode}-${formattedNumber}-${foilType}-${langCode}-${formattedRarity}`;
+}
+
+// Pre-save hook to auto-generate sellerSKU for all inventory items
+cardSchema.pre('save', function(next) {
+  if (this.inventory && this.inventory.length > 0) {
+    this.inventory.forEach((item: IInventoryItem) => {
+      // Only generate if not already set or if card details changed
+      if (!item.sellerSku || this.isModified('setCode') || this.isModified('collectorNumber') || this.isModified('rarity')) {
+        item.sellerSku = generateSellerSKU(
+          this.setCode,
+          this.collectorNumber,
+          item.finish,
+          this.language,
+          this.rarity
+        );
+      }
+    });
+  }
+  next();
+});
+
 // Virtual property for tags (computed from borderColor and frameEffects)
 cardSchema.virtual('tags').get(function(this: ICard) {
   const tags: string[] = [];

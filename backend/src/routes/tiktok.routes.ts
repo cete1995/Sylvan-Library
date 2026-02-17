@@ -5,6 +5,8 @@ import multer from 'multer';
 import { parse } from 'csv-parse/sync';
 import { authenticate, requireAdmin } from '../middleware/auth.middleware';
 import TikTokOrder from '../models/TikTokOrder.model';
+import Card from '../models/Card.model';
+import User from '../models/User.model';
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -18,6 +20,56 @@ const generateSignature = (appSecret: string, params: string): string => {
     .createHmac('sha256', appSecret)
     .update(params)
     .digest('hex');
+};
+
+// Helper function to fetch order details from TikTok API
+const fetchOrderDetailFromAPI = async (
+  orderId: string,
+  appKey: string,
+  appSecret: string,
+  accessToken: string,
+  shopCipher: string
+): Promise<any> => {
+  const timestamp = Math.floor(Date.now() / 1000);
+  
+  // Build query parameters - order ID passed as 'ids' parameter
+  const queryParams: any = {
+    app_key: appKey,
+    timestamp: timestamp.toString(),
+    shop_cipher: shopCipher,
+    ids: orderId,
+    version: '202507'
+  };
+
+  // Sort parameters alphabetically and create signature string
+  const sortedKeys = Object.keys(queryParams).sort();
+  let signString = '';
+  for (const key of sortedKeys) {
+    signString += `${key}${queryParams[key]}`;
+  }
+
+  const apiPath = '/order/202507/orders';
+  const baseString = apiPath + signString;
+  const wrappedString = appSecret + baseString + appSecret;
+  const sign = generateSignature(appSecret, wrappedString);
+  queryParams.sign = sign;
+
+  const queryString = new URLSearchParams(queryParams).toString();
+  const url = `${TIKTOK_API_BASE}${apiPath}?${queryString}`;
+
+  const response = await axios.get(url, {
+    headers: {
+      'x-tts-access-token': accessToken,
+      'Content-Type': 'application/json'
+    }
+  });
+
+  const orders = response.data?.data?.orders;
+  if (!orders || !Array.isArray(orders) || orders.length === 0) {
+    throw new Error('No order data in API response');
+  }
+
+  return orders[0];
 };
 
 // Edit Product - Debug endpoint
@@ -1695,6 +1747,67 @@ router.post('/sync-orders', authenticate, requireAdmin, async (req: Request, res
           newOrders++;
           logs.push(`✅ Saved new order: ${orderId} (Status: ${order.status})`);
           
+          // Fetch and save detailed order information
+          try {
+            logs.push(`   🔍 Fetching details for order: ${orderId}`);
+            const orderDetail = await fetchOrderDetailFromAPI(orderId, appKey, appSecret, accessToken, shopCipher);
+            
+            // DEBUG: Log the first line item to see its structure
+            if (orderDetail.line_items && orderDetail.line_items.length > 0) {
+              console.log('\n🔍 TikTok API Line Item Structure:');
+              console.log(JSON.stringify(orderDetail.line_items[0], null, 2));
+              console.log('Available fields:', Object.keys(orderDetail.line_items[0]));
+            }
+            
+            // Update order with detailed information
+            newOrder.itemList = orderDetail.line_items?.map((item: any) => ({
+              productId: item.product_id,
+              productName: item.product_name,
+              skuId: item.sku_id,
+              skuName: item.sku_name,
+              skuImage: item.sku_image,
+              sellerSku: item.seller_sku,
+              quantity: item.quantity || item.item_quantity || item.sku_quantity || 1, // Try multiple field names
+              originalPrice: item.original_price,
+              salePrice: item.sale_price,
+            }));
+            
+            console.log('📦 Mapped itemList[0]:', newOrder.itemList?.[0]);
+
+            if (orderDetail.payment) {
+              newOrder.payment = {
+                currency: orderDetail.payment.currency,
+                subTotal: orderDetail.payment.sub_total,
+                shippingFee: orderDetail.payment.shipping_fee,
+                platformDiscount: orderDetail.payment.platform_discount,
+                sellerDiscount: orderDetail.payment.seller_discount,
+                totalAmount: orderDetail.payment.total_amount,
+              };
+            }
+
+            if (orderDetail.recipient_address) {
+              newOrder.recipientAddress = {
+                name: orderDetail.recipient_address.name,
+                phone: orderDetail.recipient_address.phone,
+                fullAddress: orderDetail.recipient_address.full_address,
+                district: orderDetail.recipient_address.district,
+                city: orderDetail.recipient_address.city,
+                province: orderDetail.recipient_address.province,
+                postalCode: orderDetail.recipient_address.postal_code,
+              };
+            }
+
+            newOrder.rawData = orderDetail;
+            newOrder.lastFetchedDetailAt = new Date();
+            
+            await newOrder.save();
+            logs.push(`   ✅ Saved order details with ${orderDetail.line_items?.length || 0} items`);
+            
+          } catch (detailError: any) {
+            logs.push(`   ⚠️ Warning: Could not fetch details for ${orderId}: ${detailError.message}`);
+            // Continue even if detail fetch fails - we still have basic order info
+          }
+          
         } catch (saveError: any) {
           logs.push(`❌ Error saving order ${order.id}: ${saveError.message}`);
         }
@@ -1744,6 +1857,28 @@ router.post('/sync-orders', authenticate, requireAdmin, async (req: Request, res
       error: error.message,
       details: error.response?.data,
       logs: errorLogs
+    });
+  }
+});
+
+// Delete All Orders from Database
+router.delete('/delete-all-orders', authenticate, requireAdmin, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const result = await TikTokOrder.deleteMany({});
+    
+    console.log(`🗑️ Deleted ${result.deletedCount} orders from database`);
+    
+    res.json({
+      success: true,
+      message: `Successfully deleted ${result.deletedCount} orders`,
+      deletedCount: result.deletedCount
+    });
+    
+  } catch (error: any) {
+    console.error('Delete All Orders Error:', error.message);
+    res.status(500).json({
+      success: false,
+      error: error.message
     });
   }
 });
@@ -1948,6 +2083,450 @@ router.post('/fetch-order-detail', authenticate, requireAdmin, async (req: Reque
       error: error.message,
       details: error.response?.data,
       logs: [`[${new Date().toISOString()}] ERROR: ${error.message}`]
+    });
+  }
+});
+
+// Find Sellers with Card - Search for cards matching product name
+router.post('/find-sellers-with-card', authenticate, requireAdmin, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { sellerSku } = req.body;
+
+    if (!sellerSku) {
+      res.status(400).json({
+        success: false,
+        error: 'Missing required field: sellerSku'
+      });
+      return;
+    }
+
+    console.log('Search - Seller SKU:', sellerSku);
+
+    // Search for cards with matching sellerSku in inventory
+    const cards = await Card.find({
+      'inventory.sellerSku': sellerSku,
+      'inventory.quantityForSale': { $gt: 0 }
+    }).select('name setCode setName collectorNumber imageUrl inventory');
+
+    // Get all unique seller IDs
+    const sellerIds = [...new Set(
+      cards.flatMap(card => 
+        card.inventory
+          .filter(inv => inv.sellerId)
+          .map(inv => inv.sellerId?.toString())
+      )
+    )].filter(Boolean);
+
+    console.log('Search - Unique Seller IDs:', sellerIds);
+
+    // Fetch seller info (name and email) from User table
+    const sellers = await User.find({ _id: { $in: sellerIds } }).select('_id email name');
+    const sellerEmailMap = new Map(
+      sellers.map(s => [s._id.toString(), s.email.split('@')[0]]) // Get username part before @
+    );
+    const sellerNameMap = new Map(
+      sellers.map(s => [s._id.toString(), s.name || s.email.split('@')[0]]) // Use name or fallback to email username
+    );
+
+    console.log('Search - Seller Email Map:', Array.from(sellerEmailMap.entries()));
+    console.log('Search - Seller Name Map:', Array.from(sellerNameMap.entries()));
+
+    // Filter to only show inventory items with matching SKU and quantity for sale
+    const results = cards.map(card => ({
+      cardId: card._id,
+      name: card.name,
+      setCode: card.setCode,
+      setName: card.setName,
+      collectorNumber: card.collectorNumber,
+      imageUrl: card.imageUrl,
+      inventory: card.inventory
+        .map((inv, index) => {
+          const sellerIdStr = inv.sellerId?.toString();
+          const sellerEmail = sellerIdStr ? sellerEmailMap.get(sellerIdStr) : null;
+          const sellerName = sellerIdStr ? sellerNameMap.get(sellerIdStr) : inv.sellerName; // Use current name from User table
+          console.log(`Inventory ${index}: sellerId=${sellerIdStr}, name=${sellerName}, email=${sellerEmail}`);
+          return {
+            condition: inv.condition,
+            finish: inv.finish,
+            quantityOwned: inv.quantityOwned,
+            quantityForSale: inv.quantityForSale,
+            buyPrice: inv.buyPrice,
+            sellPrice: inv.sellPrice,
+            marketplacePrice: inv.marketplacePrice,
+            sellerId: inv.sellerId,
+            sellerName: sellerName, // Use current name from User table
+            sellerEmail: sellerEmail,
+            tiktokProductId: inv.tiktokProductId,
+            tiktokSkuId: inv.tiktokSkuId,
+            sellerSku: inv.sellerSku,
+            inventoryIndex: index
+          };
+        })
+        .filter(inv => inv.sellerSku === sellerSku && inv.quantityForSale > 0)
+    })).filter(card => card.inventory.length > 0);
+
+    console.log('Search - Results found:', results.length);
+    console.log('Search - First result:', JSON.stringify(results[0], null, 2));
+
+    res.json({
+      success: true,
+      data: results
+    });
+
+  } catch (error: any) {
+    console.error('Find Sellers Error:', error.message);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Assign Card to Order Item - Decrease stock and track assignment
+router.post('/assign-card-to-order', authenticate, requireAdmin, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { orderId, itemIndex, cardId, inventoryIndex } = req.body;
+
+    if (!orderId || itemIndex === undefined || !cardId || inventoryIndex === undefined) {
+      res.status(400).json({
+        success: false,
+        error: 'Missing required fields: orderId, itemIndex, cardId, inventoryIndex'
+      });
+      return;
+    }
+
+    // Find the order
+    const order = await TikTokOrder.findOne({ orderId });
+    if (!order) {
+      res.status(404).json({
+        success: false,
+        error: 'Order not found'
+      });
+      return;
+    }
+
+    // Find the card
+    const card = await Card.findById(cardId);
+    if (!card) {
+      res.status(404).json({
+        success: false,
+        error: 'Card not found'
+      });
+      return;
+    }
+
+    // Validate inventory index
+    if (inventoryIndex >= card.inventory.length) {
+      res.status(400).json({
+        success: false,
+        error: 'Invalid inventory index'
+      });
+      return;
+    }
+
+    const inventoryItem = card.inventory[inventoryIndex];
+    const orderItem = order.itemList![itemIndex];
+
+    // Comprehensive debugging
+    console.log('\n=== ASSIGNMENT DEBUG ===');
+    console.log('Order ID:', orderId);
+    console.log('Item Index:', itemIndex);
+    console.log('Order has itemList:', !!order.itemList);
+    console.log('ItemList length:', order.itemList?.length);
+    console.log('Full Order Item:', JSON.stringify(orderItem, null, 2));
+    console.log('Order Item Quantity:', orderItem.quantity, 'Type:', typeof orderItem.quantity);
+    console.log('Inventory quantityForSale:', inventoryItem.quantityForSale, 'Type:', typeof inventoryItem.quantityForSale);
+    console.log('Inventory quantityOwned:', inventoryItem.quantityOwned, 'Type:', typeof inventoryItem.quantityOwned);
+
+    // Convert to numbers explicitly to prevent NaN
+    const orderQuantity = Number(orderItem.quantity);
+    if (isNaN(orderQuantity)) {
+      console.error('ERROR: Order quantity is not a valid number!', orderItem.quantity);
+      res.status(400).json({
+        success: false,
+        error: `Invalid order quantity: ${orderItem.quantity}`
+      });
+      return;
+    }
+
+    // Sanitize quantityForSale to prevent NaN errors
+    if (isNaN(inventoryItem.quantityForSale as any) || typeof inventoryItem.quantityForSale !== 'number') {
+      console.log('Warning: Invalid quantityForSale detected, fixing...', inventoryItem.quantityForSale);
+      inventoryItem.quantityForSale = Number(inventoryItem.quantityOwned) || 0;
+    }
+
+    // Ensure it's a proper number
+    inventoryItem.quantityForSale = Number(inventoryItem.quantityForSale);
+
+    // Check if enough stock available
+    if (inventoryItem.quantityForSale < orderQuantity) {
+      res.status(400).json({
+        success: false,
+        error: `Not enough stock. Available: ${inventoryItem.quantityForSale}, Required: ${orderQuantity}`
+      });
+      return;
+    }
+
+    // If already assigned, automatically undo first (restore stock)
+    if (orderItem.assignedSeller) {
+      const previousCardId = orderItem.assignedSeller.cardId;
+      const previousInventoryIndex = orderItem.assignedSeller.inventoryIndex;
+      
+      console.log('Auto-undo - Previous:', { cardId: previousCardId, inventoryIndex: previousInventoryIndex });
+      console.log('Auto-undo - New:', { cardId: cardId, inventoryIndex: inventoryIndex });
+      
+      // Only restore stock if it's a different card or different inventory item
+      if (previousCardId !== cardId || previousInventoryIndex !== inventoryIndex) {
+        const previousCard = await Card.findById(previousCardId);
+        if (previousCard && previousCard.inventory[previousInventoryIndex]) {
+          let currentQty = Number(previousCard.inventory[previousInventoryIndex].quantityForSale);
+          
+          // Sanitize previous card's quantityForSale
+          if (isNaN(currentQty)) {
+            console.log('Warning: Previous card has invalid quantityForSale, fixing...', currentQty);
+            currentQty = Number(previousCard.inventory[previousInventoryIndex].quantityOwned) || 0;
+            previousCard.inventory[previousInventoryIndex].quantityForSale = currentQty;
+          }
+          
+          console.log('Auto-undo - Current qty:', currentQty, 'Restoring:', orderQuantity);
+          previousCard.inventory[previousInventoryIndex].quantityForSale = currentQty + orderQuantity;
+          console.log('Auto-undo - New quantity:', previousCard.inventory[previousInventoryIndex].quantityForSale);
+          await previousCard.save();
+          console.log('Auto-undo: Restored stock for previous assignment');
+        }
+      } else {
+        console.log('Auto-undo: Same item selected, no stock change needed');
+      }
+    }
+
+    // Decrease stock with explicit number arithmetic
+    const newQuantity = inventoryItem.quantityForSale - orderQuantity;
+    console.log('Deducting stock:', inventoryItem.quantityForSale, '-', orderQuantity, '=', newQuantity);
+    
+    if (isNaN(newQuantity)) {
+      console.error('ERROR: Arithmetic produced NaN!');
+      console.error('  inventoryItem.quantityForSale:', inventoryItem.quantityForSale, typeof inventoryItem.quantityForSale);
+      console.error('  orderQuantity:', orderQuantity, typeof orderQuantity);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to calculate new stock quantity'
+      });
+      return;
+    }
+
+    inventoryItem.quantityForSale = newQuantity;
+    console.log('New quantityForSale before save:', inventoryItem.quantityForSale, 'Type:', typeof inventoryItem.quantityForSale);
+    
+    await card.save();
+    console.log('=== ASSIGNMENT DEBUG END ===\n');
+
+    // Get seller info (name and email) from User table
+    let sellerEmail: string | undefined = undefined;
+    let sellerName: string = 'Unknown';
+    if (inventoryItem.sellerId) {
+      const seller = await User.findById(inventoryItem.sellerId).select('email name');
+      if (seller) {
+        sellerEmail = seller.email.split('@')[0]; // Get username part
+        sellerName = seller.name || seller.email.split('@')[0]; // Use name or fallback to email username
+      }
+      console.log('Assignment - SellerId:', inventoryItem.sellerId, 'Name:', sellerName, 'Email:', sellerEmail);
+    }
+
+    // Track assignment
+    orderItem.assignedSeller = {
+      cardId: cardId,
+      sellerId: inventoryItem.sellerId || '',
+      sellerName: sellerName,
+      sellerEmail: sellerEmail,
+      inventoryIndex: inventoryIndex,
+      assignedAt: new Date()
+    };
+    await order.save();
+
+    console.log('Assignment - Saved assignedSeller:', orderItem.assignedSeller);
+
+    res.json({
+      success: true,
+      message: `Assigned ${orderItem.quantity} units to ${sellerName}`,
+      data: {
+        order,
+        remainingStock: inventoryItem.quantityForSale
+      }
+    });
+
+  } catch (error: any) {
+    console.error('Assign Card Error:', error.message);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Undo Card Assignment - Restore stock
+router.post('/undo-card-assignment', authenticate, requireAdmin, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { orderId, itemIndex } = req.body;
+
+    if (!orderId || itemIndex === undefined) {
+      res.status(400).json({
+        success: false,
+        error: 'Missing required fields: orderId, itemIndex'
+      });
+      return;
+    }
+
+    // Find the order
+    const order = await TikTokOrder.findOne({ orderId });
+    if (!order) {
+      res.status(404).json({
+        success: false,
+        error: 'Order not found'
+      });
+      return;
+    }
+
+    const orderItem = order.itemList![itemIndex];
+
+    // Check if assigned
+    if (!orderItem.assignedSeller) {
+      res.status(400).json({
+        success: false,
+        error: 'This order item is not assigned to any seller'
+      });
+      return;
+    }
+
+    // Find the card and restore stock
+    const card = await Card.findById(orderItem.assignedSeller.cardId);
+    if (card) {
+      const inventoryItem = card.inventory[orderItem.assignedSeller.inventoryIndex];
+      if (inventoryItem) {
+        inventoryItem.quantityForSale += orderItem.quantity;
+        await card.save();
+      }
+    }
+
+    // Remove assignment
+    const sellerName = orderItem.assignedSeller.sellerName;
+    orderItem.assignedSeller = undefined;
+    await order.save();
+
+    res.json({
+      success: true,
+      message: `Undone assignment from ${sellerName}. Stock restored.`,
+      data: order
+    });
+
+  } catch (error: any) {
+    console.error('Undo Assignment Error:', error.message);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Edit Inventory Stock - Manual stock adjustment
+router.post('/edit-inventory-stock', authenticate, requireAdmin, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { cardId, inventoryIndex, newQuantity } = req.body;
+
+    if (!cardId || inventoryIndex === undefined || newQuantity === undefined) {
+      res.status(400).json({
+        success: false,
+        error: 'Missing required fields: cardId, inventoryIndex, newQuantity'
+      });
+      return;
+    }
+
+    // Find the card
+    const card = await Card.findById(cardId);
+    if (!card) {
+      res.status(404).json({
+        success: false,
+        error: 'Card not found'
+      });
+      return;
+    }
+
+    // Validate inventory index
+    if (inventoryIndex >= card.inventory.length) {
+      res.status(400).json({
+        success: false,
+        error: 'Invalid inventory index'
+      });
+      return;
+    }
+
+    // Validate quantity
+    if (newQuantity < 0) {
+      res.status(400).json({
+        success: false,
+        error: 'Quantity cannot be negative'
+      });
+      return;
+    }
+
+    // Update stock
+    const oldQuantity = card.inventory[inventoryIndex].quantityForSale;
+    card.inventory[inventoryIndex].quantityForSale = newQuantity;
+    await card.save();
+
+    res.json({
+      success: true,
+      message: `Updated stock from ${oldQuantity} to ${newQuantity}`,
+      data: {
+        oldQuantity,
+        newQuantity,
+        inventoryItem: card.inventory[inventoryIndex]
+      }
+    });
+
+  } catch (error: any) {
+    console.error('Edit Stock Error:', error.message);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Debug endpoint to check seller inventory
+router.get('/debug/seller-inventory/:sellerId', async (req: Request, res: Response) => {
+  try {
+    const { sellerId } = req.params;
+    
+    const seller = await User.findById(sellerId).select('name email');
+    const cards = await Card.find({ 'inventory.sellerId': sellerId }).select('name setCode collectorNumber inventory');
+    
+    const inventoryItems = cards.flatMap(card => 
+      card.inventory
+        .filter(inv => inv.sellerId?.toString() === sellerId)
+        .map(inv => ({
+          cardName: card.name,
+          setCode: card.setCode,
+          collectorNumber: card.collectorNumber,
+          sellerSku: inv.sellerSku,
+          condition: inv.condition,
+          finish: inv.finish,
+          quantityOwned: inv.quantityOwned,
+          quantityForSale: inv.quantityForSale,
+          sellerName: inv.sellerName,
+          inventoryIndex: card.inventory.indexOf(inv)
+        }))
+    );
+    
+    res.json({
+      success: true,
+      seller: seller,
+      totalItems: inventoryItems.length,
+      inventory: inventoryItems
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      error: error.message
     });
   }
 });

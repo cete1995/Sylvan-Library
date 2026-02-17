@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { sellerApi, Seller } from '../api/seller';
 
 const AdminSellerManagementPage: React.FC = () => {
@@ -135,28 +136,70 @@ const AdminSellerManagementPage: React.FC = () => {
     }
   };
 
+  const handleDeleteSellerStock = async (id: string, name: string) => {
+    const confirm1 = window.confirm(
+      `⚠️ WARNING: This will DELETE ALL inventory stock for "${name}"!\n\nThis action cannot be undone. Are you sure?`
+    );
+    if (!confirm1) return;
+
+    const confirm2 = window.confirm(
+      'This is your last chance. Click OK to permanently delete all stock for this seller.'
+    );
+    if (!confirm2) return;
+
+    setLoading(true);
+    try {
+      const result = await sellerApi.deleteSellerStock(id);
+      setSuccess(`${result.message}. Removed ${result.totalRemoved} inventory items from ${result.cardsUpdated} cards.`);
+      loadSellers();
+    } catch (error: any) {
+      setError(error.response?.data?.message || 'Failed to delete seller stock');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="min-h-screen" style={{ backgroundColor: 'var(--color-background)' }}>
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2" style={{ color: 'var(--color-text)' }}>
-            Seller Management
-          </h1>
-          <p style={{ color: 'var(--color-text-secondary)' }}>
-            Manage seller accounts who can add inventory to existing cards
-          </p>
+    <div className="min-h-screen pb-20" style={{ backgroundColor: 'var(--color-background)' }}>
+      {/* Header */}
+      <div className="sticky top-0 z-10 border-b" style={{ backgroundColor: 'var(--color-panel)', borderColor: 'var(--color-border)' }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Link
+                to="/admin/dashboard"
+                className="p-2 rounded-lg hover:bg-opacity-80 transition-colors"
+                style={{ backgroundColor: 'var(--color-background)' }}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--color-text)' }}>
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </Link>
+              <div>
+                <h1 className="text-2xl font-bold" style={{ color: 'var(--color-text)' }}>
+                  Seller Management
+                </h1>
+                <p className="text-sm mt-1" style={{ color: 'var(--color-text-secondary)' }}>
+                  Manage seller accounts who can add inventory to existing cards
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
         {/* Alerts */}
         {error && (
-          <div className="alert-error mb-4">
-            {error}
+          <div className="rounded-xl shadow-md p-4 mb-6" style={{ backgroundColor: '#fee2e2', border: '1px solid #ef4444' }}>
+            <p style={{ color: '#dc2626' }}>{error}</p>
           </div>
         )}
 
         {success && (
-          <div className="alert-success mb-4">
-            {success}
+          <div className="rounded-xl shadow-md p-4 mb-6" style={{ backgroundColor: '#dcfce7', border: '1px solid #22c55e' }}>
+            <p style={{ color: '#166534' }}>{success}</p>
           </div>
         )}
 
@@ -164,9 +207,9 @@ const AdminSellerManagementPage: React.FC = () => {
         <div className="mb-6">
           <button
             onClick={() => setShowCreateForm(!showCreateForm)}
-            className="px-6 py-3 rounded-lg font-semibold transition-colors"
+            className="px-6 py-3 rounded-lg font-semibold transition-colors shadow-md"
             style={{
-              backgroundColor: showCreateForm ? 'var(--color-text-secondary)' : 'var(--color-accent)',
+              backgroundColor: showCreateForm ? '#64748b' : 'var(--color-accent)',
               color: 'white',
             }}
           >
@@ -176,8 +219,16 @@ const AdminSellerManagementPage: React.FC = () => {
 
         {/* Edit Seller Modal */}
         {editingSeller && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="rounded-lg p-6 max-w-md w-full mx-4" style={{ backgroundColor: 'var(--color-panel)' }}>
+          <div 
+            className="fixed inset-0 flex items-center justify-center z-50"
+            style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)' }}
+            onClick={() => setEditingSeller(null)}
+          >
+            <div 
+              className="rounded-xl shadow-2xl p-6 max-w-md w-full mx-4" 
+              style={{ backgroundColor: 'var(--color-panel)' }}
+              onClick={(e) => e.stopPropagation()}
+            >
               <h2 className="text-xl font-bold mb-4" style={{ color: 'var(--color-text)' }}>
                 Edit Seller
               </h2>
@@ -221,16 +272,16 @@ const AdminSellerManagementPage: React.FC = () => {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="px-6 py-2 rounded-lg font-semibold"
-                    style={{ backgroundColor: 'var(--color-accent)', color: 'white' }}
+                    className="flex-1 px-6 py-2 rounded-lg font-semibold text-white disabled:opacity-50"
+                    style={{ backgroundColor: 'var(--color-accent)' }}
                   >
                     {loading ? 'Updating...' : 'Update Seller'}
                   </button>
                   <button
                     type="button"
                     onClick={() => setEditingSeller(null)}
-                    className="px-6 py-2 rounded-lg font-semibold"
-                    style={{ backgroundColor: 'var(--color-text-secondary)', color: 'white' }}
+                    className="flex-1 px-6 py-2 rounded-lg font-semibold text-white"
+                    style={{ backgroundColor: '#64748b' }}
                   >
                     Cancel
                   </button>
@@ -242,7 +293,7 @@ const AdminSellerManagementPage: React.FC = () => {
 
         {/* Create Seller Form */}
         {showCreateForm && (
-          <div className="rounded-lg p-6 mb-8" style={{ backgroundColor: 'var(--color-panel)' }}>
+          <div className="rounded-xl shadow-md p-6 mb-8" style={{ backgroundColor: 'var(--color-panel)' }}>
             <h2 className="text-xl font-bold mb-4" style={{ color: 'var(--color-text)' }}>
               Create New Seller
             </h2>
@@ -305,16 +356,16 @@ const AdminSellerManagementPage: React.FC = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-6 py-2 rounded-lg font-semibold"
-                  style={{ backgroundColor: 'var(--color-accent)', color: 'white' }}
+                  className="px-6 py-2 rounded-lg font-semibold text-white disabled:opacity-50"
+                  style={{ backgroundColor: 'var(--color-accent)' }}
                 >
                   {loading ? 'Creating...' : 'Create Seller'}
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowCreateForm(false)}
-                  className="px-6 py-2 rounded-lg font-semibold"
-                  style={{ backgroundColor: 'var(--color-text-secondary)', color: 'white' }}
+                  className="px-6 py-2 rounded-lg font-semibold text-white"
+                  style={{ backgroundColor: '#64748b' }}
                 >
                   Cancel
                 </button>
@@ -324,7 +375,7 @@ const AdminSellerManagementPage: React.FC = () => {
         )}
 
         {/* Sellers Table */}
-        <div className="rounded-lg shadow-xl overflow-hidden" style={{ backgroundColor: 'var(--color-panel)' }}>
+        <div className="rounded-xl shadow-md overflow-hidden" style={{ backgroundColor: 'var(--color-panel)' }}>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
@@ -373,30 +424,41 @@ const AdminSellerManagementPage: React.FC = () => {
                         {new Date(seller.createdAt).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <button
-                          onClick={() => handleEditSeller(seller)}
-                          className="px-3 py-1 rounded text-sm font-semibold mr-2"
-                          style={{ backgroundColor: 'var(--color-accent)', color: 'white' }}
-                          disabled={loading}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleResetPassword(seller._id, seller.email)}
-                          className="px-3 py-1 rounded text-sm font-semibold mr-2"
-                          style={{ backgroundColor: 'var(--color-highlight)', color: 'white' }}
-                          disabled={loading}
-                        >
-                          Reset Password
-                        </button>
-                        <button
-                          onClick={() => handleDeleteSeller(seller._id, seller.email)}
-                          className="px-3 py-1 rounded text-sm font-semibold"
-                          style={{ backgroundColor: '#DC2626', color: 'white' }}
-                          disabled={loading}
-                        >
-                          Delete
-                        </button>
+                        <div className="flex justify-end gap-2 flex-wrap">
+                          <button
+                            onClick={() => handleEditSeller(seller)}
+                            className="px-3 py-1 rounded text-sm font-semibold text-white disabled:opacity-50"
+                            style={{ backgroundColor: 'var(--color-accent)' }}
+                            disabled={loading}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleResetPassword(seller._id, seller.email)}
+                            className="px-3 py-1 rounded text-sm font-semibold text-white disabled:opacity-50"
+                            style={{ backgroundColor: '#8b5cf6' }}
+                            disabled={loading}
+                          >
+                            Reset Password
+                          </button>
+                          <button
+                            onClick={() => handleDeleteSellerStock(seller._id, seller.name || seller.email)}
+                            className="px-3 py-1 rounded text-sm font-semibold text-white disabled:opacity-50"
+                            style={{ backgroundColor: '#f59e0b' }}
+                            disabled={loading}
+                            title="Delete all inventory stock for this seller"
+                          >
+                            🗑️ Delete Stock
+                          </button>
+                          <button
+                            onClick={() => handleDeleteSeller(seller._id, seller.email)}
+                            className="px-3 py-1 rounded text-sm font-semibold text-white disabled:opacity-50"
+                            style={{ backgroundColor: '#dc2626' }}
+                            disabled={loading}
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))

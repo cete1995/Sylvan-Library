@@ -50,7 +50,7 @@ const AdminUBPricingPage: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <Link to="/admin" className="hover:underline mb-4 inline-block" style={{ color: 'var(--color-accent)' }}>
+      <Link to="/admin/dashboard" className="hover:underline mb-4 inline-block" style={{ color: 'var(--color-accent)' }}>
         ← Back to Admin Dashboard
       </Link>
 

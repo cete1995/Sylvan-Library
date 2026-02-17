@@ -32,7 +32,9 @@ import AdminTikTokDebugPage from './pages/AdminTikTokDebugPage';
 import AdminTikTokGetOrdersPage from './pages/AdminTikTokGetOrdersPage';
 import AdminTikTokOrdersPage from './pages/AdminTikTokOrdersPage';
 import AdminTikTokOrderDetailPage from './pages/AdminTikTokOrderDetailPage';
+import AdminTikTokSavedOrdersPage from './pages/AdminTikTokSavedOrdersPage';
 import AdminMissingImagesPage from './pages/AdminMissingImagesPage';
+import AdminDebugPage from './pages/AdminDebugPage';
 import ManaboxUploadPage from './pages/ManaboxUploadPage';
 import SellerDashboardPage from './pages/SellerDashboardPage';
 import SellerInventoryFormPage from './pages/SellerInventoryFormPage';
@@ -221,6 +223,14 @@ const App: React.FC = () => {
                 }
               />
               <Route
+                path="/admin/tiktok-saved-orders"
+                element={
+                  <ProtectedRoute adminOnly={true}>
+                    <AdminTikTokSavedOrdersPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/admin/tiktok-orders/:orderId"
                 element={
                   <ProtectedRoute adminOnly={true}>
@@ -233,6 +243,14 @@ const App: React.FC = () => {
                 element={
                   <ProtectedRoute adminOnly={true}>
                     <AdminMissingImagesPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/debug"
+                element={
+                  <ProtectedRoute adminOnly={true}>
+                    <AdminDebugPage />
                   </ProtectedRoute>
                 }
               />

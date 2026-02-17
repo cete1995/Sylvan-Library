@@ -34,6 +34,14 @@ export interface ITikTokOrder extends Document {
     quantity: number;
     originalPrice: number;
     salePrice: number;
+    assignedSeller?: {
+      cardId: string;
+      sellerId: string;
+      sellerName: string;
+      sellerEmail?: string;
+      inventoryIndex: number;
+      assignedAt: Date;
+    };
   }>;
   rawData: any; // Store full TikTok response
   syncedAt: Date;
@@ -92,6 +100,14 @@ const TikTokOrderSchema: Schema = new Schema(
         quantity: Number,
         originalPrice: Number,
         salePrice: Number,
+        assignedSeller: {
+          cardId: String,
+          sellerId: String,
+          sellerName: String,
+          sellerEmail: String,
+          inventoryIndex: Number,
+          assignedAt: Date,
+        },
       },
     ],
     rawData: {

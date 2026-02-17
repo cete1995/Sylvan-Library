@@ -90,4 +90,18 @@ export const adminApi = {
     );
     return response.data;
   },
+
+  regenerateSellerSKUs: async (): Promise<{ success: boolean; message: string; updatedCards: number; updatedItems: number }> => {
+    const response = await api.post<{ success: boolean; message: string; updatedCards: number; updatedItems: number }>(
+      '/admin/regenerate-seller-skus'
+    );
+    return response.data;
+  },
+
+  fixInventoryQuantities: async (): Promise<{ success: boolean; message: string; totalInventoryItems?: number; updatedCards: number; updatedItems: number; errors?: any[] }> => {
+    const response = await api.post<{ success: boolean; message: string; totalInventoryItems?: number; updatedCards: number; updatedItems: number; errors?: any[] }>(
+      '/admin/fix-inventory-quantities'
+    );
+    return response.data;
+  },
 };

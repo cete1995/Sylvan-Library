@@ -361,11 +361,14 @@ export const addInventory = asyncHandler(async (req: Request, res: Response) => 
     throw new AppError(400, 'Valid quantity is required');
   }
 
-  if (typeof quantityForSale !== 'number' || quantityForSale < 0) {
+  // For sellers, all stock is for sale by default
+  const finalQuantityForSale = user.role === 'seller' ? quantity : (quantityForSale || 0);
+
+  if (typeof finalQuantityForSale !== 'number' || finalQuantityForSale < 0) {
     throw new AppError(400, 'Valid quantity for sale is required');
   }
 
-  if (quantityForSale > quantity) {
+  if (finalQuantityForSale > quantity) {
     throw new AppError(400, 'Quantity for sale cannot exceed total quantity');
   }
 
@@ -386,14 +389,14 @@ export const addInventory = asyncHandler(async (req: Request, res: Response) => 
   if (existingInventoryIndex !== -1) {
     // Update existing inventory
     card.inventory[existingInventoryIndex].quantityOwned += quantity;
-    card.inventory[existingInventoryIndex].quantityForSale += quantityForSale;
+    card.inventory[existingInventoryIndex].quantityForSale += finalQuantityForSale;
   } else {
     // Add new inventory item with seller info
     card.inventory.push({
       condition,
       finish,
       quantityOwned: quantity,
-      quantityForSale,
+      quantityForSale: finalQuantityForSale,
       buyPrice: 0,
       sellPrice: 0,
       sellerId: user.id,
