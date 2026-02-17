@@ -1472,11 +1472,13 @@ router.post('/get-order-detail', authenticate, requireAdmin, async (req: Request
 
     const timestamp = Math.floor(Date.now() / 1000);
     
-    // Build query parameters
+    // Build query parameters - order ID passed as 'ids' parameter
     const queryParams: any = {
       app_key: appKey,
       timestamp: timestamp.toString(),
-      shop_cipher: shopCipher
+      shop_cipher: shopCipher,
+      ids: orderId,  // Order ID is passed as 'ids' query parameter
+      version: '202507'
     };
 
     // Sort parameters alphabetically and create signature string
@@ -1486,7 +1488,8 @@ router.post('/get-order-detail', authenticate, requireAdmin, async (req: Request
       signString += `${key}${queryParams[key]}`;
     }
 
-    const apiPath = `/order/202507/orders/${orderId}`;
+    // API path for Get Order Detail
+    const apiPath = '/order/202507/orders';
     
     // Build signature string: path + params (no body for GET)
     const baseString = apiPath + signString;
@@ -1500,6 +1503,12 @@ router.post('/get-order-detail', authenticate, requireAdmin, async (req: Request
     // Build full URL
     const queryString = new URLSearchParams(queryParams).toString();
     const url = `${TIKTOK_API_BASE}${apiPath}?${queryString}`;
+
+    console.log('🔍 TikTok Get Order Detail API Request:');
+    console.log('   Path:', apiPath);
+    console.log('   Order ID:', orderId);
+    console.log('   Full URL:', url);
+    console.log('   Timestamp:', timestamp);
 
     // Make API request
     const response = await axios.get(url, {
@@ -1812,11 +1821,13 @@ router.post('/fetch-order-detail', authenticate, requireAdmin, async (req: Reque
 
     const timestamp = Math.floor(Date.now() / 1000);
     
-    // Build query parameters
+    // Build query parameters - order ID passed as 'ids' parameter
     const queryParams: any = {
       app_key: appKey,
       timestamp: timestamp.toString(),
-      shop_cipher: shopCipher
+      shop_cipher: shopCipher,
+      ids: orderId,  // Order ID is passed as 'ids' query parameter
+      version: '202507'
     };
 
     // Sort parameters alphabetically and create signature string
@@ -1826,7 +1837,8 @@ router.post('/fetch-order-detail', authenticate, requireAdmin, async (req: Reque
       signString += `${key}${queryParams[key]}`;
     }
 
-    const apiPath = `/order/202507/orders/${orderId}`;
+    // API path for Get Order Detail
+    const apiPath = '/order/202507/orders';
     
     // Build signature string: path + params (no body for GET)
     const baseString = apiPath + signString;
@@ -1842,6 +1854,8 @@ router.post('/fetch-order-detail', authenticate, requireAdmin, async (req: Reque
     const url = `${TIKTOK_API_BASE}${apiPath}?${queryString}`;
 
     logs.push(`[${new Date().toISOString()}] Making API request to TikTok`);
+    logs.push(`[${new Date().toISOString()}] API Path: ${apiPath}`);
+    logs.push(`[${new Date().toISOString()}] Full URL: ${url}`);
 
     // Make API request
     const response = await axios.get(url, {
@@ -1853,9 +1867,10 @@ router.post('/fetch-order-detail', authenticate, requireAdmin, async (req: Reque
 
     logs.push(`[${new Date().toISOString()}] Received response from TikTok`);
 
-    const orderDetail = response.data?.data;
-
-    if (!orderDetail) {
+    // Response structure: data.orders[0] contains the order detail
+    const orders = response.data?.data?.orders;
+    
+    if (!orders || !Array.isArray(orders) || orders.length === 0) {
       logs.push(`[${new Date().toISOString()}] ERROR: No order data in response`);
       res.json({
         success: false,
@@ -1864,6 +1879,8 @@ router.post('/fetch-order-detail', authenticate, requireAdmin, async (req: Reque
       });
       return;
     }
+    
+    const orderDetail = orders[0];  // Get first order from array
 
     // Update order in database with detailed information
     const order = await TikTokOrder.findOne({ orderId });
