@@ -12,10 +12,16 @@ export const adminApi = {
     return response.data;
   },
 
+  getSetsWithMissingImages: async (): Promise<{ sets: Array<{ setCode: string; setName: string; cardCount: number }> }> => {
+    const response = await api.get('/admin/sets/missing-images');
+    return response.data;
+  },
+
   getAdminCards: async (params: {
     q?: string;
     set?: string;
     includeInactive?: boolean;
+    missingImages?: boolean;
     page?: number;
     limit?: number;
   }): Promise<CardListResponse> => {
@@ -23,6 +29,7 @@ export const adminApi = {
       params: {
         ...params,
         includeInactive: params.includeInactive ? 'true' : 'false',
+        missingImages: params.missingImages ? 'true' : 'false',
       },
     });
     return response.data;
@@ -73,6 +80,13 @@ export const adminApi = {
   clearDatabase: async (): Promise<{ message: string; deletedCounts: { cards: number; users: number; carts: number; carousel: number; prices: number } }> => {
     const response = await api.post<{ message: string; deletedCounts: { cards: number; users: number; carts: number; carousel: number; prices: number } }>(
       '/admin/clear-database'
+    );
+    return response.data;
+  },
+
+  fixSellerNames: async (): Promise<{ success: boolean; message: string; updatedCards: number; updatedItems: number; sellers: any[] }> => {
+    const response = await api.post<{ success: boolean; message: string; updatedCards: number; updatedItems: number; sellers: any[] }>(
+      '/admin/fix-seller-names'
     );
     return response.data;
   },

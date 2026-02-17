@@ -42,10 +42,18 @@ export const clearRegularSettingsCache = () => {
 
 /**
  * Round price up to nearest 500
- * If already a multiple of 500, returns as is
+ * Always rounds UP unless already at a multiple of 500
+ * Example: 7595 -> 8000, 7500 -> 7500
  */
 const roundToNearest500 = (price: number): number => {
-  return Math.ceil(price / 500) * 500;
+  const remainder = price % 500;
+  if (remainder === 0) {
+    console.log(`[PRICING] roundToNearest500(${price}) = ${price} (already multiple of 500)`);
+    return price; // Already a multiple of 500
+  }
+  const rounded = Math.ceil(price / 500) * 500;
+  console.log(`[PRICING] roundToNearest500(${price}) = ${rounded} (remainder: ${remainder})`);
+  return rounded;
 };
 
 /**
@@ -56,7 +64,22 @@ const roundToNearest500 = (price: number): number => {
 export const calculateRegularPrice = async (ckPriceUSD: number): Promise<number> => {
   const multiplier = await getRegularMultiplier(ckPriceUSD);
   const rawPrice = ckPriceUSD * multiplier;
-  return roundToNearest500(rawPrice);
+  const roundedPrice = roundToNearest500(rawPrice);
+  console.log(`[PRICING] calculateRegularPrice: CK=${ckPriceUSD} USD, multiplier=${multiplier}, raw=${rawPrice}, rounded=${roundedPrice}`);
+  return roundedPrice;
+};
+
+/**
+ * Calculate marketplace price (TikTok/Tokopedia) with 19% fee included
+ * Formula: (CK price × multiplier) / 0.8403 → round to 500
+ */
+export const calculateRegularMarketplacePrice = async (ckPriceUSD: number): Promise<number> => {
+  const multiplier = await getRegularMultiplier(ckPriceUSD);
+  const rawPrice = ckPriceUSD * multiplier;
+  const marketplaceRaw = rawPrice / 0.8403; // Add 19% fee
+  const roundedPrice = roundToNearest500(marketplaceRaw);
+  console.log(`[PRICING] calculateRegularMarketplacePrice: CK=${ckPriceUSD} USD, multiplier=${multiplier}, raw=${rawPrice}, marketplace_raw=${marketplaceRaw}, rounded=${roundedPrice}`);
+  return roundedPrice;
 };
 
 /**

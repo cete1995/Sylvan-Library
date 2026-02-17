@@ -19,6 +19,7 @@ const AdminTikTokDebugPage: React.FC = () => {
   const [priceLoading, setPriceLoading] = useState(false);
   const [priceProgress, setPriceProgress] = useState({ current: 0, total: 0, percentage: 0, successful: 0, failed: 0 });
   const [showAllResults, setShowAllResults] = useState(false);
+  const [abortController, setAbortController] = useState<AbortController | null>(null);
   
   // Store completion data for rebuilding response
   const [completionData, setCompletionData] = useState<{
@@ -32,8 +33,9 @@ const AdminTikTokDebugPage: React.FC = () => {
   const [failedRows, setFailedRows] = useState<Array<{
     productId: string;
     skuId: string;
-    price?: number;
-    stock?: number;
+    productName?: string;
+    price?: string; // Keep as string to preserve exact CSV format
+    stock?: string; // Keep as string to preserve exact CSV format
     error: string;
   }>>([]);
 
@@ -41,7 +43,10 @@ const AdminTikTokDebugPage: React.FC = () => {
   const [appKey, setAppKey] = useState(localStorage.getItem('tiktok_app_key') || '');
   const [appSecret, setAppSecret] = useState(localStorage.getItem('tiktok_app_secret') || '');
   const [accessToken, setAccessToken] = useState(localStorage.getItem('tiktok_access_token') || '');
+  const [refreshToken, setRefreshToken] = useState(localStorage.getItem('tiktok_refresh_token') || '');
   const [shopCipher, setShopCipher] = useState(localStorage.getItem('tiktok_shop_cipher') || '');
+  const [tokenRefreshing, setTokenRefreshing] = useState(false);
+  const [tokenRefreshMessage, setTokenRefreshMessage] = useState('');
 
   // Save credentials to localStorage when they change
   useEffect(() => {
@@ -58,6 +63,11 @@ const AdminTikTokDebugPage: React.FC = () => {
     if (accessToken) localStorage.setItem('tiktok_access_token', accessToken);
     else localStorage.removeItem('tiktok_access_token');
   }, [accessToken]);
+
+  useEffect(() => {
+    if (refreshToken) localStorage.setItem('tiktok_refresh_token', refreshToken);
+    else localStorage.removeItem('tiktok_refresh_token');
+  }, [refreshToken]);
 
   useEffect(() => {
     if (shopCipher) localStorage.setItem('tiktok_shop_cipher', shopCipher);
@@ -122,25 +132,28 @@ const AdminTikTokDebugPage: React.FC = () => {
       // Show preview
       setCsvPreview(lines.slice(0, 6).join('\n'));
       
-      // Parse and store original CSV data for retry functionality
-      const headers = lines[0].toLowerCase().split(',').map(h => h.trim());
+      // Parse and store original CSV data for retry functionality - keep as strings
+      const headerLine = lines[0];
+      const headers = parseCSVLine(headerLine).map(h => h.toLowerCase().trim());
       const parsedData: any[] = [];
       
       for (let i = 1; i < lines.length; i++) {
         const line = lines[i].trim();
         if (!line) continue;
         
-        const values = line.split(',').map(v => v.trim().replace(/^['"]/, ''));
+        const values = parseCSVLine(line);
         const row: any = {};
         
         headers.forEach((header, index) => {
-          row[header] = values[index];
+          // Keep everything as string, don't remove leading apostrophe/quote
+          row[header] = values[index] || '';
         });
         
-        if (row.productid && row.skuid) {
+        // Only skip if both productid and skuid are completely empty
+        if (row.productid || row.skuid) {
           parsedData.push({
-            productId: row.productid,
-            skuId: row.skuid,
+            productId: row.productid || '',
+            skuId: row.skuid || '',
             productName: row.productname || '',
             price: row.price || '',
             stock: row.stock || ''
@@ -151,6 +164,38 @@ const AdminTikTokDebugPage: React.FC = () => {
       setOriginalCsvData(parsedData);
     };
     reader.readAsText(file);
+  };
+
+  // Simple CSV parser that handles quoted fields
+  const parseCSVLine = (line: string): string[] => {
+    const result: string[] = [];
+    let current = '';
+    let inQuotes = false;
+    
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      const nextChar = line[i + 1];
+      
+      if (char === '"') {
+        if (inQuotes && nextChar === '"') {
+          // Escaped quote
+          current += '"';
+          i++;
+        } else {
+          // Toggle quote state
+          inQuotes = !inQuotes;
+        }
+      } else if (char === ',' && !inQuotes) {
+        // Field separator
+        result.push(current.trim());
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+    
+    result.push(current.trim());
+    return result;
   };
 
   const handleBulkPriceInventoryUpdate = async () => {
@@ -169,6 +214,10 @@ const AdminTikTokDebugPage: React.FC = () => {
     setPriceProgress({ current: 0, total: 0, percentage: 0, successful: 0, failed: 0 });
     setFailedRows([]); // Clear previous failed rows
 
+    // Create abort controller for this request
+    const controller = new AbortController();
+    setAbortController(controller);
+
     try {
       const formData = new FormData();
       formData.append('file', csvFile);
@@ -185,7 +234,8 @@ const AdminTikTokDebugPage: React.FC = () => {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
-        body: formData
+        body: formData,
+        signal: controller.signal // Add abort signal
       });
 
       if (!uploadRes.ok) {
@@ -210,6 +260,12 @@ const AdminTikTokDebugPage: React.FC = () => {
         const { done, value } = await reader.read();
         
         if (done) break;
+
+        // Check if aborted
+        if (controller.signal.aborted) {
+          setPriceResponse(prev => prev + '\n\n⚠️ UPDATE STOPPED BY USER\n');
+          break;
+        }
 
         buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split('\n\n');
@@ -256,19 +312,19 @@ const AdminTikTokDebugPage: React.FC = () => {
                 detailedLog += errorEntry;
                 failedLog += errorEntry;
                 
-                // Track failed rows for retry with SKU details from original CSV
+                // Track failed rows for retry - use EXACT data from original CSV
                 const failedProductSkus = originalCsvData.filter(
-                  row => row.productId === data.productId
+                  row => row.productId == data.productId // Use == to handle string/number comparison
                 );
                 
                 setFailedRows(prev => [
                   ...prev,
                   ...failedProductSkus.map(sku => ({
-                    productId: data.productId,
+                    productId: sku.productId, // Keep original format from CSV
                     skuId: sku.skuId,
-                    productName: data.productName,
-                    price: sku.price ? Number(sku.price) : undefined,
-                    stock: sku.stock ? Number(sku.stock) : undefined,
+                    productName: sku.productName || data.productName,
+                    price: sku.price, // Keep as string from CSV
+                    stock: sku.stock, // Keep as string from CSV
                     error: data.error || 'Unknown error'
                   }))
                 ]);
@@ -293,32 +349,7 @@ const AdminTikTokDebugPage: React.FC = () => {
                 failed: data.failed
               });
 
-              // Extract and store failed rows with SKU details
-              const extractedFailedRows: Array<{
-                productId: string;
-                skuId: string;
-                price?: number;
-                stock?: number;
-                error: string;
-                productName?: string;
-              }> = [];
-
-              if (data.results && data.results.failed) {
-                // Need to reconstruct SKU-level failures from product-level failures
-                // This requires accessing the original CSV data that failed
-                data.results.failed.forEach((failedProduct: any) => {
-                  // Store product-level failure info
-                  // Note: We'll need the original SKU data from the request
-                  extractedFailedRows.push({
-                    productId: failedProduct.productId,
-                    skuId: '', // Will be populated from original data
-                    error: failedProduct.error || 'Unknown error',
-                    productName: failedProduct.productName
-                  });
-                });
-              }
-
-              setFailedRows(extractedFailedRows);
+              // Don't overwrite failedRows here - we already tracked them during progress updates
 
               const summarySection = 
                 `${'='.repeat(60)}\n` +
@@ -365,8 +396,14 @@ const AdminTikTokDebugPage: React.FC = () => {
       }
 
     } catch (error: any) {
-      setPriceResponse(`❌ Upload Failed: ${error.message}`);
+      if (error.name === 'AbortError') {
+        setPriceResponse(prev => prev + '\n\n🛑 UPDATE FORCE STOPPED BY USER');
+      } else {
+        setPriceResponse(`❌ Upload Failed: ${error.message}`);
+      }
       setPriceLoading(false);
+    } finally {
+      setAbortController(null);
     }
   };
 
@@ -479,8 +516,8 @@ const AdminTikTokDebugPage: React.FC = () => {
     // Convert failed rows back to CSV format
     const csvHeader = 'productId,skuId,productName,price,stock\n';
     const csvRows = failedRows.map(row => {
-      const price = row.price !== undefined ? row.price : '';
-      const stock = row.stock !== undefined ? row.stock : '';
+      const price = row.price || '';
+      const stock = row.stock || '';
       const productName = row.productName || '';
       return `${row.productId},${row.skuId},${productName},${price},${stock}`;
     }).join('\n');
@@ -496,8 +533,8 @@ const AdminTikTokDebugPage: React.FC = () => {
       productId: row.productId,
       skuId: row.skuId,
       productName: row.productName || '',
-      price: row.price !== undefined ? row.price.toString() : '',
-      stock: row.stock !== undefined ? row.stock.toString() : ''
+      price: row.price || '',
+      stock: row.stock || ''
     }));
     setOriginalCsvData(retryData);
     
@@ -512,6 +549,10 @@ const AdminTikTokDebugPage: React.FC = () => {
     
     const previousFailedRows = [...failedRows]; // Store for reference
     setFailedRows([]); // Clear for new attempt
+
+    // Create abort controller for this retry request
+    const controller = new AbortController();
+    setAbortController(controller);
 
     try {
       const formData = new FormData();
@@ -529,7 +570,8 @@ const AdminTikTokDebugPage: React.FC = () => {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
-        body: formData
+        body: formData,
+        signal: controller.signal // Add abort signal
       });
 
       if (!uploadRes.ok) {
@@ -555,6 +597,12 @@ const AdminTikTokDebugPage: React.FC = () => {
         const { done, value } = await reader.read();
         
         if (done) break;
+
+        // Check if aborted
+        if (controller.signal.aborted) {
+          setPriceResponse(prev => prev + '\n\n⚠️ RETRY STOPPED BY USER\n');
+          break;
+        }
 
         buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split('\n\n');
@@ -603,17 +651,17 @@ const AdminTikTokDebugPage: React.FC = () => {
                 
                 // Track failed rows for potential retry again
                 const failedProductSkus = originalCsvData.filter(
-                  row => row.productId === data.productId
+                  row => row.productId == data.productId // Use == for string/number comparison
                 );
                 
                 setFailedRows(prev => [
                   ...prev,
                   ...failedProductSkus.map(sku => ({
-                    productId: data.productId,
+                    productId: sku.productId, // Keep original format from CSV
                     skuId: sku.skuId,
-                    productName: data.productName,
-                    price: sku.price ? Number(sku.price) : undefined,
-                    stock: sku.stock ? Number(sku.stock) : undefined,
+                    productName: sku.productName || data.productName,
+                    price: sku.price, // Keep as string from CSV
+                    stock: sku.stock, // Keep as string from CSV
                     error: data.error || 'Unknown error'
                   }))
                 ]);
@@ -681,9 +729,72 @@ const AdminTikTokDebugPage: React.FC = () => {
       }
 
     } catch (error: any) {
-      setPriceResponse(`❌ Retry Failed: ${error.message}`);
-      setFailedRows(previousFailedRows); // Restore failed rows on error
+      if (error.name === 'AbortError') {
+        setPriceResponse(prev => prev + '\n\n🛑 RETRY FORCE STOPPED BY USER');
+        setFailedRows(previousFailedRows); // Restore failed rows
+      } else {
+        setPriceResponse(`❌ Retry Failed: ${error.message}`);
+        setFailedRows(previousFailedRows); // Restore failed rows on error
+      }
       setPriceLoading(false);
+    } finally {
+      setAbortController(null);
+    }
+  };
+
+  const handleRefreshAccessToken = async () => {
+    if (!appKey || !appSecret || !refreshToken) {
+      setTokenRefreshMessage('❌ Please provide App Key, App Secret, and Refresh Token');
+      return;
+    }
+
+    setTokenRefreshing(true);
+    setTokenRefreshMessage('🔄 Refreshing access token...');
+
+    try {
+      const response = await fetch('/api/admin/tiktok/refresh-token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          appKey,
+          appSecret,
+          refreshToken
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setTokenRefreshMessage(`❌ Refresh failed (${response.status}): ${data.error || data.message || 'Unknown error'}\n\nDetails: ${JSON.stringify(data, null, 2)}`);
+        return;
+      }
+
+      if (!data.success) {
+        setTokenRefreshMessage(`❌ Refresh failed: ${data.error || 'Unknown error'}\n\nDetails: ${JSON.stringify(data, null, 2)}`);
+        return;
+      }
+
+      // Update tokens
+      setAccessToken(data.data.accessToken);
+      setRefreshToken(data.data.refreshToken);
+
+      const expiresInHours = Math.floor(data.data.accessTokenExpireIn / 3600);
+      setTokenRefreshMessage(
+        `✅ Token refreshed successfully!\n` +
+        `New Access Token expires in: ${expiresInHours} hours\n` +
+        `Seller: ${data.data.sellerName} (${data.data.sellerBaseRegion})`
+      );
+
+      // Clear message after 10 seconds
+      setTimeout(() => setTokenRefreshMessage(''), 10000);
+
+    } catch (error: any) {
+      setTokenRefreshMessage(`❌ Error: ${error.message}`);
+    } finally {
+      setTokenRefreshing(false);
     }
   };
 
@@ -695,10 +806,10 @@ const AdminTikTokDebugPage: React.FC = () => {
 
     const csvHeader = 'productId,skuId,productName,price,stock,error\n';
     const csvRows = failedRows.map(row => {
-      const price = row.price !== undefined ? row.price : '';
-      const stock = row.stock !== undefined ? row.stock : '';
+      const price = row.price || '';
+      const stock = row.stock || '';
       const productName = row.productName || '';
-      const error = row.error.replace(/,/g, ';'); // Replace commas in error message
+      const error = (row.error || '').replace(/"/g, '""'); // Escape quotes in error message
       return `${row.productId},${row.skuId},${productName},${price},${stock},"${error}"`;
     }).join('\n');
     
@@ -710,6 +821,98 @@ const AdminTikTokDebugPage: React.FC = () => {
     a.download = `failed-rows-${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     window.URL.revokeObjectURL(url);
+  };
+
+  const [autoFillLoading, setAutoFillLoading] = useState(false);
+  const [autoFillMessage, setAutoFillMessage] = useState('');
+
+  const handleAutoFillSkus = async () => {
+    if (!appKey || !appSecret || !accessToken) {
+      alert('Please fill in all credentials first');
+      return;
+    }
+
+    if (failedRows.length === 0) {
+      alert('No failed rows to auto-fill');
+      return;
+    }
+
+    setAutoFillLoading(true);
+    setAutoFillMessage('Fetching SKU data from TikTok Shop...');
+
+    try {
+      // Get unique product IDs from failed rows
+      const uniqueProductIds = [...new Set(failedRows.map(row => row.productId))];
+      const updatedRows = [...failedRows];
+      let successCount = 0;
+      let errorCount = 0;
+
+      for (let i = 0; i < uniqueProductIds.length; i++) {
+        const productId = uniqueProductIds[i];
+        setAutoFillMessage(`Fetching ${i + 1}/${uniqueProductIds.length}: Product ${productId}...`);
+
+        try {
+          const response = await fetch('/api/admin/tiktok/get-product-details', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              appKey,
+              appSecret,
+              accessToken,
+              shopCipher,
+              productId
+            })
+          });
+
+          const data = await response.json();
+
+          if (data.success && data.data.skus && data.data.skus.length > 0) {
+            // Update failed rows with the first SKU ID and current price/stock
+            const firstSku = data.data.skus[0];
+            
+            for (let j = 0; j < updatedRows.length; j++) {
+              if (updatedRows[j].productId == productId && !updatedRows[j].skuId) { // Use == for string/number comparison
+                updatedRows[j] = {
+                  ...updatedRows[j],
+                  skuId: String(firstSku.skuId),
+                  productName: data.data.productName,
+                  price: firstSku.price ? String(firstSku.price) : updatedRows[j].price,
+                  stock: firstSku.stock !== undefined ? String(firstSku.stock) : updatedRows[j].stock
+                };
+              }
+            }
+            successCount++;
+          } else {
+            errorCount++;
+          }
+
+          // Small delay to avoid rate limiting
+          await new Promise(resolve => setTimeout(resolve, 200));
+
+        } catch (error) {
+          console.error(`Error fetching product ${productId}:`, error);
+          errorCount++;
+        }
+      }
+
+      setFailedRows(updatedRows);
+      setAutoFillMessage(`✅ Auto-fill complete! ${successCount} products updated, ${errorCount} errors`);
+      
+      // Clear message after 5 seconds
+      setTimeout(() => setAutoFillMessage(''), 5000);
+
+    } catch (error: any) {
+      setAutoFillMessage(`❌ Error: ${error.message}`);
+    } finally {
+      setAutoFillLoading(false);
+    }
+  };
+
+  const handleForceStop = () => {
+    if (abortController) {
+      abortController.abort();
+      setPriceResponse(prev => prev + '\n\n🛑 Stopping bulk update...');
+    }
   };
 
   return (
@@ -790,6 +993,23 @@ const AdminTikTokDebugPage: React.FC = () => {
             </div>
             <div>
               <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--color-text)' }}>
+                Refresh Token
+              </label>
+              <input
+                type="password"
+                value={refreshToken}
+                onChange={(e) => setRefreshToken(e.target.value)}
+                placeholder="ROW_rwBm2A..."
+                className="w-full px-4 py-2 border rounded-lg"
+                style={{ 
+                  backgroundColor: 'var(--color-background)',
+                  color: 'var(--color-text)',
+                  borderColor: 'var(--color-border)'
+                }}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--color-text)' }}>
                 Shop Cipher (Optional)
               </label>
               <input
@@ -806,6 +1026,35 @@ const AdminTikTokDebugPage: React.FC = () => {
               />
             </div>
           </div>
+
+          {/* Token Refresh Section */}
+          <div className="mt-4 p-4 rounded-lg border-2 border-purple-400 bg-purple-50">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-purple-900 mb-1">🔄 Access Token Refresh</h3>
+                <p className="text-sm text-purple-700">
+                  Use your refresh token to get a new access token when it expires
+                </p>
+              </div>
+              <button
+                onClick={handleRefreshAccessToken}
+                disabled={tokenRefreshing || !appKey || !appSecret || !refreshToken}
+                className="px-6 py-3 rounded-lg font-bold text-white transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ backgroundColor: '#9333ea' }}
+              >
+                {tokenRefreshing ? '🔄 Refreshing...' : '🔄 Refresh Access Token'}
+              </button>
+            </div>
+            {tokenRefreshMessage && (
+              <div className={`mt-3 p-3 rounded-lg ${
+                tokenRefreshMessage.includes('✅') ? 'bg-green-100 text-green-800' : 
+                tokenRefreshMessage.includes('🔄') ? 'bg-blue-100 text-blue-800' :
+                'bg-red-100 text-red-800'
+              }`}>
+                <pre className="text-sm whitespace-pre-wrap font-mono">{tokenRefreshMessage}</pre>
+              </div>
+            )}
+          </div>
           
           {/* Credential Management Info */}
           <div className="mt-4 flex items-center justify-between p-3 rounded-lg" style={{ backgroundColor: 'var(--color-background)' }}>
@@ -818,6 +1067,7 @@ const AdminTikTokDebugPage: React.FC = () => {
                   setAppKey('');
                   setAppSecret('');
                   setAccessToken('');
+                  setRefreshToken('');
                   setShopCipher('');
                 }
               }}
@@ -1088,35 +1338,66 @@ productId,skuId,price,stock{'\n'}
 
               {/* Action Buttons */}
               <div className="mb-6 space-y-3">
-                <button
-                  onClick={handleBulkPriceInventoryUpdate}
-                  disabled={priceLoading || !csvFile || !appKey || !appSecret || !accessToken}
-                  className="w-full py-4 rounded-lg font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:scale-[1.01]"
-                  style={{ backgroundColor: '#9333ea', color: 'white' }}
-                >
-                  {priceLoading 
-                    ? `🔄 Processing ${priceProgress.current}/${priceProgress.total} products (${priceProgress.percentage}%)...` 
-                    : `🚀 Bulk Update ${csvFile ? 'from ' + csvFile.name : 'Prices & Inventory'}`
-                  }
-                </button>
+                <div className="grid gap-3" style={{ gridTemplateColumns: priceLoading ? '1fr auto' : '1fr' }}>
+                  <button
+                    onClick={handleBulkPriceInventoryUpdate}
+                    disabled={priceLoading || !csvFile || !appKey || !appSecret || !accessToken}
+                    className="py-4 rounded-lg font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:scale-[1.01]"
+                    style={{ backgroundColor: '#9333ea', color: 'white' }}
+                  >
+                    {priceLoading 
+                      ? `🔄 Processing ${priceProgress.current}/${priceProgress.total} products (${priceProgress.percentage}%)...` 
+                      : `🚀 Bulk Update ${csvFile ? 'from ' + csvFile.name : 'Prices & Inventory'}`
+                    }
+                  </button>
+                  
+                  {priceLoading && (
+                    <button
+                      onClick={handleForceStop}
+                      className="py-4 px-8 rounded-lg font-bold text-lg transition-all hover:scale-[1.01] whitespace-nowrap"
+                      style={{ backgroundColor: '#ef4444', color: 'white' }}
+                      title="Force stop the current update process"
+                    >
+                      🛑 STOP
+                    </button>
+                  )}
+                </div>
 
                 {/* Retry and Download Failed Rows Buttons */}
                 {failedRows.length > 0 && !priceLoading && (
-                  <div className="grid grid-cols-2 gap-3">
-                    <button
-                      onClick={handleRetryFailedRows}
-                      className="py-4 rounded-lg font-bold text-lg transition-all hover:scale-[1.01]"
-                      style={{ backgroundColor: '#f59e0b', color: 'white' }}
-                    >
-                      🔄 Retry {failedRows.length} Failed
-                    </button>
-                    <button
-                      onClick={downloadFailedRowsCsv}
-                      className="py-4 rounded-lg font-bold text-lg transition-all hover:scale-[1.01]"
-                      style={{ backgroundColor: '#3b82f6', color: 'white' }}
-                    >
-                      📥 Download Failed CSV
-                    </button>
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-3 gap-3">
+                      <button
+                        onClick={handleAutoFillSkus}
+                        disabled={autoFillLoading}
+                        className="py-4 rounded-lg font-bold text-lg transition-all hover:scale-[1.01] disabled:opacity-50 disabled:cursor-not-allowed"
+                        style={{ backgroundColor: '#8b5cf6', color: 'white' }}
+                      >
+                        {autoFillLoading ? '⏳ Fetching...' : '🔧 Auto-Fill SKUs'}
+                      </button>
+                      <button
+                        onClick={handleRetryFailedRows}
+                        className="py-4 rounded-lg font-bold text-lg transition-all hover:scale-[1.01]"
+                        style={{ backgroundColor: '#f59e0b', color: 'white' }}
+                      >
+                        🔄 Retry {failedRows.length} Failed
+                      </button>
+                      <button
+                        onClick={downloadFailedRowsCsv}
+                        className="py-4 rounded-lg font-bold text-lg transition-all hover:scale-[1.01]"
+                        style={{ backgroundColor: '#3b82f6', color: 'white' }}
+                      >
+                        📥 Download Failed CSV
+                      </button>
+                    </div>
+                    {autoFillMessage && (
+                      <div className="p-3 rounded-lg text-center font-semibold" style={{ 
+                        backgroundColor: autoFillMessage.includes('✅') ? '#d1fae5' : autoFillMessage.includes('❌') ? '#fee2e2' : '#dbeafe',
+                        color: autoFillMessage.includes('✅') ? '#065f46' : autoFillMessage.includes('❌') ? '#991b1b' : '#1e40af'
+                      }}>
+                        {autoFillMessage}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

@@ -8,8 +8,10 @@ import {
   getAdminCards,
   getStats,
   getSets,
+  getSetsWithMissingImages,
   bulkUploadCards,
   clearDatabase,
+  fixSellerNames,
 } from '../controllers/admin.controller';
 import { uploadSetJson } from '../controllers/set.controller';
 
@@ -47,6 +49,13 @@ router.get('/stats', getStats);
  * @access  Private (Admin)
  */
 router.get('/sets', getSets);
+
+/**
+ * @route   GET /api/admin/sets/missing-images
+ * @desc    Get all sets with missing card images
+ * @access  Private (Admin)
+ */
+router.get('/sets/missing-images', getSetsWithMissingImages);
 
 /**
  * @route   GET /api/admin/cards
@@ -96,5 +105,12 @@ router.post('/sets/upload', uploadSetJson);
  * @access  Private (Admin)
  */
 router.post('/clear-database', clearDatabase);
+
+/**
+ * @route   POST /api/admin/fix-seller-names
+ * @desc    Update all inventory items with correct seller names
+ * @access  Private (Admin)
+ */
+router.post('/fix-seller-names', fixSellerNames);
 
 export default router;

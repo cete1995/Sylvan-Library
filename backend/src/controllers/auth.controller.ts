@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { User } from '../models';
-import { hashPassword, comparePassword, generateToken } from '../utils/auth.utils';
+import { hashPassword, comparePassword, generateToken, generateRefreshToken, verifyToken } from '../utils/auth.utils';
 import { AppError } from '../middleware/errorHandler';
 import { asyncHandler } from '../middleware/asyncHandler';
 import { registerSchema, loginSchema } from '../validators/auth.validator';
@@ -30,16 +30,27 @@ export const registerCustomer = asyncHandler(async (req: Request, res: Response)
     role: 'customer',
   });
 
-  // Generate JWT token
+  // Generate JWT tokens
   const token = generateToken({
     id: user._id.toString(),
     email: user.email,
     role: user.role,
   });
+  const refreshToken = generateRefreshToken({
+    id: user._id.toString(),
+    email: user.email,
+    role: user.role,
+  });
+
+  // Store refresh token in database
+  user.refreshToken = refreshToken;
+  user.refreshTokenExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+  await user.save();
 
   res.status(201).json({
     message: 'Registration successful',
     token,
+    refreshToken,
     user: {
       id: user._id,
       email: user.email,
@@ -103,16 +114,27 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
     throw new AppError(401, 'Invalid email or password');
   }
 
-  // Generate JWT token
+  // Generate JWT tokens
   const token = generateToken({
     id: user._id.toString(),
     email: user.email,
     role: user.role,
   });
+  const refreshToken = generateRefreshToken({
+    id: user._id.toString(),
+    email: user.email,
+    role: user.role,
+  });
+
+  // Store refresh token in database
+  user.refreshToken = refreshToken;
+  user.refreshTokenExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+  await user.save();
 
   res.json({
     message: 'Login successful',
     token,
+    refreshToken,
     user: {
       id: user._id,
       email: user.email,
@@ -142,5 +164,60 @@ export const getCurrentUser = asyncHandler(async (req: Request, res: Response) =
       email: user.email,
       role: user.role,
     },
+  });
+});
+
+/**
+ * Refresh access token using refresh token
+ * POST /api/auth/refresh
+ */
+export const refreshToken = asyncHandler(async (req: Request, res: Response) => {
+  const { refreshToken } = req.body;
+
+  if (!refreshToken) {
+    throw new AppError(400, 'Refresh token is required');
+  }
+
+  // Verify refresh token
+  let decoded;
+  try {
+    decoded = verifyToken(refreshToken);
+  } catch (error) {
+    throw new AppError(401, 'Invalid or expired refresh token');
+  }
+
+  // Find user and check if refresh token matches
+  const user = await User.findById(decoded.id).select('+refreshToken +refreshTokenExpiry');
+  if (!user || user.refreshToken !== refreshToken) {
+    throw new AppError(401, 'Invalid refresh token');
+  }
+
+  // Check if refresh token is expired
+  if (!user.refreshTokenExpiry || user.refreshTokenExpiry < new Date()) {
+    throw new AppError(401, 'Refresh token has expired');
+  }
+
+  // Generate new access token
+  const newAccessToken = generateToken({
+    id: user._id.toString(),
+    email: user.email,
+    role: user.role,
+  });
+
+  // Optionally rotate refresh token (generate new one)
+  const newRefreshToken = generateRefreshToken({
+    id: user._id.toString(),
+    email: user.email,
+    role: user.role,
+  });
+
+  user.refreshToken = newRefreshToken;
+  user.refreshTokenExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+  await user.save();
+
+  res.json({
+    message: 'Token refreshed successfully',
+    token: newAccessToken,
+    refreshToken: newRefreshToken,
   });
 });

@@ -9,18 +9,36 @@ const AdminCardListPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState(searchParams.get('set') || '');
   const [includeInactive, setIncludeInactive] = useState(false);
+  const [missingImages, setMissingImages] = useState(searchParams.get('missingImages') === 'true');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
+  const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
+
+  const toggleCardExpansion = (cardId: string) => {
+    setExpandedCards(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(cardId)) {
+        newSet.delete(cardId);
+      } else {
+        newSet.add(cardId);
+      }
+      return newSet;
+    });
+  };
 
   useEffect(() => {
     loadCards();
-  }, [page, includeInactive]);
+  }, [page, includeInactive, missingImages]);
 
   // Load initial search from URL params
   useEffect(() => {
     const setParam = searchParams.get('set');
+    const missingImagesParam = searchParams.get('missingImages');
     if (setParam) {
       setSearchQuery(setParam);
+    }
+    if (missingImagesParam === 'true') {
+      setMissingImages(true);
     }
   }, [searchParams]);
 
@@ -30,6 +48,7 @@ const AdminCardListPage: React.FC = () => {
       const data = await adminApi.getAdminCards({
         q: searchQuery || undefined,
         includeInactive,
+        missingImages,
         page,
         limit: 50,
       });
@@ -118,6 +137,22 @@ const AdminCardListPage: React.FC = () => {
               </label>
             </div>
 
+            <div className="flex items-center gap-3 px-4 py-3 rounded-lg" style={{ backgroundColor: 'var(--color-background)' }}>
+              <input
+                type="checkbox"
+                id="missingImages"
+                checked={missingImages}
+                onChange={(e) => setMissingImages(e.target.checked)}
+                className="w-5 h-5 text-red-600 rounded focus:ring-2 focus:ring-red-500"
+              />
+              <label htmlFor="missingImages" className="text-sm font-medium cursor-pointer flex items-center gap-1" style={{ color: 'var(--color-text)' }}>
+                <svg className="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                Missing images only
+              </label>
+            </div>
+
             <button 
               type="submit" 
               className="px-8 py-3 rounded-lg font-medium shadow-md hover:opacity-90 whitespace-nowrap"
@@ -178,12 +213,20 @@ const AdminCardListPage: React.FC = () => {
                         </div>
                       </th>
                       <th className="px-6 py-4 text-right text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--color-text)' }}>Buy Price</th>
-                      <th className="px-6 py-4 text-right text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--color-text)' }}>
+                      <th className="px-6 py-4 text-right text-xs font-bold uppercase tracking-wider" style={{ color: '#10b981' }}>
                         <div className="flex items-center justify-end gap-1">
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
-                          Sell Price
+                          Web Price
+                        </div>
+                      </th>
+                      <th className="px-6 py-4 text-right text-xs font-bold uppercase tracking-wider" style={{ color: '#3b82f6' }}>
+                        <div className="flex items-center justify-end gap-1">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                          </svg>
+                          Marketplace
                         </div>
                       </th>
                       <th className="px-6 py-4 text-right text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--color-text)' }}>Actions</th>
@@ -197,14 +240,49 @@ const AdminCardListPage: React.FC = () => {
                       const lowestPrice = inventory.length > 0 
                         ? Math.min(...inventory.map(item => item.sellPrice))
                         : 0;
+                      const lowestMarketplacePrice = inventory.length > 0 
+                        ? Math.min(...inventory.map(item => item.marketplacePrice || 0))
+                        : 0;
+                      
+                      // Group inventory by seller
+                      const sellerInventory = inventory.reduce((acc, item) => {
+                        const sellerKey = item.sellerId || 'admin';
+                        const sellerName = item.sellerName || 'Admin';
+                        
+                        if (!acc[sellerKey]) {
+                          acc[sellerKey] = {
+                            sellerId: sellerKey,
+                            sellerName: sellerName,
+                            items: []
+                          };
+                        }
+                        acc[sellerKey].items.push(item);
+                        return acc;
+                      }, {} as Record<string, { sellerId: string; sellerName: string; items: typeof inventory }>);
+                      
+                      const sellers = Object.values(sellerInventory);
+                      const isExpanded = expandedCards.has(card._id);
                       
                       return (
-                        <tr
-                          key={card._id}
-                          className={!card.isActive ? 'bg-red-50 opacity-70' : 'hover:bg-blue-50 transition-colors'}
-                        >
+                        <React.Fragment key={card._id}>
+                          <tr
+                            className={!card.isActive ? 'bg-red-50 opacity-70' : 'hover:bg-blue-50 transition-colors cursor-pointer'}
+                            onClick={() => toggleCardExpansion(card._id)}
+                          >
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-3">
+                              {/* Expand/Collapse Indicator */}
+                              <div className="flex-shrink-0">
+                                <svg 
+                                  className={`w-5 h-5 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+                                  fill="none" 
+                                  stroke="currentColor" 
+                                  viewBox="0 0 24 24"
+                                  style={{ color: 'var(--color-text-secondary)' }}
+                                >
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                </svg>
+                              </div>
                               {/* Card Image */}
                               <div className="flex-shrink-0">
                                 {card.imageUrl ? (
@@ -223,7 +301,22 @@ const AdminCardListPage: React.FC = () => {
                                 )}
                               </div>
                               <div className="flex-1">
-                                <div className="font-semibold" style={{ color: 'var(--color-text)' }}>{card.name}</div>
+                                <div className="font-semibold" style={{ color: 'var(--color-text)' }}>
+                                  {card.name}
+                                  {sellers.length > 0 && (
+                                    <span className="ml-2 text-xs font-normal px-2 py-0.5 rounded-full" style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-panel)', opacity: 0.8 }}>
+                                      {sellers.length} seller{sellers.length !== 1 ? 's' : ''}
+                                    </span>
+                                  )}
+                                  {!card.imageUrl && (
+                                    <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                      <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                      </svg>
+                                      No Image
+                                    </span>
+                                  )}
+                                </div>
                                 {!card.isActive && (
                                   <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800 mt-1">
                                     <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -254,11 +347,14 @@ const AdminCardListPage: React.FC = () => {
                             </span>
                           </td>
                           <td className="px-6 py-4 text-right text-sm" style={{ color: 'var(--color-text-secondary)' }}>-</td>
-                          <td className="px-6 py-4 text-right font-semibold" style={{ color: 'var(--color-text)' }}>
+                          <td className="px-6 py-4 text-right font-semibold" style={{ color: '#10b981' }}>
                             Rp {lowestPrice.toLocaleString()}
                           </td>
+                          <td className="px-6 py-4 text-right font-semibold" style={{ color: '#3b82f6' }}>
+                            Rp {lowestMarketplacePrice.toLocaleString()}
+                          </td>
                           <td className="px-6 py-4 text-right">
-                            <div className="flex gap-2 justify-end">
+                            <div className="flex gap-2 justify-end" onClick={(e) => e.stopPropagation()}>
                               <Link
                                 to={`/admin/cards/edit/${card._id}`}
                                 className="inline-flex items-center px-3 py-1.5 rounded-md hover:opacity-80 text-sm font-medium"
@@ -271,7 +367,10 @@ const AdminCardListPage: React.FC = () => {
                               </Link>
                               {card.isActive && (
                                 <button
-                                  onClick={() => handleDelete(card._id, card.name)}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDelete(card._id, card.name);
+                                  }}
                                   className="inline-flex items-center px-3 py-1.5 rounded-md hover:opacity-80 text-sm font-medium"
                                   style={{ backgroundColor: '#DC2626', color: 'var(--color-panel)', opacity: 0.9 }}
                                 >
@@ -284,6 +383,117 @@ const AdminCardListPage: React.FC = () => {
                             </div>
                           </td>
                         </tr>
+                        
+                        {/* Seller Details Row (Expanded) */}
+                        {isExpanded && sellers.length > 0 && (
+                          <tr className="bg-blue-50">
+                            <td colSpan={7} className="px-6 py-4">
+                              <div className="ml-8">
+                                <h4 className="font-semibold mb-3 flex items-center gap-2" style={{ color: 'var(--color-text)' }}>
+                                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                  </svg>
+                                  Seller Inventory Breakdown
+                                </h4>
+                                <div className="grid gap-3">
+                                  {sellers.map((seller) => {
+                                    const sellerOwned = seller.items.reduce((sum, item) => sum + item.quantityOwned, 0);
+                                    const sellerForSale = seller.items.reduce((sum, item) => sum + item.quantityForSale, 0);
+                                    
+                                    return (
+                                      <div 
+                                        key={seller.sellerId} 
+                                        className="p-4 rounded-lg border-2"
+                                        style={{ 
+                                          backgroundColor: 'var(--color-panel)', 
+                                          borderColor: 'var(--color-text-secondary)',
+                                          opacity: 0.95
+                                        }}
+                                      >
+                                        <div className="flex items-center justify-between mb-3">
+                                          <div className="flex items-center gap-2">
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--color-accent)' }}>
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                            </svg>
+                                            <span className="font-bold text-lg" style={{ color: 'var(--color-text)' }}>
+                                              {seller.sellerName}
+                                            </span>
+                                          </div>
+                                          <div className="flex gap-3">
+                                            <div className="text-center">
+                                              <div className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>Owned</div>
+                                              <div className="font-bold text-lg" style={{ color: '#7c3aed' }}>{sellerOwned}</div>
+                                            </div>
+                                            <div className="text-center">
+                                              <div className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>For Sale</div>
+                                              <div className="font-bold text-lg" style={{ color: '#10b981' }}>{sellerForSale}</div>
+                                            </div>
+                                          </div>
+                                        </div>
+                                        
+                                        {/* Inventory Items */}
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                                          {seller.items.map((item, idx) => (
+                                            <div 
+                                              key={idx}
+                                              className="p-3 rounded border text-sm"
+                                              style={{ 
+                                                backgroundColor: 'var(--color-background)',
+                                                borderColor: 'var(--color-text-secondary)'
+                                              }}
+                                            >
+                                              <div className="flex items-center justify-between mb-2">
+                                                <div className="flex items-center gap-2">
+                                                  <span className={`px-2 py-0.5 rounded text-xs font-bold ${
+                                                    item.condition === 'NM' ? 'bg-green-100 text-green-800' :
+                                                    item.condition === 'LP' ? 'bg-yellow-100 text-yellow-800' :
+                                                    'bg-orange-100 text-orange-800'
+                                                  }`}>
+                                                    {item.condition}
+                                                  </span>
+                                                  <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
+                                                    item.finish === 'foil' ? 'bg-purple-100 text-purple-800' :
+                                                    item.finish === 'etched' ? 'bg-blue-100 text-blue-800' :
+                                                    'bg-gray-100 text-gray-800'
+                                                  }`}>
+                                                    {item.finish}
+                                                  </span>
+                                                </div>
+                                              </div>
+                                              <div className="grid grid-cols-2 gap-2 text-xs">
+                                                <div>
+                                                  <div style={{ color: 'var(--color-text-secondary)' }}>Owned:</div>
+                                                  <div className="font-semibold" style={{ color: 'var(--color-text)' }}>{item.quantityOwned}</div>
+                                                </div>
+                                                <div>
+                                                  <div style={{ color: 'var(--color-text-secondary)' }}>For Sale:</div>
+                                                  <div className="font-semibold" style={{ color: 'var(--color-text)' }}>{item.quantityForSale}</div>
+                                                </div>
+                                                <div>
+                                                  <div style={{ color: 'var(--color-text-secondary)' }}>Buy:</div>
+                                                  <div className="font-semibold" style={{ color: 'var(--color-text)' }}>Rp {item.buyPrice.toLocaleString()}</div>
+                                                </div>
+                                                <div>
+                                                  <div style={{ color: 'var(--color-text-secondary)' }}>Web:</div>
+                                                  <div className="font-semibold text-green-600">Rp {item.sellPrice.toLocaleString()}</div>
+                                                </div>
+                                                <div>
+                                                  <div style={{ color: 'var(--color-text-secondary)' }}>Marketplace:</div>
+                                                  <div className="font-semibold text-blue-600">Rp {(item.marketplacePrice || 0).toLocaleString()}</div>
+                                                </div>
+                                              </div>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
                       )
                     })}
                   </tbody>

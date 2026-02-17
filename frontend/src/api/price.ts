@@ -9,7 +9,8 @@ export const priceApi = {
       `${API_URL}/prices/import-prices`,
       {},
       {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
+        timeout: 60000 // 60 seconds timeout (endpoint returns immediately, but add buffer)
       }
     );
     return response.data;

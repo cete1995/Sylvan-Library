@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { register, registerCustomer, login, getCurrentUser } from '../controllers/auth.controller';
+import { register, registerCustomer, login, getCurrentUser, refreshToken } from '../controllers/auth.controller';
 import { authenticate } from '../middleware/auth.middleware';
 
 const router = Router();
@@ -31,5 +31,12 @@ router.post('/login', login);
  * @access  Private
  */
 router.get('/me', authenticate, getCurrentUser);
+
+/**
+ * @route   POST /api/auth/refresh
+ * @desc    Refresh access token using refresh token
+ * @access  Public
+ */
+router.post('/refresh', refreshToken);
 
 export default router;

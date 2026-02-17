@@ -4,7 +4,7 @@ import { priceApi } from '../api/price';
 import { useAuth } from '../contexts/AuthContext';
 
 const AdminPriceManagementPage: React.FC = () => {
-  const { token } = useAuth();
+  const { token, user, isLoading } = useAuth();
   const [importing, setImporting] = useState(false);
   const [status, setStatus] = useState<any>(null);
   const [result, setResult] = useState<any>(null);
@@ -12,18 +12,39 @@ const AdminPriceManagementPage: React.FC = () => {
   const [progress, setProgress] = useState<any>(null);
 
   useEffect(() => {
-    loadStatus();
-  }, []);
+    if (!isLoading && !token) {
+      // Redirect to login if not authenticated
+      window.location.href = '/login';
+      return;
+    }
+    
+    if (token) {
+      loadStatus();
+    }
+  }, [token, isLoading]);
 
   const loadStatus = async () => {
-    if (!token) return;
+    if (!token) {
+      console.log('No token available');
+      return;
+    }
     
     try {
       setLoading(true);
+      console.log('Fetching import status with token:', token.substring(0, 20) + '...');
       const data = await priceApi.getImportStatus(token);
+      console.log('Import status loaded:', data);
       setStatus(data);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to load status:', error);
+      console.error('Error response:', error.response);
+      if (error.response?.status === 401) {
+        alert('Session expired. Please log in again.');
+        localStorage.clear();
+        window.location.href = '/login';
+      } else {
+        alert('Failed to load import status: ' + (error.response?.data?.error || error.message));
+      }
     } finally {
       setLoading(false);
     }
@@ -181,13 +202,26 @@ const AdminPriceManagementPage: React.FC = () => {
                        progress.status === 'completed' ? '✅ Completed!' : '🔄 Importing...'}
                     </div>
                     <div className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-                      {progress.currentCard.toLocaleString()} of {progress.totalCards.toLocaleString()} cards
+                      {progress.status === 'downloading' ? (
+                        <>
+                          {progress.totalBytes > 0 ? (
+                            <>
+                              {(progress.downloadedBytes / 1024 / 1024).toFixed(2)} MB / {(progress.totalBytes / 1024 / 1024).toFixed(2)} MB
+                              {progress.downloadSpeed > 0 && (
+                                <span className="ml-2">• {(progress.downloadSpeed / 1024 / 1024).toFixed(2)} MB/s</span>
+                              )}
+                            </>
+                          ) : 'Initializing download...'}
+                        </>
+                      ) : (
+                        <>{progress.currentCard.toLocaleString()} of {progress.totalCards.toLocaleString()} cards</>
+                      )}
                     </div>
                   </div>
                 </div>
                 <div className="text-right">
                   <div className="text-2xl font-bold" style={{ color: 'var(--color-accent)' }}>
-                    {progress.percentage}%
+                    {progress.status === 'downloading' ? progress.downloadProgress || 0 : progress.percentage}%
                   </div>
                 </div>
               </div>
@@ -197,24 +231,42 @@ const AdminPriceManagementPage: React.FC = () => {
                 <div 
                   className="h-full transition-all duration-300 ease-out rounded-full"
                   style={{ 
-                    width: `${progress.percentage}%`,
-                    background: 'linear-gradient(to right, #10B981, #059669)',
-                    boxShadow: '0 0 10px rgba(16, 185, 129, 0.5)'
+                    width: `${progress.status === 'downloading' ? (progress.downloadProgress || 0) : progress.percentage}%`,
+                    background: progress.status === 'downloading' 
+                      ? 'linear-gradient(to right, #3B82F6, #2563EB)' 
+                      : 'linear-gradient(to right, #10B981, #059669)',
+                    boxShadow: progress.status === 'downloading'
+                      ? '0 0 10px rgba(59, 130, 246, 0.5)'
+                      : '0 0 10px rgba(16, 185, 129, 0.5)'
                   }}
                 />
               </div>
 
               {/* Stats Grid */}
-              <div className="grid grid-cols-2 gap-3 mt-4">
-                <div className="p-3 rounded-lg" style={{ backgroundColor: 'rgba(16, 185, 129, 0.1)' }}>
-                  <div className="text-xs mb-1" style={{ color: 'var(--color-text-secondary)' }}>Imported</div>
-                  <div className="text-xl font-bold text-green-600">{progress.imported.toLocaleString()}</div>
+              {progress.status !== 'downloading' && (
+                <div className="grid grid-cols-2 gap-3 mt-4">
+                  <div className="p-3 rounded-lg" style={{ backgroundColor: 'rgba(16, 185, 129, 0.1)' }}>
+                    <div className="text-xs mb-1" style={{ color: 'var(--color-text-secondary)' }}>Imported</div>
+                    <div className="text-xl font-bold text-green-600">{progress.imported.toLocaleString()}</div>
+                  </div>
+                  <div className="p-3 rounded-lg" style={{ backgroundColor: 'rgba(156, 163, 175, 0.1)' }}>
+                    <div className="text-xs mb-1" style={{ color: 'var(--color-text-secondary)' }}>Skipped</div>
+                    <div className="text-xl font-bold text-gray-600">{progress.skipped.toLocaleString()}</div>
+                  </div>
                 </div>
-                <div className="p-3 rounded-lg" style={{ backgroundColor: 'rgba(156, 163, 175, 0.1)' }}>
-                  <div className="text-xs mb-1" style={{ color: 'var(--color-text-secondary)' }}>Skipped</div>
-                  <div className="text-xl font-bold text-gray-600">{progress.skipped.toLocaleString()}</div>
+              )}
+              
+              {/* Download Stats */}
+              {progress.status === 'downloading' && progress.totalBytes > 0 && (
+                <div className="mt-4 p-3 rounded-lg" style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)' }}>
+                  <div className="flex items-center justify-between text-sm">
+                    <span style={{ color: 'var(--color-text-secondary)' }}>Download Speed:</span>
+                    <span className="font-bold text-blue-600">
+                      {progress.downloadSpeed > 0 ? `${(progress.downloadSpeed / 1024 / 1024).toFixed(2)} MB/s` : 'Calculating...'}
+                    </span>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           )}
 

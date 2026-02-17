@@ -22,7 +22,11 @@ interface JwtPayload {
 }
 
 export const generateToken = (payload: JwtPayload): string => {
-  return jwt.sign(payload, config.jwtSecret, { expiresIn: '7d' });
+  return jwt.sign(payload, config.jwtSecret, { expiresIn: '15m' }); // Short-lived access token
+};
+
+export const generateRefreshToken = (payload: JwtPayload): string => {
+  return jwt.sign(payload, config.jwtSecret, { expiresIn: '7d' }); // Long-lived refresh token
 };
 
 export const verifyToken = (token: string): JwtPayload => {

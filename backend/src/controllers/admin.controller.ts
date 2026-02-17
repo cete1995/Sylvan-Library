@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { Card } from '../models';
+import { Card, User } from '../models';
 import { AppError } from '../middleware/errorHandler';
 import { asyncHandler } from '../middleware/asyncHandler';
 import { createCardSchema, updateCardSchema } from '../validators/card.validator';
@@ -97,6 +97,42 @@ export const getSets = asyncHandler(async (req: Request, res: Response) => {
 });
 
 /**
+ * Get all unique sets that have cards with missing images
+ * Returns sets where at least one card has no imageUrl
+ * Sorted by card count (most missing images first)
+ * GET /api/admin/sets/missing-images
+ */
+export const getSetsWithMissingImages = asyncHandler(async (req: Request, res: Response) => {
+  const sets = await Card.aggregate([
+    {
+      // Filter for cards WITHOUT images
+      $match: {
+        $or: [
+          { imageUrl: { $exists: false } },
+          { imageUrl: null },
+          { imageUrl: '' }
+        ],
+      },
+    },
+    {
+      $group: {
+        _id: '$setCode',
+        setCode: { $first: '$setCode' },
+        setName: { $first: '$setName' },
+        releaseDate: { $first: '$releaseDate' },
+        cardCount: { $sum: 1 },
+        lastUpdated: { $max: '$updatedAt' },
+      },
+    },
+    {
+      $sort: { cardCount: -1, releaseDate: -1 },
+    },
+  ]);
+
+  res.json({ sets });
+});
+
+/**
  * Get all cards (including inactive) with admin filters
  * GET /api/admin/cards
  */
@@ -105,6 +141,7 @@ export const getAdminCards = asyncHandler(async (req: Request, res: Response) =>
     q,
     set,
     includeInactive,
+    missingImages,
     page = '1',
     limit = '50',
   } = req.query;
@@ -116,12 +153,32 @@ export const getAdminCards = asyncHandler(async (req: Request, res: Response) =>
     filter.isActive = true;
   }
 
-  // Search by name
-  if (q) {
+  // Filter by missing images
+  if (missingImages === 'true') {
     filter.$or = [
+      { imageUrl: { $exists: false } },
+      { imageUrl: null },
+      { imageUrl: '' }
+    ];
+  }
+
+  // Search by name (combine with existing $or if missingImages filter exists)
+  if (q) {
+    const nameFilter = [
       { name: { $regex: q, $options: 'i' } },
       { setName: { $regex: q, $options: 'i' } },
     ];
+    
+    if (filter.$or) {
+      // If missingImages filter exists, combine with $and
+      filter.$and = [
+        { $or: filter.$or },
+        { $or: nameFilter }
+      ];
+      delete filter.$or;
+    } else {
+      filter.$or = nameFilter;
+    }
   }
 
   // Filter by set
@@ -154,54 +211,33 @@ export const getAdminCards = asyncHandler(async (req: Request, res: Response) =>
  * GET /api/admin/stats
  */
 export const getStats = asyncHandler(async (req: Request, res: Response) => {
-  const stats = await Card.aggregate([
-    { $match: { isActive: true } },
-    { $unwind: { path: '$inventory', preserveNullAndEmptyArrays: true } },
-    {
-      $group: {
-        _id: null,
-        totalCards: { $addToSet: '$_id' },
-        totalQuantity: { $sum: { $ifNull: ['$inventory.quantityOwned', 0] } },
-        totalInventoryValue: {
-          $sum: { 
-            $multiply: [
-              { $ifNull: ['$inventory.quantityOwned', 0] }, 
-              { $ifNull: ['$inventory.buyPrice', 0] }
-            ] 
-          },
-        },
-        totalListingValue: {
-          $sum: { 
-            $multiply: [
-              { $ifNull: ['$inventory.quantityForSale', 0] }, 
-              { $ifNull: ['$inventory.sellPrice', 0] }
-            ] 
-          },
-        },
-      },
-    },
-    {
-      $project: {
-        totalCards: { $size: '$totalCards' },
-        totalQuantity: 1,
-        totalInventoryValue: 1,
-        totalListingValue: 1,
+  // Get all active cards
+  const cards = await Card.find({ isActive: true }).lean();
+  
+  // Calculate stats manually to avoid aggregation issues
+  const uniqueCards = new Set<string>();
+  let totalQuantity = 0;
+  let totalInventoryValue = 0;
+  let totalListingValue = 0;
+  
+  for (const card of cards) {
+    uniqueCards.add(card._id.toString());
+    
+    if (card.inventory && Array.isArray(card.inventory)) {
+      for (const item of card.inventory) {
+        // Add to totals
+        totalQuantity += item.quantityOwned || 0;
+        totalInventoryValue += (item.quantityOwned || 0) * (item.buyPrice || 0);
+        totalListingValue += (item.quantityForSale || 0) * (item.sellPrice || 0);
       }
     }
-  ]);
-
-  const result = stats[0] || {
-    totalCards: 0,
-    totalQuantity: 0,
-    totalInventoryValue: 0,
-    totalListingValue: 0,
-  };
+  }
 
   res.json({
-    totalCards: result.totalCards,
-    totalQuantity: result.totalQuantity,
-    totalInventoryValue: result.totalInventoryValue.toFixed(2),
-    totalListingValue: result.totalListingValue.toFixed(2),
+    totalCards: uniqueCards.size,
+    totalQuantity: totalQuantity,
+    totalInventoryValue: totalInventoryValue.toFixed(2),
+    totalListingValue: totalListingValue.toFixed(2),
   });
 });
 
@@ -332,5 +368,51 @@ export const clearDatabase = asyncHandler(async (req: Request, res: Response) =>
       featuredProducts: deletedFeaturedProducts.deletedCount,
       featuredBanners: deletedFeaturedBanners.deletedCount,
     },
+  });
+});
+
+/**
+ * Fix seller names in all inventory items
+ * POST /api/admin/fix-seller-names
+ */
+export const fixSellerNames = asyncHandler(async (req: Request, res: Response) => {
+  let updatedCards = 0;
+  let updatedItems = 0;
+
+  // Get all sellers
+  const sellers = await User.find({ role: 'seller' }).lean();
+  const sellerMap = new Map<string, string>(
+    sellers.map(s => [s._id.toString(), s.name || s.email.split('@')[0]])
+  );
+
+  // Get all cards with inventory
+  const cards = await Card.find({ 'inventory.0': { $exists: true } });
+
+  for (const card of cards) {
+    let cardUpdated = false;
+
+    for (const item of card.inventory) {
+      if (item.sellerId) {
+        const correctName = sellerMap.get(item.sellerId.toString());
+        if (correctName && item.sellerName !== correctName) {
+          item.sellerName = correctName;
+          cardUpdated = true;
+          updatedItems++;
+        }
+      }
+    }
+
+    if (cardUpdated) {
+      await card.save();
+      updatedCards++;
+    }
+  }
+
+  res.json({
+    success: true,
+    message: 'Seller names updated successfully',
+    updatedCards,
+    updatedItems,
+    sellers: sellers.map(s => ({ id: s._id.toString(), name: s.name, email: s.email }))
   });
 });

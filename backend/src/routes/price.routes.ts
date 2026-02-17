@@ -13,7 +13,11 @@ let importProgress = {
   imported: 0,
   skipped: 0,
   percentage: 0,
-  status: 'idle'
+  status: 'idle',
+  downloadProgress: 0,
+  downloadedBytes: 0,
+  totalBytes: 0,
+  downloadSpeed: 0
 };
 
 // SSE endpoint for import progress
@@ -71,7 +75,11 @@ router.post('/import-prices', authenticate, requireAdmin, async (req: Request, r
     imported: 0,
     skipped: 0,
     percentage: 0,
-    status: 'downloading'
+    status: 'downloading',
+    downloadProgress: 0,
+    downloadedBytes: 0,
+    totalBytes: 0,
+    downloadSpeed: 0
   };
 
   // Start import in background, return immediately
@@ -85,10 +93,35 @@ router.post('/import-prices', authenticate, requireAdmin, async (req: Request, r
     try {
       console.log('Downloading AllPricesToday.json from MTGJson...');
     
-    // Download the price data
+    // Track download progress
+    let startTime = Date.now();
+    let lastUpdateTime = startTime;
+    let lastDownloadedBytes = 0;
+    
+    // Download the price data with progress tracking
     const response = await axios.get('https://mtgjson.com/api/v5/AllPricesToday.json', {
       timeout: 300000, // 5 minutes timeout
-      maxContentLength: 500 * 1024 * 1024, // 500MB max,
+      maxContentLength: 500 * 1024 * 1024, // 500MB max
+      onDownloadProgress: (progressEvent) => {
+        const now = Date.now();
+        const timeDiff = (now - lastUpdateTime) / 1000; // seconds
+        
+        if (progressEvent.total) {
+          importProgress.totalBytes = progressEvent.total;
+          importProgress.downloadedBytes = progressEvent.loaded;
+          importProgress.downloadProgress = Math.round((progressEvent.loaded / progressEvent.total) * 100);
+          
+          // Calculate download speed (bytes per second)
+          if (timeDiff > 0.5) { // Update speed every 500ms
+            const bytesDiff = progressEvent.loaded - lastDownloadedBytes;
+            importProgress.downloadSpeed = Math.round(bytesDiff / timeDiff); // bytes/second
+            lastUpdateTime = now;
+            lastDownloadedBytes = progressEvent.loaded;
+          }
+          
+          console.log(`Download progress: ${importProgress.downloadProgress}% (${(progressEvent.loaded / 1024 / 1024).toFixed(2)} MB / ${(progressEvent.total / 1024 / 1024).toFixed(2)} MB) - ${(importProgress.downloadSpeed / 1024 / 1024).toFixed(2)} MB/s`);
+        }
+      }
     });
 
     const priceData = response.data.data;

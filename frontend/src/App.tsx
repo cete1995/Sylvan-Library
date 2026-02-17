@@ -29,6 +29,10 @@ import AdminUBSettingsPage from './pages/AdminUBSettingsPage';
 import AdminRegularSettingsPage from './pages/AdminRegularSettingsPage';
 import AdminSellerManagementPage from './pages/AdminSellerManagementPage';
 import AdminTikTokDebugPage from './pages/AdminTikTokDebugPage';
+import AdminTikTokGetOrdersPage from './pages/AdminTikTokGetOrdersPage';
+import AdminTikTokOrdersPage from './pages/AdminTikTokOrdersPage';
+import AdminTikTokOrderDetailPage from './pages/AdminTikTokOrderDetailPage';
+import AdminMissingImagesPage from './pages/AdminMissingImagesPage';
 import ManaboxUploadPage from './pages/ManaboxUploadPage';
 import SellerDashboardPage from './pages/SellerDashboardPage';
 import SellerInventoryFormPage from './pages/SellerInventoryFormPage';
@@ -197,6 +201,38 @@ const App: React.FC = () => {
                 element={
                   <ProtectedRoute adminOnly={true}>
                     <AdminTikTokDebugPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/tiktok-get-orders"
+                element={
+                  <ProtectedRoute adminOnly={true}>
+                    <AdminTikTokGetOrdersPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/tiktok-orders"
+                element={
+                  <ProtectedRoute adminOnly={true}>
+                    <AdminTikTokOrdersPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/tiktok-orders/:orderId"
+                element={
+                  <ProtectedRoute adminOnly={true}>
+                    <AdminTikTokOrderDetailPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/missing-images"
+                element={
+                  <ProtectedRoute adminOnly={true}>
+                    <AdminMissingImagesPage />
                   </ProtectedRoute>
                 }
               />

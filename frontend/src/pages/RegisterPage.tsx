@@ -39,7 +39,7 @@ const RegisterPage: React.FC = () => {
       const data = await authApi.registerCustomer(formData.name, formData.email, formData.password);
       
       // Log user in with the returned token
-      setAuthData(data.token, data.user);
+      setAuthData(data.token, data.user, data.refreshToken);
       
       setTimeout(() => {
         navigate('/');

@@ -60,7 +60,7 @@ router.post('/upload', authenticate, upload.single('file'), async (req: Request,
     }
 
     const sellerId = req.user.id;
-    const sellerName = req.user.email.split('@')[0]; // Simple seller name from email
+    const sellerName = req.user.name || req.user.email.split('@')[0]; // Use seller name or fallback to email prefix
 
     const results: any[] = [];
     const errors: any[] = [];

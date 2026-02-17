@@ -9,6 +9,8 @@ export interface IUser extends Document {
   phoneNumber?: string;
   courierNotes?: string;
   profilePhoto?: string;
+  refreshToken?: string;
+  refreshTokenExpiry?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -53,6 +55,14 @@ const userSchema = new Schema<IUser>(
     profilePhoto: {
       type: String,
       trim: true,
+    },
+    refreshToken: {
+      type: String,
+      select: false, // Don't include refresh token in queries by default
+    },
+    refreshTokenExpiry: {
+      type: Date,
+      select: false,
     },
   },
   {

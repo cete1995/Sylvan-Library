@@ -10,7 +10,8 @@ export interface IInventoryItem {
   quantityOwned: number;
   quantityForSale: number;
   buyPrice: number;
-  sellPrice: number;
+  sellPrice: number; // Web/direct sale price
+  marketplacePrice?: number; // TikTok/Tokopedia price (with 19% fee included)
   sellerId?: string;
   sellerName?: string;
   // TikTok Shop / Tokopedia sync fields
@@ -82,6 +83,12 @@ const inventoryItemSchema = new Schema<IInventoryItem>({
   sellPrice: {
     type: Number,
     required: true,
+    min: 0,
+    default: 0,
+  },
+  marketplacePrice: {
+    type: Number,
+    required: false,
     min: 0,
     default: 0,
   },

@@ -6,7 +6,7 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   login: (email: string, password: string) => Promise<void>;
-  setAuthData: (token: string, user: User) => void;
+  setAuthData: (token: string, user: User, refreshToken?: string) => void;
   logout: () => void;
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -23,6 +23,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     // Load user and token from localStorage on mount
     const storedToken = localStorage.getItem('token');
     const storedUser = localStorage.getItem('user');
+    const storedRefreshToken = localStorage.getItem('refreshToken');
 
     if (storedToken && storedUser) {
       setToken(storedToken);
@@ -39,20 +40,27 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     
     localStorage.setItem('token', response.token);
     localStorage.setItem('user', JSON.stringify(response.user));
+    if (response.refreshToken) {
+      localStorage.setItem('refreshToken', response.refreshToken);
+    }
   };
 
-  const setAuthData = (newToken: string, newUser: User): void => {
+  const setAuthData = (newToken: string, newUser: User, refreshToken?: string): void => {
     setToken(newToken);
     setUser(newUser);
     
     localStorage.setItem('token', newToken);
     localStorage.setItem('user', JSON.stringify(newUser));
+    if (refreshToken) {
+      localStorage.setItem('refreshToken', refreshToken);
+    }
   };
 
   const logout = (): void => {
     setToken(null);
     setUser(null);
     localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
     localStorage.removeItem('user');
   };
 
