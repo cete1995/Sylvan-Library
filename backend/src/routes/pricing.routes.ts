@@ -80,9 +80,9 @@ router.post('/sync-all', authenticate, requireAdmin, async (req: Request, res: R
           
           let ckPrice: number | undefined;
 
-          // Get CK price based on finish
-          if (item.finish === 'foil') {
-            ckPrice = ckPrices.foil;
+          // Get CK price based on finish (etched uses foil price, falls back to normal)
+          if (item.finish === 'foil' || item.finish === 'etched') {
+            ckPrice = ckPrices.foil || ckPrices.normal;
           } else {
             ckPrice = ckPrices.normal;
           }
@@ -196,7 +196,9 @@ router.post('/force-resync-all', authenticate, requireAdmin, async (req: Request
         let updated = false;
 
         for (const item of card.inventory) {
-          const ckPrice = item.finish === 'foil' ? ckPrices.foil : ckPrices.normal;
+          const ckPrice = item.finish === 'foil' || item.finish === 'etched'
+            ? (ckPrices.foil || ckPrices.normal)
+            : ckPrices.normal;
           if (!ckPrice || ckPrice <= 0) continue;
 
           const newSellPrice = isUB

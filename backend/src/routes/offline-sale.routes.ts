@@ -78,7 +78,9 @@ router.get('/search-cards', async (req: Request, res: Response): Promise<void> =
             .map(async (inv: any) => {
               let computedSellPrice = inv.sellPrice || 0;
               if (ckRetail) {
-                const ckPrice = inv.finish === 'foil' ? ckRetail.foil : ckRetail.normal;
+                const ckPrice = inv.finish === 'foil' || inv.finish === 'etched'
+                  ? (ckRetail.foil || ckRetail.normal)
+                  : ckRetail.normal;
                 if (ckPrice && ckPrice > 0) {
                   computedSellPrice = isUB
                     ? await calculateUBPrice(ckPrice)
