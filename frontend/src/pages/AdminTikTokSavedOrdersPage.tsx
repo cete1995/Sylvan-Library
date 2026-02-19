@@ -281,7 +281,7 @@ const AdminTikTokSavedOrdersPage: React.FC = () => {
             // Loop through all items in each order
             Object.keys(updatedSellers[oId]).forEach(iIdx => {
               // Loop through all cards for each item
-              updatedSellers[oId][iIdx] = updatedSellers[oId][iIdx].map((card: any) => {
+              updatedSellers[oId][Number(iIdx)] = updatedSellers[oId][Number(iIdx)].map((card: any) => {
                 if (card.cardId === cardId) {
                   // Update inventory for this card
                   return {
@@ -347,7 +347,7 @@ const AdminTikTokSavedOrdersPage: React.FC = () => {
               // Loop through all items in each order
               Object.keys(updatedSellers[oId]).forEach(iIdx => {
                 // Loop through all cards for each item
-                updatedSellers[oId][iIdx] = updatedSellers[oId][iIdx].map((card: any) => {
+                updatedSellers[oId][Number(iIdx)] = updatedSellers[oId][Number(iIdx)].map((card: any) => {
                   if (card.cardId === assignedSeller.cardId) {
                     // Update inventory for this card
                     return {
@@ -407,7 +407,7 @@ const AdminTikTokSavedOrdersPage: React.FC = () => {
             // Loop through all items in each order
             Object.keys(updatedSellers[oId]).forEach(iIdx => {
               // Loop through all cards for each item
-              updatedSellers[oId][iIdx] = updatedSellers[oId][iIdx].map((card: any) => {
+              updatedSellers[oId][Number(iIdx)] = updatedSellers[oId][Number(iIdx)].map((card: any) => {
                 if (card.cardId === editingStock.cardId) {
                   // Update inventory for this card
                   return {
