@@ -1,6 +1,322 @@
-# MTG Inventory & Store
+# Sylvan Library — MTG Inventory & Store
 
-A full-stack web application for managing Magic: The Gathering card inventory and storefront, inspired by BinderPOS.
+A full-stack web application for managing Magic: The Gathering card inventory across multiple sellers, with a public storefront, TikTok order management, offline sales recording, and automated pricing.
+
+---
+
+## Table of Contents
+
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Quick Start](#quick-start)
+- [Environment Variables](#environment-variables)
+- [API Overview](#api-overview)
+- [Roles](#roles)
+- [Pricing System](#pricing-system)
+- [Deployment](#deployment)
+
+---
+
+## Features
+
+### 🛍️ Public Storefront
+- Browse & search all cards across all sellers
+- Filter by name, set, condition, finish, price range
+- Mobile-friendly catalog with bottom navigation
+- Card detail pages with images and inventory breakdown
+- Shopping cart with checkout flow
+- Order tracking
+
+### 🔐 Admin Panel
+- Full card & inventory management (add, edit, delete, bulk CSV upload)
+- Seller account management (create, edit, reset password, delete stock)
+- Dashboard stats (inventory value, order counts, seller breakdown)
+- Price sync from CK data — calculates sell prices via pricing tiers
+- Bulk price update across all cards
+- Featured banners & carousel management
+- Set management (upload set JSON for new sets)
+- Maintenance tools (fix seller names, regenerate SKUs, fix inventory quantities)
+
+### 👤 Seller Panel
+- Each seller manages their own inventory slots per card
+- View their own orders and sales history
+- Profile management
+
+### 📦 Order Management
+- Customer orders (cart → checkout → order history)
+- Admin can view/manage all orders
+- TikTok order import & assignment to sellers
+- Saved TikTok orders with seller assignment, stock deduction, undo support
+- Edit stock quantities directly from the TikTok order panel
+
+### 🏬 Offline Sales (Walk-in)
+- Record walk-in sales without an online order
+- **Card-first search** — search any card name across all sellers in stock
+- Each result shows which sellers have it, condition, finish, stock, and live price
+- Build a sale cart mixing cards from multiple sellers
+- Payment method tracking (Cash / Transfer / Other)
+- Sale history with per-item seller breakdown and void support
+
+### 🏷️ Pricing System
+- Two pricing tiers: **UB Sets** and **Regular Sets**
+- Prices calculated as: `CK Price × multiplier` (configured per tier)
+- Buy price tracked separately per inventory slot
+- Marketplace price (TikTok/external platform) tracked separately
+
+---
+
+## Tech Stack
+
+### Backend
+| Technology | Purpose |
+|---|---|
+| Node.js + Express | HTTP server & API |
+| TypeScript | Type safety |
+| MongoDB + Mongoose | Database & ODM |
+| JWT | Authentication |
+| Zod | Request validation |
+| Multer | File uploads (images, CSV) |
+| Axios | CK price fetching |
+
+### Frontend
+| Technology | Purpose |
+|---|---|
+| React 18 + TypeScript | UI framework |
+| Vite | Build tool & dev server |
+| Tailwind CSS | Styling |
+| React Router v6 | Client-side routing |
+| Axios | API calls |
+| Recharts | Analytics charts |
+| TanStack Query | Server state management |
+
+---
+
+## Project Structure
+
+```
+Sylvan Library/
+├── backend/
+│   ├── src/
+│   │   ├── config/          # DB connection, env vars
+│   │   ├── controllers/     # Business logic per resource
+│   │   ├── middleware/       # Auth, error handling, async wrapper
+│   │   ├── models/          # Mongoose schemas
+│   │   │   ├── Card.model.ts
+│   │   │   ├── User.model.ts
+│   │   │   ├── Order.model.ts
+│   │   │   ├── TikTokOrder.model.ts
+│   │   │   ├── OfflineSale.model.ts
+│   │   │   ├── Cart.model.ts
+│   │   │   ├── Carousel.model.ts
+│   │   │   ├── FeaturedBanner.model.ts
+│   │   │   ├── FeaturedProduct.model.ts
+│   │   │   ├── UBSettings.model.ts
+│   │   │   └── RegularSettings.model.ts
+│   │   ├── routes/          # Route definitions
+│   │   ├── utils/           # Pricing calculators, auth helpers
+│   │   └── server.ts        # Entry point
+│   ├── uploads/images/      # Uploaded card images
+│   ├── create-admin.js      # Script to bootstrap first admin
+│   ├── reset-admin-password.js
+│   └── package.json
+│
+└── frontend/
+    ├── src/
+    │   ├── api/             # Axios API wrappers per resource
+    │   ├── components/      # Shared UI components
+    │   ├── contexts/        # Auth context, cart context
+    │   ├── pages/           # One file per page/route
+    │   │   ├── AdminDashboardPage.tsx
+    │   │   ├── AdminCardListPage.tsx
+    │   │   ├── AdminOfflineSalePage.tsx
+    │   │   ├── AdminTikTokSavedOrdersPage.tsx
+    │   │   └── ...
+    │   ├── types/           # Shared TypeScript interfaces
+    │   └── App.tsx          # Routes
+    └── package.json
+```
+
+---
+
+## Quick Start
+
+### Prerequisites
+- Node.js 18+
+- MongoDB running locally (or a connection string)
+- npm
+
+### 1. Clone the repo
+
+```bash
+git clone https://github.com/cete1995/Sylvan-Library.git
+cd "Sylvan Library"
+```
+
+### 2. Backend setup
+
+```bash
+cd backend
+npm install
+```
+
+Create `backend/.env`:
+```env
+PORT=5000
+NODE_ENV=development
+MONGODB_URI=mongodb://localhost:27017/sylvan-library
+JWT_SECRET=change_this_to_a_long_random_string
+JWT_EXPIRES_IN=7d
+FRONTEND_URL=http://localhost:5173
+```
+
+Start the dev server:
+```bash
+npm run dev
+```
+→ API runs at `http://localhost:5000`
+
+### 3. Frontend setup
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+→ App runs at `http://localhost:5173`
+
+### 4. Create the first admin account
+
+```bash
+cd backend
+node create-admin.js
+```
+
+Follow the prompts to set email and password.
+
+### 5. Login
+
+Go to `http://localhost:5173/admin/login` and sign in.
+
+---
+
+## Environment Variables
+
+### `backend/.env`
+
+| Variable | Required | Description |
+|---|---|---|
+| `PORT` | No | Server port (default: `5000`) |
+| `NODE_ENV` | No | `development` or `production` |
+| `MONGODB_URI` | ✅ | MongoDB connection string |
+| `JWT_SECRET` | ✅ | Secret key for signing tokens |
+| `JWT_EXPIRES_IN` | No | Token lifetime (default: `7d`) |
+| `FRONTEND_URL` | ✅ | Used for CORS (e.g. `http://localhost:5173`) |
+
+### `frontend/.env` (optional)
+
+| Variable | Description |
+|---|---|
+| `VITE_API_URL` | Override API base URL (default: `http://localhost:5000/api`) |
+
+---
+
+## API Overview
+
+### Auth
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/auth/login` | Login, returns JWT |
+| GET | `/api/auth/me` | Get current user |
+
+### Public
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/cards` | Search/filter cards |
+| GET | `/api/cards/:id` | Card details |
+| GET | `/api/cart` | Get cart |
+| POST | `/api/orders` | Place order |
+
+### Admin (JWT required)
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/admin/stats` | Dashboard stats |
+| GET/POST/PUT/DELETE | `/api/admin/cards` | Card management |
+| POST | `/api/admin/cards/bulk-upload` | CSV import |
+| GET/POST/DELETE | `/api/admin/sellers` | Seller accounts |
+| GET/POST | `/api/admin/offline-sales` | Walk-in sales |
+| GET/POST | `/api/admin/tiktok/*` | TikTok order management |
+| GET/PUT | `/api/admin/ub-pricing` | UB set pricing settings |
+| GET/PUT | `/api/admin/regular-pricing` | Regular set pricing settings |
+| POST | `/api/admin/sync-prices` | Recalculate all sell prices from CK |
+
+### Seller (JWT required)
+| Method | Endpoint | Description |
+|---|---|---|
+| GET/POST/PUT | `/api/seller/inventory` | Manage own inventory |
+| GET | `/api/seller/orders` | View own orders |
+
+---
+
+## Roles
+
+| Role | Access |
+|---|---|
+| **Admin** | Full access — all pages, all sellers' data, pricing, settings |
+| **Seller** | Own inventory management, own orders view |
+| **Public** | Storefront browsing, cart, checkout |
+
+---
+
+## Pricing System
+
+Sell prices are calculated automatically:
+
+```
+Sell Price = CK Price × Multiplier
+```
+
+- **UB Sets** — sets with the UB (Universes Beyond) or non-Standard treatment; configured via Admin → UB Pricing
+- **Regular Sets** — all other sets; configured via Admin → Regular Pricing
+- Prices are recomputed on **"Sync All Prices"** or per-card edit
+- Buy prices are set manually per inventory slot
+
+---
+
+## Deployment
+
+See the full guide in [`backend/README.md`](backend/README.md) or deploy to:
+
+| Platform | Notes |
+|---|---|
+| **DigitalOcean Droplet** | Recommended — $4/mo, Singapore region, low latency for ID |
+| **Railway.app** | Free tier, zero-config Node.js deploy |
+| **VPS (any provider)** | Requires Node.js 20, MongoDB, Nginx, PM2 |
+
+### Production build
+
+```bash
+# Backend
+cd backend && npm run build && npm start
+
+# Frontend
+cd frontend && npm run build
+# Serve frontend/dist/ via Nginx or any static host (Vercel, Netlify)
+```
+
+---
+
+## Acknowledgments
+
+- Card data & images — [Scryfall](https://scryfall.com)
+- Pricing reference — Card Kingdom (CK)
+- Inspired by [BinderPOS](https://www.binderpos.com)
+- Magic: The Gathering is a trademark of Wizards of the Coast LLC
+
+---
+
+*Made with ❤️ for the MTG community*
+
 
 ## Features
 
