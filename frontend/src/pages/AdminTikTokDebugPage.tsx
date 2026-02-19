@@ -39,7 +39,7 @@ const AdminTikTokDebugPage: React.FC = () => {
     error: string;
   }>>([]);
 
-  // Shared TikTok Shop credentials - Load from localStorage
+  // Shared TikTok Shop credentials - Load from localStorage (cache) and DB
   const [appKey, setAppKey] = useState(localStorage.getItem('tiktok_app_key') || '');
   const [appSecret, setAppSecret] = useState(localStorage.getItem('tiktok_app_secret') || '');
   const [accessToken, setAccessToken] = useState(localStorage.getItem('tiktok_access_token') || '');
@@ -47,8 +47,11 @@ const AdminTikTokDebugPage: React.FC = () => {
   const [shopCipher, setShopCipher] = useState(localStorage.getItem('tiktok_shop_cipher') || '');
   const [tokenRefreshing, setTokenRefreshing] = useState(false);
   const [tokenRefreshMessage, setTokenRefreshMessage] = useState('');
+  const [credsSaving, setCredsSaving] = useState(false);
+  const [credsSaved, setCredsSaved] = useState(false);
+  const [credsLastSaved, setCredsLastSaved] = useState<string | null>(null);
 
-  // Save credentials to localStorage when they change
+  // Save credentials to localStorage when they change (local cache)
   useEffect(() => {
     if (appKey) localStorage.setItem('tiktok_app_key', appKey);
     else localStorage.removeItem('tiktok_app_key');
@@ -73,6 +76,27 @@ const AdminTikTokDebugPage: React.FC = () => {
     if (shopCipher) localStorage.setItem('tiktok_shop_cipher', shopCipher);
     else localStorage.removeItem('tiktok_shop_cipher');
   }, [shopCipher]);
+
+  // Load credentials from database on mount (overrides localStorage cache with DB truth)
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/tiktok/credentials`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (data.found) {
+          if (data.appKey)       { setAppKey(data.appKey);             localStorage.setItem('tiktok_app_key', data.appKey); }
+          if (data.appSecret)    { setAppSecret(data.appSecret);       localStorage.setItem('tiktok_app_secret', data.appSecret); }
+          if (data.accessToken)  { setAccessToken(data.accessToken);   localStorage.setItem('tiktok_access_token', data.accessToken); }
+          if (data.refreshToken) { setRefreshToken(data.refreshToken); localStorage.setItem('tiktok_refresh_token', data.refreshToken); }
+          if (data.shopCipher)   { setShopCipher(data.shopCipher);     localStorage.setItem('tiktok_shop_cipher', data.shopCipher); }
+          if (data.updatedAt) setCredsLastSaved(new Date(data.updatedAt).toLocaleString('id-ID'));
+        }
+      })
+      .catch(console.error);
+  }, []);
 
   // Rebuild response when showAllResults toggle changes
   useEffect(() => {
@@ -742,6 +766,31 @@ const AdminTikTokDebugPage: React.FC = () => {
     }
   };
 
+  const handleSaveCredentials = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    setCredsSaving(true);
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/tiktok/credentials`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ appKey, appSecret, accessToken, refreshToken, shopCipher }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setCredsSaved(true);
+        setCredsLastSaved(new Date().toLocaleString('id-ID'));
+        setTimeout(() => setCredsSaved(false), 3000);
+      } else {
+        alert('Failed to save credentials: ' + (data.error || 'Unknown error'));
+      }
+    } catch (err) {
+      alert('Failed to save credentials to database');
+    } finally {
+      setCredsSaving(false);
+    }
+  };
+
   const handleRefreshAccessToken = async () => {
     if (!appKey || !appSecret || !refreshToken) {
       setTokenRefreshMessage('❌ Please provide App Key, App Secret, and Refresh Token');
@@ -1057,28 +1106,42 @@ const AdminTikTokDebugPage: React.FC = () => {
           </div>
           
           {/* Credential Management Info */}
-          <div className="mt-4 flex items-center justify-between p-3 rounded-lg" style={{ backgroundColor: 'var(--color-background)' }}>
-            <div className="flex items-center gap-2">
-              <span className="text-green-600 text-sm">💾 Credentials are auto-saved to your browser</span>
+          <div className="mt-4 p-3 rounded-lg" style={{ backgroundColor: 'var(--color-background)' }}>
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div className="flex flex-col gap-1">
+                <span className="text-green-600 text-sm">🔒 Credentials are encrypted and saved to database</span>
+                {credsLastSaved && (
+                  <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+                    Last saved: {credsLastSaved}
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleSaveCredentials}
+                  disabled={credsSaving}
+                  className="px-4 py-2 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50"
+                  style={{ backgroundColor: '#10b981', color: 'white' }}
+                >
+                  {credsSaving ? '⏳ Saving...' : credsSaved ? '✅ Saved!' : '💾 Save to Database'}
+                </button>
+                <button
+                  onClick={() => {
+                    if (confirm('Clear all saved TikTok Shop credentials?')) {
+                      setAppKey('');
+                      setAppSecret('');
+                      setAccessToken('');
+                      setRefreshToken('');
+                      setShopCipher('');
+                    }
+                  }}
+                  className="px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
+                  style={{ backgroundColor: '#ef4444', color: 'white' }}
+                >
+                  🗑️ Clear All Credentials
+                </button>
+              </div>
             </div>
-            <button
-              onClick={() => {
-                if (confirm('Clear all saved TikTok Shop credentials?')) {
-                  setAppKey('');
-                  setAppSecret('');
-                  setAccessToken('');
-                  setRefreshToken('');
-                  setShopCipher('');
-                }
-              }}
-              className="px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
-              style={{ 
-                backgroundColor: '#ef4444',
-                color: 'white'
-              }}
-            >
-              🗑️ Clear All Credentials
-            </button>
           </div>
         </div>
 

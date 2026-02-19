@@ -5,11 +5,74 @@ import multer from 'multer';
 import { parse } from 'csv-parse/sync';
 import { authenticate, requireAdmin } from '../middleware/auth.middleware';
 import TikTokOrder from '../models/TikTokOrder.model';
+import TikTokCredentials from '../models/TikTokCredentials.model';
 import Card from '../models/Card.model';
 import User from '../models/User.model';
+import config from '../config/env';
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
+
+// ── Credential encryption (AES-256-CBC) ───────────────────────────────────
+// Key is always 32 bytes — derived from JWT_SECRET via SHA-256
+const CRED_KEY = crypto.createHash('sha256').update(config.jwtSecret).digest();
+
+const encrypt = (text: string): string => {
+  if (!text) return '';
+  const iv = crypto.randomBytes(16);
+  const cipher = crypto.createCipheriv('aes-256-cbc', CRED_KEY, iv);
+  const encrypted = Buffer.concat([cipher.update(text, 'utf8'), cipher.final()]);
+  return iv.toString('hex') + ':' + encrypted.toString('hex');
+};
+
+const decrypt = (stored: string): string => {
+  if (!stored || !stored.includes(':')) return stored; // plain-text fallback
+  const [ivHex, encHex] = stored.split(':');
+  const decipher = crypto.createDecipheriv('aes-256-cbc', CRED_KEY, Buffer.from(ivHex, 'hex'));
+  const decrypted = Buffer.concat([decipher.update(Buffer.from(encHex, 'hex')), decipher.final()]);
+  return decrypted.toString('utf8');
+};
+
+// GET /api/admin/tiktok/credentials — load saved credentials
+router.get('/credentials', authenticate, requireAdmin, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const doc = await TikTokCredentials.findOne();
+    if (!doc) { res.json({ found: false }); return; }
+    res.json({
+      found: true,
+      appKey:       decrypt(doc.appKey),
+      appSecret:    decrypt(doc.appSecret),
+      accessToken:  decrypt(doc.accessToken),
+      refreshToken: decrypt(doc.refreshToken),
+      shopCipher:   decrypt(doc.shopCipher),
+      updatedAt:    doc.updatedAt,
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/admin/tiktok/credentials — save/update credentials
+router.post('/credentials', authenticate, requireAdmin, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { appKey, appSecret, accessToken, refreshToken, shopCipher } = req.body;
+    await TikTokCredentials.findOneAndUpdate(
+      {},
+      {
+        appKey:       encrypt(appKey       || ''),
+        appSecret:    encrypt(appSecret    || ''),
+        accessToken:  encrypt(accessToken  || ''),
+        refreshToken: encrypt(refreshToken || ''),
+        shopCipher:   encrypt(shopCipher   || ''),
+      },
+      { upsert: true, new: true }
+    );
+    res.json({ success: true, message: 'Credentials saved securely.' });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 
 // TikTok Shop API base URL for SEA region
 const TIKTOK_API_BASE = 'https://open-api.tiktokglobalshop.com';
