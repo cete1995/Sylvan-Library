@@ -77,6 +77,22 @@ export const adminApi = {
     return response.data;
   },
 
+  importSetFromMTGJson: async (setCode: string): Promise<{
+    message: string;
+    setCode: string;
+    setName: string;
+    totalCards: number;
+    imported: number;
+    created: number;
+    updated: number;
+    skipped: number;
+    errors: number;
+    errorDetails?: any[];
+  }> => {
+    const response = await api.post('/admin/sets/import-from-mtgjson', { setCode });
+    return response.data;
+  },
+
   clearDatabase: async (): Promise<{ message: string; deletedCounts: { cards: number; users: number; carts: number; carousel: number; prices: number } }> => {
     const response = await api.post<{ message: string; deletedCounts: { cards: number; users: number; carts: number; carousel: number; prices: number } }>(
       '/admin/clear-database'

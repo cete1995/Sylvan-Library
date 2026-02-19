@@ -15,7 +15,7 @@ import {
   regenerateSellerSKUs,
   fixInventoryQuantities,
 } from '../controllers/admin.controller';
-import { uploadSetJson } from '../controllers/set.controller';
+import { uploadSetJson, importSetFromMTGJson } from '../controllers/set.controller';
 
 const router = Router();
 
@@ -100,6 +100,13 @@ router.post('/cards/bulk-upload', upload.single('file'), bulkUploadCards);
  * @access  Private (Admin)
  */
 router.post('/sets/upload', uploadSetJson);
+
+/**
+ * @route   POST /api/admin/sets/import-from-mtgjson
+ * @desc    Fetch set from MTGJson CDN and import it server-side
+ * @access  Private (Admin)
+ */
+router.post('/sets/import-from-mtgjson', importSetFromMTGJson);
 
 /**
  * @route   POST /api/admin/clear-database

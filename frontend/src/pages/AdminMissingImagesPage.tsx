@@ -16,12 +16,7 @@ const AdminMissingImagesPage: React.FC = () => {
     setImportingSet(setCode);
     setImportResults(prev => ({ ...prev, [setCode]: { success: false, message: '' } }));
     try {
-      const url = `https://mtgjson.com/api/v5/${setCode.toUpperCase()}.json`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`Failed to fetch ${url} (${res.status})`);
-      const json = await res.json();
-      const setData = json.data ?? json;
-      const result = await adminApi.uploadSet(setData);
+      const result = await adminApi.importSetFromMTGJson(setCode);
       setImportResults(prev => ({
         ...prev,
         [setCode]: { success: true, message: `✅ Imported ${result.imported}/${result.totalCards} cards` }
@@ -31,7 +26,7 @@ const AdminMissingImagesPage: React.FC = () => {
     } catch (err: any) {
       setImportResults(prev => ({
         ...prev,
-        [setCode]: { success: false, message: `❌ ${err.message || 'Import failed'}` }
+        [setCode]: { success: false, message: `❌ ${err.response?.data?.error || err.message || 'Import failed'}` }
       }));
     } finally {
       setImportingSet(null);

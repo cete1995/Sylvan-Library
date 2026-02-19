@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import axios from 'axios';
 import { Card } from '../models';
 import { asyncHandler } from '../middleware/asyncHandler';
 import { AppError } from '../middleware/errorHandler';
@@ -48,7 +49,37 @@ interface SetJsonData {
  */
 export const uploadSetJson = asyncHandler(async (req: Request, res: Response) => {
   const setData: SetJsonData = req.body;
+  const result = await processSetData(setData);
+  res.json(result);
+});
 
+/**
+ * Fetch set JSON from MTGJson CDN and import it
+ * POST /api/admin/sets/import-from-mtgjson
+ */
+export const importSetFromMTGJson = asyncHandler(async (req: Request, res: Response) => {
+  const { setCode } = req.body;
+  if (!setCode) throw new AppError(400, 'setCode is required');
+
+  const url = `https://mtgjson.com/api/v5/${setCode.toUpperCase()}.json`;
+  let setData: SetJsonData;
+  try {
+    const response = await axios.get(url, { timeout: 30000 });
+    setData = response.data;
+  } catch (err: any) {
+    if (err.response?.status === 404) {
+      throw new AppError(404, `Set "${setCode.toUpperCase()}" not found on MTGJson. Check the set code.`);
+    }
+    throw new AppError(502, `Failed to fetch from MTGJson: ${err.message}`);
+  }
+
+  const result = await processSetData(setData);
+  res.json(result);
+});
+
+// ─── Shared processing logic ───────────────────────────────────────────────
+
+async function processSetData(setData: SetJsonData) {
   if (!setData?.data?.cards || !Array.isArray(setData.data.cards)) {
     throw new AppError(400, 'Invalid set JSON format');
   }
@@ -57,10 +88,10 @@ export const uploadSetJson = asyncHandler(async (req: Request, res: Response) =>
   const setCode = setData.data.code.toUpperCase();
   const setName = setData.data.name;
   const releaseDate = setData.data.releaseDate;
-  const createdCards = [];
-  const updatedCards = [];
-  const skipped = [];
-  const errors = [];
+  const createdCards: any[] = [];
+  const updatedCards: any[] = [];
+  const skipped: any[] = [];
+  const errors: any[] = [];
 
   for (const cardData of cards) {
     try {
@@ -98,7 +129,6 @@ export const uploadSetJson = asyncHandler(async (req: Request, res: Response) =>
       });
 
       if (existing) {
-        // Card exists - update it with new metadata while preserving inventory
         existing.setName = setName;
         existing.releaseDate = releaseDate;
         existing.rarity = rarity;
@@ -110,16 +140,12 @@ export const uploadSetJson = asyncHandler(async (req: Request, res: Response) =>
         existing.uuid = cardData.uuid || '';
         existing.borderColor = cardData.borderColor || 'black';
         existing.frameEffects = cardData.frameEffects || [];
-        
-        // Update image URL if we have scryfallId
         if (cardData.identifiers?.scryfallId) {
           existing.imageUrl = `https://cards.scryfall.io/normal/front/${cardData.identifiers.scryfallId.charAt(0)}/${cardData.identifiers.scryfallId.charAt(1)}/${cardData.identifiers.scryfallId}.jpg`;
         }
-        
         await existing.save();
         updatedCards.push(existing);
       } else {
-        // Create new card in catalog with default inventory items (0 quantity)
         const newCard = await Card.create({
           name: cardData.name,
           setCode: setCode,
@@ -141,28 +167,8 @@ export const uploadSetJson = asyncHandler(async (req: Request, res: Response) =>
           language: 'EN',
           isActive: true,
           inventory: [
-            // Default NM nonfoil with 0 quantity
-            {
-              condition: 'NM',
-              finish: 'nonfoil',
-              quantityOwned: 0,
-              quantityForSale: 0,
-              buyPrice: 0,
-              sellPrice: 0,
-              sellerId: undefined,
-              sellerName: undefined,
-            },
-            // Default NM foil with 0 quantity
-            {
-              condition: 'NM',
-              finish: 'foil',
-              quantityOwned: 0,
-              quantityForSale: 0,
-              buyPrice: 0,
-              sellPrice: 0,
-              sellerId: undefined,
-              sellerName: undefined,
-            },
+            { condition: 'NM', finish: 'nonfoil', quantityOwned: 0, quantityForSale: 0, buyPrice: 0, sellPrice: 0, sellerId: undefined, sellerName: undefined },
+            { condition: 'NM', finish: 'foil',    quantityOwned: 0, quantityForSale: 0, buyPrice: 0, sellPrice: 0, sellerId: undefined, sellerName: undefined },
           ],
         });
         createdCards.push(newCard);
@@ -175,16 +181,17 @@ export const uploadSetJson = asyncHandler(async (req: Request, res: Response) =>
     }
   }
 
-  res.json({
+  return {
     message: 'Set upload completed',
     setCode,
     setName,
     totalCards: cards.length,
+    imported: createdCards.length + updatedCards.length,
     created: createdCards.length,
     updated: updatedCards.length,
     skipped: skipped.length,
     errors: errors.length,
     skippedDetails: skipped.length > 0 ? skipped : undefined,
     errorDetails: errors.length > 0 ? errors : undefined,
-  });
-});
+  };
+}
