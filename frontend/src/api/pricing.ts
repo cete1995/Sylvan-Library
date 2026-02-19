@@ -16,4 +16,20 @@ export const pricingApi = {
     );
     return response.data;
   },
+
+  /**
+   * Force resync ALL prices — ignores stock level, overwrites every card that has CK data.
+   * Use when a new set was imported with zero stock and prices never got calculated.
+   */
+  forceResyncAllPrices: async (token: string) => {
+    const response = await axios.post(
+      `${API_URL}/admin/pricing/force-resync-all`,
+      {},
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        timeout: 300000, // 5 min timeout for large catalogs
+      }
+    );
+    return response.data;
+  },
 };

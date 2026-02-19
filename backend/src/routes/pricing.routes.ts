@@ -159,4 +159,84 @@ router.post('/sync-all', authenticate, requireAdmin, async (req: Request, res: R
   }
 });
 
+/**
+ * Force resync ALL card prices — no stock check, no skip.
+ * Updates every active card that has a uuid and at least one inventory slot.
+ * POST /api/admin/pricing/force-resync-all
+ */
+router.post('/force-resync-all', authenticate, requireAdmin, async (req: Request, res: Response) => {
+  try {
+    clearRegularSettingsCache();
+
+    const cardsToUpdate = await Card.find({ isActive: true, uuid: { $exists: true, $ne: '' } });
+
+    let updatedCount = 0;
+    let skippedCount = 0;
+    let noPriceCount = 0;
+    const errors: string[] = [];
+
+    for (const card of cardsToUpdate) {
+      try {
+        if (!card.inventory || card.inventory.length === 0) {
+          skippedCount++;
+          continue;
+        }
+
+        const latestPrice = await CardPrice.findOne({ uuid: card.uuid })
+          .sort({ date: -1 })
+          .lean();
+
+        const ckPrices = latestPrice?.prices?.cardkingdom?.retail;
+        if (!ckPrices) {
+          noPriceCount++;
+          continue;
+        }
+
+        const isUB = await isUBSet(card.setCode);
+        let updated = false;
+
+        for (const item of card.inventory) {
+          const ckPrice = item.finish === 'foil' ? ckPrices.foil : ckPrices.normal;
+          if (!ckPrice || ckPrice <= 0) continue;
+
+          const newSellPrice = isUB
+            ? await calculateUBPrice(ckPrice)
+            : await calculateRegularPrice(ckPrice);
+
+          const newMarketplacePrice = isUB
+            ? await calculateUBMarketplacePrice(ckPrice)
+            : await calculateRegularMarketplacePrice(ckPrice);
+
+          item.sellPrice = Math.round(newSellPrice * 100) / 100;
+          item.marketplacePrice = Math.round(newMarketplacePrice * 100) / 100;
+          updated = true;
+        }
+
+        if (updated) {
+          await card.save();
+          updatedCount++;
+        } else {
+          skippedCount++;
+        }
+      } catch (err: any) {
+        errors.push(`${card.name} (${card.setCode}): ${err.message}`);
+        skippedCount++;
+      }
+    }
+
+    res.json({
+      success: true,
+      message: 'Force resync completed — all cards with CK data updated regardless of stock',
+      updated: updatedCount,
+      skipped: skippedCount,
+      noPrice: noPriceCount,
+      total: cardsToUpdate.length,
+      errors: errors.slice(0, 20),
+    });
+  } catch (error: any) {
+    console.error('Force resync error:', error);
+    res.status(500).json({ error: 'Failed to force resync prices', message: error.message });
+  }
+});
+
 export default router;
