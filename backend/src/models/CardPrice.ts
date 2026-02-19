@@ -8,12 +8,14 @@ export interface ICardPrice extends Document {
       retail?: {
         normal?: number;
         foil?: number;
+        etched?: number;
       };
     };
     tcgplayer?: {
       retail?: {
         normal?: number;
         foil?: number;
+        etched?: number;
       };
     };
   };
@@ -35,13 +37,15 @@ const CardPriceSchema = new Schema<ICardPrice>({
     cardkingdom: {
       retail: {
         normal: Number,
-        foil: Number
+        foil: Number,
+        etched: Number
       }
     },
     tcgplayer: {
       retail: {
         normal: Number,
-        foil: Number
+        foil: Number,
+        etched: Number
       }
     }
   },

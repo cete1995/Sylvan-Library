@@ -270,8 +270,10 @@ router.post('/sync-ub-prices', authenticate, requireAdmin, async (req: Request, 
         for (const item of card.inventory) {
           let ckPrice: number | undefined;
 
-          // Get CK price based on finish (etched uses foil price, falls back to normal)
-          if (item.finish === 'foil' || item.finish === 'etched') {
+          // Get CK price based on finish
+          if (item.finish === 'etched') {
+            ckPrice = ckPrices.etched || ckPrices.foil || ckPrices.normal;
+          } else if (item.finish === 'foil') {
             ckPrice = ckPrices.foil || ckPrices.normal;
           } else {
             ckPrice = ckPrices.normal;
@@ -361,9 +363,11 @@ router.post('/calculate-ub-price', authenticate, requireAdmin, async (req: Reque
     }
 
     const ckPrices = latestPrice.prices.cardkingdom.retail;
-    const ckPrice = finish === 'foil' || finish === 'etched'
-      ? (ckPrices.foil || ckPrices.normal)
-      : ckPrices.normal;
+    const ckPrice = finish === 'etched'
+      ? (ckPrices.etched || ckPrices.foil || ckPrices.normal)
+      : finish === 'foil'
+        ? (ckPrices.foil || ckPrices.normal)
+        : ckPrices.normal;
 
     if (!ckPrice) {
       return res.status(404).json({ error: `No CK ${finish} price available` });

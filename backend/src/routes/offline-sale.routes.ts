@@ -78,9 +78,11 @@ router.get('/search-cards', async (req: Request, res: Response): Promise<void> =
             .map(async (inv: any) => {
               let computedSellPrice = inv.sellPrice || 0;
               if (ckRetail) {
-                const ckPrice = inv.finish === 'foil' || inv.finish === 'etched'
-                  ? (ckRetail.foil || ckRetail.normal)
-                  : ckRetail.normal;
+                const ckPrice = inv.finish === 'etched'
+                  ? (ckRetail.etched || ckRetail.foil || ckRetail.normal)
+                  : inv.finish === 'foil'
+                    ? (ckRetail.foil || ckRetail.normal)
+                    : ckRetail.normal;
                 if (ckPrice && ckPrice > 0) {
                   computedSellPrice = isUB
                     ? await calculateUBPrice(ckPrice)
@@ -244,7 +246,11 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
           : null;
         const ckRetail = priceRec?.prices?.cardkingdom?.retail;
         if (ckRetail) {
-          const ckPrice = inv.finish === 'foil' ? ckRetail.foil : ckRetail.normal;
+          const ckPrice = inv.finish === 'etched'
+            ? (ckRetail.etched || ckRetail.foil || ckRetail.normal)
+            : inv.finish === 'foil'
+              ? (ckRetail.foil || ckRetail.normal)
+              : ckRetail.normal;
           if (ckPrice && ckPrice > 0) {
             const isUB = await isUBSet(card.setCode);
             unitPrice = isUB

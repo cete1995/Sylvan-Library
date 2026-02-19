@@ -182,6 +182,13 @@ router.post('/import-prices', authenticate, requireAdmin, async (req: Request, r
             prices.cardkingdom.retail.foil = foilPrices[latestDate];
           }
         }
+        if (paperData.cardkingdom.retail.etched) {
+          const etchedPrices = paperData.cardkingdom.retail.etched;
+          const latestDate = Object.keys(etchedPrices).sort().pop();
+          if (latestDate) {
+            prices.cardkingdom.retail.etched = etchedPrices[latestDate];
+          }
+        }
       }
 
       if (paperData.tcgplayer?.retail) {
@@ -198,6 +205,13 @@ router.post('/import-prices', authenticate, requireAdmin, async (req: Request, r
           const latestDate = Object.keys(foilPrices).sort().pop();
           if (latestDate) {
             prices.tcgplayer.retail.foil = foilPrices[latestDate];
+          }
+        }
+        if (paperData.tcgplayer.retail.etched) {
+          const etchedPrices = paperData.tcgplayer.retail.etched;
+          const latestDate = Object.keys(etchedPrices).sort().pop();
+          if (latestDate) {
+            prices.tcgplayer.retail.etched = etchedPrices[latestDate];
           }
         }
       }
