@@ -482,6 +482,13 @@ const AdminDashboardPage: React.FC = () => {
               >
                 👥 Seller Management
               </Link>
+              <Link
+                to="/admin/offline-sales"
+                className="block w-full px-4 py-3 rounded-lg font-medium text-center hover:opacity-90 shadow-sm"
+                style={{ background: 'linear-gradient(to right, #f59e0b, #d97706)', color: 'white' }}
+              >
+                🏬 Sold Offline
+              </Link>
             </div>
           </div>
 

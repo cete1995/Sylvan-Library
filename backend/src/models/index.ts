@@ -8,3 +8,4 @@ export { default as Order, IOrder, IOrderItem } from './Order.model';
 export { default as CardPrice, ICardPrice } from './CardPrice';
 export { default as RegularSettings, IRegularSettings } from './RegularSettings.model';
 export { default as TikTokOrder, ITikTokOrder } from './TikTokOrder.model';
+export { default as OfflineSale, IOfflineSale, IOfflineSaleItem } from './OfflineSale.model';

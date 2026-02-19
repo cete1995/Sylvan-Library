@@ -52,6 +52,7 @@ import sellerRoutes from './routes/seller.routes';
 import tiktokRoutes from './routes/tiktok.routes';
 import manaboxRoutes from './routes/manabox.routes';
 import debugRoutes from './routes/debug.routes';
+import offlineSaleRoutes from './routes/offline-sale.routes';
 
 app.get('/api', (_req, res) => {
   res.json({
@@ -90,6 +91,7 @@ app.use('/api/admin/regular-pricing', regularPricingRoutes);
 app.use('/api/admin/pricing', pricingRoutes)
 app.use('/api/admin/tiktok', tiktokRoutes);;
 app.use('/api/admin/sellers', sellerRoutes);
+app.use('/api/admin/offline-sales', offlineSaleRoutes);
 app.use('/api/manabox', manaboxRoutes);
 app.use('/api/debug', debugRoutes);
 
