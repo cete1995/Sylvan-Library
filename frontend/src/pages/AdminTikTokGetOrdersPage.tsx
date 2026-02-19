@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../api/client';
 
@@ -8,6 +8,14 @@ const AdminTikTokGetOrdersPage: React.FC = () => {
   const [showResponse, setShowResponse] = useState(false);
   const [debugLogs, setDebugLogs] = useState<any[]>([]);
   const [apiResponse, setApiResponse] = useState<any>(null);
+  const [publicIp, setPublicIp] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch('https://api.ipify.org?format=json')
+      .then(r => r.json())
+      .then(data => setPublicIp(data.ip))
+      .catch(() => setPublicIp('unavailable'));
+  }, []);
   
   // Credentials
   const [appKey, setAppKey] = useState(localStorage.getItem('tiktok_app_key') || '');
@@ -156,6 +164,9 @@ const AdminTikTokGetOrdersPage: React.FC = () => {
                 </h1>
                 <p className="text-sm mt-1" style={{ color: 'var(--color-text-secondary)' }}>
                   Fetch and save orders to database from TikTok Shop API
+                </p>
+                <p className="text-xs mt-1 font-mono" style={{ color: 'var(--color-text-secondary)' }}>
+                  🌐 Public IP: <span className="font-semibold" style={{ color: 'var(--color-text)' }}>{publicIp ?? 'loading...'}</span>
                 </p>
               </div>
             </div>
