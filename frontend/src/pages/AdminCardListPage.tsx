@@ -244,10 +244,11 @@ const AdminCardListPage: React.FC = () => {
                         ? Math.min(...inventory.map(item => item.marketplacePrice || 0))
                         : 0;
                       
-                      // Group inventory by seller
+                      // Group inventory by seller (exclude admin/no-seller items)
                       const sellerInventory = inventory.reduce((acc, item) => {
-                        const sellerKey = item.sellerId || 'admin';
-                        const sellerName = item.sellerName || 'Admin';
+                        if (!item.sellerId) return acc; // skip admin-owned items
+                        const sellerKey = item.sellerId;
+                        const sellerName = item.sellerName || sellerKey;
                         
                         if (!acc[sellerKey]) {
                           acc[sellerKey] = {
