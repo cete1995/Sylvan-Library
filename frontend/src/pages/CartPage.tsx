@@ -86,10 +86,10 @@ const CartPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--color-background)' }}>
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-          <div className="text-xl text-gray-600">Loading cart...</div>
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-t-transparent mb-4" style={{ borderColor: 'var(--color-accent)', borderTopColor: 'transparent' }}></div>
+          <div className="text-xl" style={{ color: 'var(--color-text-secondary)' }}>Loading cart...</div>
         </div>
       </div>
     );
@@ -97,14 +97,14 @@ const CartPage: React.FC = () => {
 
   if (!cart || cart.items.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      <div className="min-h-screen" style={{ backgroundColor: 'var(--color-background)' }}>
         <div className="container mx-auto px-4 py-16 max-w-2xl">
           <div className="rounded-2xl shadow-xl p-12 text-center" style={{ backgroundColor: 'var(--color-panel)' }}>
-            <svg className="w-24 h-24 text-gray-300 mx-auto mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-24 h-24 mx-auto mb-6" style={{ color: 'var(--color-border)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
-            <h1 className="text-4xl font-bold mb-4 text-gray-800">Your Cart is Empty</h1>
-            <p className="text-gray-600 mb-8 text-lg">Start building your collection by adding some cards</p>
+            <h1 className="text-4xl font-bold mb-4" style={{ color: 'var(--color-text)' }}>Your Cart is Empty</h1>
+            <p className="mb-8 text-lg" style={{ color: 'var(--color-text-secondary)' }}>Start building your collection by adding some cards</p>
             <Link to="/catalog" className="inline-flex items-center px-8 py-4 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all transform hover:scale-105" style={{ background: `linear-gradient(to right, var(--color-accent), var(--color-highlight))`, color: 'var(--color-panel)' }}>
               <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />

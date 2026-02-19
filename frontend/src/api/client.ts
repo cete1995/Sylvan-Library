@@ -57,11 +57,16 @@ api.interceptors.response.use(
 
       const refreshToken = localStorage.getItem('refreshToken');
       if (!refreshToken) {
-        // No refresh token, logout
+        // No refresh token, logout and redirect to the correct login page
+        try {
+          const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+          window.location.href = storedUser?.role === 'admin' ? '/admin/login' : '/login';
+        } catch {
+          window.location.href = '/login';
+        }
         localStorage.removeItem('token');
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('user');
-        window.location.href = '/admin/login';
         return Promise.reject(error);
       }
 
@@ -91,8 +96,14 @@ api.interceptors.response.use(
         processQueue(refreshError, null);
         localStorage.removeItem('token');
         localStorage.removeItem('refreshToken');
+        // Redirect to the correct login page based on the stored user role
+        try {
+          const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+          window.location.href = storedUser?.role === 'admin' ? '/admin/login' : '/login';
+        } catch {
+          window.location.href = '/login';
+        }
         localStorage.removeItem('user');
-        window.location.href = '/admin/login';
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;

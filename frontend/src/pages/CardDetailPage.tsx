@@ -140,19 +140,24 @@ const CardDetailPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-12 text-center">
-        <div className="text-xl">Loading...</div>
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--color-background)' }}>
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-t-transparent mb-4" style={{ borderColor: 'var(--color-accent)', borderTopColor: 'transparent' }}></div>
+          <div className="text-xl" style={{ color: 'var(--color-text-secondary)' }}>Loading...</div>
+        </div>
       </div>
     );
   }
 
   if (!card) {
     return (
-      <div className="container mx-auto px-4 py-12 text-center">
-        <h1 className="text-2xl font-bold mb-4">Card Not Found</h1>
-        <Link to="/catalog" className="btn-primary">
-          Back to Catalog
-        </Link>
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--color-background)' }}>
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4" style={{ color: 'var(--color-text)' }}>Card Not Found</h1>
+          <Link to="/catalog" className="btn-primary">
+            Back to Catalog
+          </Link>
+        </div>
       </div>
     );
   }
@@ -189,8 +194,8 @@ const CardDetailPage: React.FC = () => {
             {card.imageUrl ? (
               <img src={card.imageUrl} alt={card.name} className="w-full" />
             ) : (
-              <div className="aspect-[5/7] bg-gray-200 flex items-center justify-center">
-                <svg className="w-24 h-24 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+              <div className="aspect-[5/7] flex items-center justify-center" style={{ backgroundColor: 'var(--color-background)' }}>
+                <svg className="w-24 h-24" style={{ color: 'var(--color-text-secondary)' }} fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
                 </svg>
               </div>

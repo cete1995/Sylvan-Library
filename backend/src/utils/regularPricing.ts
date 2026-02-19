@@ -48,12 +48,9 @@ export const clearRegularSettingsCache = () => {
 const roundToNearest500 = (price: number): number => {
   const remainder = price % 500;
   if (remainder === 0) {
-    console.log(`[PRICING] roundToNearest500(${price}) = ${price} (already multiple of 500)`);
     return price; // Already a multiple of 500
   }
-  const rounded = Math.ceil(price / 500) * 500;
-  console.log(`[PRICING] roundToNearest500(${price}) = ${rounded} (remainder: ${remainder})`);
-  return rounded;
+  return Math.ceil(price / 500) * 500;
 };
 
 /**
@@ -64,9 +61,7 @@ const roundToNearest500 = (price: number): number => {
 export const calculateRegularPrice = async (ckPriceUSD: number): Promise<number> => {
   const multiplier = await getRegularMultiplier(ckPriceUSD);
   const rawPrice = ckPriceUSD * multiplier;
-  const roundedPrice = roundToNearest500(rawPrice);
-  console.log(`[PRICING] calculateRegularPrice: CK=${ckPriceUSD} USD, multiplier=${multiplier}, raw=${rawPrice}, rounded=${roundedPrice}`);
-  return roundedPrice;
+  return roundToNearest500(rawPrice);
 };
 
 /**
@@ -77,9 +72,7 @@ export const calculateRegularMarketplacePrice = async (ckPriceUSD: number): Prom
   const multiplier = await getRegularMultiplier(ckPriceUSD);
   const rawPrice = ckPriceUSD * multiplier;
   const marketplaceRaw = rawPrice / 0.8403; // Add 19% fee
-  const roundedPrice = roundToNearest500(marketplaceRaw);
-  console.log(`[PRICING] calculateRegularMarketplacePrice: CK=${ckPriceUSD} USD, multiplier=${multiplier}, raw=${rawPrice}, marketplace_raw=${marketplaceRaw}, rounded=${roundedPrice}`);
-  return roundedPrice;
+  return roundToNearest500(marketplaceRaw);
 };
 
 /**

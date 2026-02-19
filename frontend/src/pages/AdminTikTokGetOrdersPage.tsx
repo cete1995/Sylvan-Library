@@ -67,19 +67,15 @@ const AdminTikTokGetOrdersPage: React.FC = () => {
         
         for (let i = 0; i < logs.length; i++) {
           const log = logs[i];
-          // Check if this is the API response JSON
           if (log.includes('📋 Full API Response:')) {
-            // The next log should be the JSON
             if (i + 1 < logs.length) {
               try {
                 rawResponse = JSON.parse(logs[i + 1]);
               } catch (e) {
-                // If parsing fails, it's still in the logs
                 logMessages.push({ message: log });
               }
             }
           } else if (rawResponse && i > 0 && logs[i - 1].includes('📋 Full API Response:')) {
-            // Skip the raw JSON line, already captured
             continue;
           } else {
             logMessages.push({ message: log });
@@ -88,18 +84,48 @@ const AdminTikTokGetOrdersPage: React.FC = () => {
         
         setDebugLogs(logMessages);
         setApiResponse(rawResponse);
+        setShowDebug(true);
+        if (rawResponse) setShowResponse(true);
         
         const summary = response.data.summary;
         alert(`Sync completed!\n\nTotal Fetched: ${summary.totalFetched}\nNew Orders: ${summary.newOrders}\nSkipped (Duplicates): ${summary.skippedOrders}`);
       } else {
-        setDebugLogs([{ message: 'Error: ' + (response.data.error || 'Unknown error') }]);
+        // success: false — show logs + details from the response
+        const backendLogs = (response.data.logs || []).map((l: string) => ({ message: l }));
+        if (backendLogs.length === 0) {
+          backendLogs.push({ message: '❌ Error: ' + (response.data.error || 'Unknown error') });
+        }
+        setDebugLogs(backendLogs);
+        setShowDebug(true);
+        if (response.data.details) {
+          setApiResponse(response.data.details);
+          setShowResponse(true);
+        }
         alert('Failed to sync orders: ' + (response.data.error || 'Unknown error'));
       }
     } catch (error: any) {
       console.error('Error syncing orders:', error);
-      const errorMsg = 'Error: ' + (error.response?.data?.error || error.message);
-      setDebugLogs([{ message: errorMsg, error: error.response?.data }]);
-      alert(errorMsg);
+      const errorData = error.response?.data;
+
+      // Show backend logs from the error response if available
+      const backendLogs: { message: string }[] = (errorData?.logs || []).map((l: string) => ({ message: l }));
+      if (backendLogs.length === 0) {
+        backendLogs.push({ message: '❌ Error: ' + (errorData?.error || error.message) });
+        if (errorData?.details) {
+          backendLogs.push({ message: '📋 TikTok API Response: ' + JSON.stringify(errorData.details, null, 2) });
+        }
+      }
+      setDebugLogs(backendLogs);
+      setShowDebug(true);
+
+      // Show the raw TikTok API error body in the response panel
+      const tikTokResponse = errorData?.details || errorData;
+      if (tikTokResponse) {
+        setApiResponse(tikTokResponse);
+        setShowResponse(true);
+      }
+
+      alert('Error: ' + (errorData?.error || error.message));
     } finally {
       setLoading(false);
     }
@@ -315,11 +341,18 @@ const AdminTikTokGetOrdersPage: React.FC = () => {
                   </button>
                 </div>
                 <div className="p-4 rounded max-h-96 overflow-y-auto" style={{ backgroundColor: '#1e1e1e' }}>
-                  {debugLogs.map((log, idx) => (
-                    <div key={idx} className="text-xs font-mono mb-1" style={{ color: '#d4d4d4' }}>
-                      {log.message || JSON.stringify(log)}
-                    </div>
-                  ))}
+                  {debugLogs.map((log, idx) => {
+                    const msg: string = log.message || JSON.stringify(log);
+                    const isError = msg.includes('❌') || msg.toLowerCase().includes('error');
+                    const isWarning = msg.includes('⚠️');
+                    const isSuccess = msg.includes('✅');
+                    const color = isError ? '#f87171' : isWarning ? '#fbbf24' : isSuccess ? '#4ade80' : '#d4d4d4';
+                    return (
+                      <div key={idx} className="text-xs font-mono mb-1 whitespace-pre-wrap" style={{ color }}>
+                        {msg}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}

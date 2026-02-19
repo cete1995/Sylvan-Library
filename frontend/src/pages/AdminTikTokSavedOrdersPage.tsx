@@ -697,35 +697,84 @@ const AdminTikTokSavedOrdersPage: React.FC = () => {
                                 <p className="text-xs mb-1" style={{ color: 'var(--color-text-secondary)' }}>
                                   SKU Penjual: {item.sellerSku}
                                 </p>
-                                
-                                {/* Assigned Seller - shown inline */}
-                                {item.assignedSeller && (() => {
-                                  console.log('Rendering assigned seller:', 'sellerEmail=', item.assignedSeller.sellerEmail, 'sellerName=', item.assignedSeller.sellerName, 'full obj=', item.assignedSeller);
-                                  return (
-                                  <div className="mt-2">
-                                    <span className="text-xs px-2 py-1 rounded" style={{ 
-                                      backgroundColor: '#dcfce7', 
-                                      color: '#166534',
-                                      fontWeight: 'bold'
-                                    }}>
-                                      ✓ {item.assignedSeller.sellerName}
-                                    </span>
+                              </div>
+
+                              {/* Middle column: Assigned Seller OR Available Sellers */}
+                              <div className="w-64 flex-shrink-0">
+                                {item.assignedSeller ? (
+                                  (() => {
+                                    console.log('Rendering assigned seller:', 'sellerEmail=', item.assignedSeller.sellerEmail, 'sellerName=', item.assignedSeller.sellerName, 'full obj=', item.assignedSeller);
+                                    return (
+                                      <div className="flex flex-col gap-3">
+                                        <div
+                                          className="flex items-center gap-2 px-4 py-3 rounded-lg"
+                                          style={{ backgroundColor: '#dcfce7', border: '1.5px solid #86efac' }}
+                                        >
+                                          <svg className="w-5 h-5 flex-shrink-0" style={{ color: '#166534' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                                          </svg>
+                                          <span className="text-sm font-bold" style={{ color: '#166534' }}>
+                                            {item.assignedSeller.sellerName}
+                                          </span>
+                                        </div>
+                                        <button
+                                          onClick={() => handleUndoAssignment(order.orderId, index)}
+                                          className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold text-white w-full"
+                                          style={{ backgroundColor: '#f59e0b' }}
+                                        >
+                                          ↩️ Undo Assignment
+                                        </button>
+                                      </div>
+                                    );
+                                  })()
+                                ) : foundSellers[order.orderId]?.[index] && foundSellers[order.orderId][index].length > 0 ? (
+                                  <div>
+                                    <p className="text-xs mb-2" style={{ color: 'var(--color-text-secondary)' }}>Available Sellers:</p>
+                                    <div className="space-y-2">
+                                      {foundSellers[order.orderId][index].map((card: any) => (
+                                        <div key={card.cardId}>
+                                          {card.inventory.map((inv: any) => {
+                                            console.log(`Rendering inventory:`, 'sellerEmail=', inv.sellerEmail, 'sellerName=', inv.sellerName, 'full inv=', inv);
+                                            return (
+                                              <div
+                                                key={inv.inventoryIndex}
+                                                className="flex items-center gap-2 p-2 rounded-lg"
+                                                style={{ backgroundColor: 'var(--color-background)' }}
+                                              >
+                                                <div className="flex-1 min-w-0">
+                                                  <div className="text-xs font-medium" style={{ color: 'var(--color-text)' }}>
+                                                    {inv.sellerName}
+                                                  </div>
+                                                  <div className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+                                                    {inv.condition} • {inv.finish} • Stock: {inv.quantityForSale}
+                                                  </div>
+                                                </div>
+                                                <div className="flex gap-1">
+                                                  <button
+                                                    onClick={() => handleAssignCard(order.orderId, index, card.cardId, inv.inventoryIndex)}
+                                                    disabled={loading}
+                                                    className="text-xs px-2 py-1 rounded text-white font-medium disabled:opacity-50"
+                                                    style={{ backgroundColor: '#10b981' }}
+                                                  >
+                                                    ✓ Check
+                                                  </button>
+                                                  <button
+                                                    onClick={() => handleChangeSeller(order.orderId, index, foundSellers[order.orderId][index], item.sellerSku)}
+                                                    disabled={loading}
+                                                    className="text-xs px-2 py-1 rounded text-white disabled:opacity-50"
+                                                    style={{ backgroundColor: '#6366f1' }}
+                                                  >
+                                                    Change
+                                                  </button>
+                                                </div>
+                                              </div>
+                                            );
+                                          })}
+                                        </div>
+                                      ))}
+                                    </div>
                                   </div>
-                                  );
-                                })()}
-                                
-                                {/* Undo Button for assigned items */}
-                                {item.assignedSeller && (
-                                  <div className="flex gap-2 mt-3">
-                                    <button
-                                      onClick={() => handleUndoAssignment(order.orderId, index)}
-                                      className="text-xs px-3 py-1 rounded text-white"
-                                      style={{ backgroundColor: '#f59e0b' }}
-                                    >
-                                      ↩️ Undo
-                                    </button>
-                                  </div>
-                                )}
+                                ) : null}
                               </div>
 
                               {/* Right side: Price */}
@@ -737,55 +786,6 @@ const AdminTikTokSavedOrdersPage: React.FC = () => {
                             </div>
                           </div>
                         </div>
-                        
-                        {/* Seller Suggestions (below the product) */}
-                        {!item.assignedSeller && foundSellers[order.orderId]?.[index] && foundSellers[order.orderId][index].length > 0 && (
-                          <div className="mt-4 pl-20">
-                            <p className="text-xs mb-2" style={{ color: 'var(--color-text-secondary)' }}>Available Sellers:</p>
-                            <div className="space-y-2">
-                              {foundSellers[order.orderId][index].map((card: any) => (
-                                <div key={card.cardId}>
-                                  {card.inventory.map((inv: any, invIdx: number) => {
-                                    console.log(`Rendering inventory ${invIdx}:`, 'sellerEmail=', inv.sellerEmail, 'sellerName=', inv.sellerName, 'full inv=', inv);
-                                    return (
-                                    <div
-                                      key={inv.inventoryIndex}
-                                      className="flex items-center gap-2 p-2 rounded-lg"
-                                      style={{ backgroundColor: 'var(--color-background)' }}
-                                    >
-                                      <div className="flex-1 min-w-0">
-                                        <div className="text-xs font-medium" style={{ color: 'var(--color-text)' }}>
-                                          {inv.sellerName}
-                                        </div>
-                                        <div className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
-                                          {inv.condition} • {inv.finish} • Stock: {inv.quantityForSale}
-                                        </div>
-                                      </div>
-                                      <div className="flex gap-1">
-                                        <button
-                                          onClick={() => handleAssignCard(order.orderId, index, card.cardId, inv.inventoryIndex)}
-                                          disabled={loading}
-                                          className="text-xs px-2 py-1 rounded text-white font-medium disabled:opacity-50"
-                                          style={{ backgroundColor: '#10b981' }}
-                                        >
-                                          ✓ Check
-                                        </button>
-                                        <button
-                                          onClick={() => handleChangeSeller(order.orderId, index, foundSellers[order.orderId][index], item.sellerSku)}
-                                          disabled={loading}
-                                          className="text-xs px-2 py-1 rounded text-white disabled:opacity-50"
-                                          style={{ backgroundColor: '#6366f1' }}
-                                        >
-                                          Change
-                                        </button>
-                                      </div>
-                                    </div>
-                                  )})}
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
                       </div>
                     ))}
                   </div>

@@ -52,8 +52,7 @@ export const getCart = asyncHandler(async (req: Request, res: Response) => {
   
   if (needsSave) {
     await cart.save();
-    // Re-populate after save
-    cart = await Cart.findOne({ user: userId }).populate('items.card');
+    await cart.populate('items.card');
   }
 
   res.json({ cart });

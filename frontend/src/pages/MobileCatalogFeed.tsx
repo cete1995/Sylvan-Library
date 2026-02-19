@@ -4,7 +4,9 @@ import { cardApi } from '../api/cards';
 import { cartApi } from '../api/cart';
 import { Card, SetInfo } from '../types';
 import { useAuth } from '../contexts/AuthContext';
-import { useCart } from '../contexts/CartContext';import { toast } from '../utils/toast';import CardFeedItem from '../components/CardFeedItem';
+import { useCart } from '../contexts/CartContext';
+import { toast } from '../utils/toast';
+import CardFeedItem from '../components/CardFeedItem';
 import BottomSheet from '../components/BottomSheet';
 
 const MobileCatalogFeed: React.FC = () => {
@@ -132,8 +134,14 @@ const MobileCatalogFeed: React.FC = () => {
   const applyFilters = () => {
     setShowFilters(false);
     setCards([]);
-    setPage(1);
-    loadCards();
+    setHasMore(true);
+    // Avoid double-load: if page > 1, setPage(1) triggers the page effect which calls loadCards.
+    // If page is already 1, the page effect won't fire, so call loadCards directly.
+    if (page !== 1) {
+      setPage(1);
+    } else {
+      loadCards();
+    }
   };
 
   const resetFilters = () => {
@@ -170,11 +178,16 @@ const MobileCatalogFeed: React.FC = () => {
                 color: 'var(--color-text)',
                 borderColor: 'var(--color-border)'
               }}
-              onKeyPress={(e) => {
+              onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   setCards([]);
-                  setPage(1);
-                  loadCards();
+                  setHasMore(true);
+                  // Avoid double-load: same logic as applyFilters
+                  if (page !== 1) {
+                    setPage(1);
+                  } else {
+                    loadCards();
+                  }
                 }
               }}
             />

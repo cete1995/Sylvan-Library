@@ -33,14 +33,14 @@ const CardCard: React.FC<CardCardProps> = ({ card }) => {
     return price.toLocaleString('id-ID');
   };
   
-  // Rarity colors
-  const getRarityColor = (rarity: string) => {
+  // Rarity colors — uses CSS vars for common/default so they adapt to light/dark mode
+  const getRarityStyle = (rarity: string): React.CSSProperties => {
     switch(rarity.toLowerCase()) {
-      case 'common': return 'bg-gray-100 text-gray-800';
-      case 'uncommon': return 'bg-green-500 text-white';
-      case 'rare': return 'bg-yellow-400 text-gray-900';
-      case 'mythic': return 'bg-orange-500 text-white';
-      default: return 'bg-gray-200 text-gray-800';
+      case 'common': return { backgroundColor: 'var(--color-background)', color: 'var(--color-text-secondary)', border: '1px solid var(--color-border)' };
+      case 'uncommon': return { backgroundColor: '#22c55e', color: '#ffffff' };
+      case 'rare': return { backgroundColor: '#facc15', color: '#1c1917' };
+      case 'mythic': return { backgroundColor: '#f97316', color: '#ffffff' };
+      default: return { backgroundColor: 'var(--color-background)', color: 'var(--color-text-secondary)', border: '1px solid var(--color-border)' };
     }
   };
 
@@ -81,7 +81,7 @@ const CardCard: React.FC<CardCardProps> = ({ card }) => {
         
         {/* Rarity Pill and Special Pills */}
         <div className="mb-2 md:mb-3 flex gap-1 md:gap-2 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
-          <span className={`inline-block px-2 md:px-3 py-0.5 md:py-1 rounded-full text-xs font-semibold whitespace-nowrap ${getRarityColor(card.rarity)}`}>
+          <span className="inline-block px-2 md:px-3 py-0.5 md:py-1 rounded-full text-xs font-semibold whitespace-nowrap" style={getRarityStyle(card.rarity)}>
             {card.rarity.charAt(0).toUpperCase() + card.rarity.slice(1)}
           </span>
           {card.borderColor === 'borderless' && (
@@ -118,13 +118,13 @@ const CardCard: React.FC<CardCardProps> = ({ card }) => {
           <div className="space-y-1 pt-1.5 md:pt-2">
             <div className="flex justify-between items-center">
               <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>Near Mint</span>
-              <span className="text-xs md:text-sm font-bold text-blue-600">
+              <span className="text-xs md:text-sm font-bold" style={{ color: 'var(--color-accent)' }}>
                 {nmNonfoilPrice > 0 ? `Rp. ${formatPrice(nmNonfoilPrice)}` : 'Price TBD'}
               </span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>Foil</span>
-              <span className="text-xs md:text-sm font-bold text-blue-600">
+              <span className="text-xs md:text-sm font-bold" style={{ color: 'var(--color-accent)' }}>
                 {nmFoilPrice > 0 ? `Rp. ${formatPrice(nmFoilPrice)}` : 'Price TBD'}
               </span>
             </div>
