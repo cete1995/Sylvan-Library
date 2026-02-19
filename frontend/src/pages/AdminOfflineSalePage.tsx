@@ -396,27 +396,59 @@ const AdminOfflineSalePage: React.FC = () => {
                             {card.inventory.map((inv) => (
                               <div
                                 key={inv.inventoryIndex}
-                                className="flex items-center justify-between rounded px-3 py-2"
+                                className="flex items-center justify-between rounded-lg px-3 py-2.5 gap-2"
                                 style={{ backgroundColor: 'var(--color-panel)' }}
                               >
-                                <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                                <div className="flex flex-wrap items-center gap-1.5 min-w-0">
                                   {/* Seller badge */}
                                   <span
-                                    className="text-xs font-semibold px-2 py-0.5 rounded-full"
+                                    className="text-xs font-bold px-2.5 py-1 rounded-full flex-shrink-0"
                                     style={{ backgroundColor: 'var(--color-accent)', color: 'white' }}
                                   >
                                     {inv.sellerName}
                                   </span>
-                                  <span className="text-xs font-medium" style={{ color: 'var(--color-text)' }}>
-                                    {inv.condition} · {inv.finish}
+                                  {/* Condition pill */}
+                                  <span
+                                    className="text-xs font-bold px-2 py-1 rounded-full flex-shrink-0"
+                                    style={{
+                                      backgroundColor: inv.condition === 'NM' ? '#d1fae5' : inv.condition === 'EX' ? '#dbeafe' : inv.condition === 'VG' ? '#fef9c3' : '#fee2e2',
+                                      color:           inv.condition === 'NM' ? '#065f46' : inv.condition === 'EX' ? '#1e40af' : inv.condition === 'VG' ? '#713f12' : '#991b1b',
+                                    }}
+                                  >
+                                    {inv.condition}
                                   </span>
-                                  <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
-                                    Stock: {inv.quantityForSale} · {fmt(inv.sellPrice)}
+                                  {/* Finish pill */}
+                                  <span
+                                    className="text-xs font-semibold px-2 py-1 rounded-full flex-shrink-0"
+                                    style={{
+                                      backgroundColor: inv.finish === 'foil' ? '#fdf4ff' : inv.finish === 'etched' ? '#fff7ed' : 'var(--color-background)',
+                                      color:           inv.finish === 'foil' ? '#7e22ce' : inv.finish === 'etched' ? '#c2410c' : 'var(--color-text-secondary)',
+                                      border:          inv.finish === 'foil' ? '1px solid #d8b4fe' : inv.finish === 'etched' ? '1px solid #fdba74' : '1px solid var(--color-border)',
+                                    }}
+                                  >
+                                    {inv.finish === 'foil' ? '✨ foil' : inv.finish === 'etched' ? '🔲 etched' : 'nonfoil'}
+                                  </span>
+                                  {/* Stock */}
+                                  <span
+                                    className="text-xs font-bold px-2 py-1 rounded-full flex-shrink-0"
+                                    style={{
+                                      backgroundColor: inv.quantityForSale > 0 ? '#dcfce7' : '#fee2e2',
+                                      color:           inv.quantityForSale > 0 ? '#15803d' : '#b91c1c',
+                                    }}
+                                  >
+                                    📦 {inv.quantityForSale}
+                                  </span>
+                                  {/* Price */}
+                                  <span
+                                    className="text-sm font-bold flex-shrink-0"
+                                    style={{ color: inv.sellPrice > 0 ? 'var(--color-text)' : 'var(--color-text-secondary)' }}
+                                  >
+                                    {fmt(inv.sellPrice)}
                                   </span>
                                 </div>
                                 <button
                                   onClick={() => addToCart(card, inv.inventoryIndex)}
-                                  className="text-xs px-3 py-1 rounded-lg text-white font-medium flex-shrink-0"
+                                  className="text-xs px-3 py-1.5 rounded-lg text-white font-bold flex-shrink-0"
                                   style={{ backgroundColor: '#10b981' }}
                                 >
                                   + Add
