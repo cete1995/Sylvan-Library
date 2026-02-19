@@ -5,10 +5,38 @@ import { adminApi } from '../api/admin';
 const AdminMissingImagesPage: React.FC = () => {
   const [sets, setSets] = useState<Array<{setCode: string; setName: string; cardCount: number}>>([]);
   const [loading, setLoading] = useState(true);
+  const [importingSet, setImportingSet] = useState<string | null>(null);
+  const [importResults, setImportResults] = useState<Record<string, { success: boolean; message: string }>>({});
 
   useEffect(() => {
     loadSetsWithMissingImages();
   }, []);
+
+  const handleImportFromMTGJson = async (setCode: string) => {
+    setImportingSet(setCode);
+    setImportResults(prev => ({ ...prev, [setCode]: { success: false, message: '' } }));
+    try {
+      const url = `https://mtgjson.com/api/v5/${setCode.toUpperCase()}.json`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`Failed to fetch ${url} (${res.status})`);
+      const json = await res.json();
+      const setData = json.data ?? json;
+      const result = await adminApi.uploadSet(setData);
+      setImportResults(prev => ({
+        ...prev,
+        [setCode]: { success: true, message: `✅ Imported ${result.imported}/${result.totalCards} cards` }
+      }));
+      // Refresh the list after a moment
+      setTimeout(() => loadSetsWithMissingImages(), 1500);
+    } catch (err: any) {
+      setImportResults(prev => ({
+        ...prev,
+        [setCode]: { success: false, message: `❌ ${err.message || 'Import failed'}` }
+      }));
+    } finally {
+      setImportingSet(null);
+    }
+  };
 
   const loadSetsWithMissingImages = async () => {
     setLoading(true);
@@ -151,10 +179,9 @@ const AdminMissingImagesPage: React.FC = () => {
               </div>
               <div className="divide-y" style={{ borderColor: 'var(--color-border)' }}>
                 {sets.map((set) => (
-                  <Link
+                  <div
                     key={set.setCode}
-                    to={`/admin/cards?set=${set.setCode}&missingImages=true`}
-                    className="flex items-center px-6 py-4 hover:bg-opacity-50 transition-all group"
+                    className="flex items-center px-6 py-4 transition-all"
                     style={{ backgroundColor: 'transparent' }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.backgroundColor = 'var(--color-background)';
@@ -163,13 +190,19 @@ const AdminMissingImagesPage: React.FC = () => {
                       e.currentTarget.style.backgroundColor = 'transparent';
                     }}
                   >
+                    {/* Set icon */}
                     <div className="flex-shrink-0 mr-4">
-                      <i 
+                      <i
                         className={`ss ss-${set.setCode.toLowerCase()} ss-3x`}
                         style={{ color: 'var(--color-text)' }}
                       ></i>
                     </div>
-                    <div className="flex-1 min-w-0">
+
+                    {/* Set info — clicking navigates */}
+                    <Link
+                      to={`/admin/cards?set=${set.setCode}&missingImages=true`}
+                      className="flex-1 min-w-0 group"
+                    >
                       <div className="flex items-center gap-2">
                         <h3 className="font-semibold text-lg truncate" style={{ color: 'var(--color-text)' }}>
                           {set.setName}
@@ -189,13 +222,38 @@ const AdminMissingImagesPage: React.FC = () => {
                           {set.cardCount} card{set.cardCount !== 1 ? 's' : ''} without images
                         </span>
                       </div>
+                    </Link>
+
+                    {/* Import result message */}
+                    {importResults[set.setCode]?.message && (
+                      <span
+                        className="text-xs font-medium mr-3 max-w-[160px] text-right"
+                        style={{ color: importResults[set.setCode].success ? '#10b981' : '#ef4444' }}
+                      >
+                        {importResults[set.setCode].message}
+                      </span>
+                    )}
+
+                    {/* Import button */}
+                    <button
+                      onClick={() => handleImportFromMTGJson(set.setCode)}
+                      disabled={importingSet === set.setCode}
+                      className="flex-shrink-0 ml-3 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      style={{ backgroundColor: '#6366f1', color: 'white' }}
+                      title={`Fetch https://mtgjson.com/api/v5/${set.setCode.toUpperCase()}.json and import`}
+                    >
+                      {importingSet === set.setCode ? '⏳ Importing...' : '⬇️ Import JSON'}
+                    </button>
+
+                    {/* Navigate arrow */}
+                    <div className="flex-shrink-0 ml-3">
+                      <Link to={`/admin/cards?set=${set.setCode}&missingImages=true`}>
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--color-text-secondary)' }}>
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </Link>
                     </div>
-                    <div className="flex-shrink-0 ml-4">
-                      <svg className="w-6 h-6 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--color-text-secondary)' }}>
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </div>
-                  </Link>
+                  </div>
                 ))}
               </div>
             </div>
