@@ -125,9 +125,16 @@ async function processSetData(setData: SetJsonData) {
 
       // For DFC/meld cards MTGJSON uses full name "A // B"; faceName is just "A" or "B".
       // We store the per-face name so it matches CSV-imported cards and shows cleanly.
-      const displayName = cardData.faceName || cardData.name;
+      // Also normalise special Unicode characters: MTGJSON uses U+A789 (꞉) instead of ASCII colon.
+      const normalizeMtgName = (n: string) =>
+        n
+          .replace(/\u{A789}/gu, ':')   // MODIFIER LETTER COLON → ASCII colon
+          .replace(/\u2019|\u2018/gu, "'") // curly apostrophes → straight
+          .trim();
 
-      // Check if card already exists — try face name first, then full combined name as fallback
+      const displayName = normalizeMtgName(cardData.faceName || cardData.name);
+
+      // Check if card already exists — try normalized face name first, then full combined name as fallback
       let existing = await Card.findOne({ name: displayName, setCode, collectorNumber: cardData.number });
       if (!existing && displayName !== cardData.name) {
         existing = await Card.findOne({ name: cardData.name, setCode, collectorNumber: cardData.number });

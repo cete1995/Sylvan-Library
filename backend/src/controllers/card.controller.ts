@@ -27,14 +27,20 @@ export const getCards = asyncHandler(async (req: Request, res: Response) => {
   if (params.q) {
     const rawTerm = params.q.trim();
 
+    // Normalise special Unicode punctuation in the query:
+    //   U+A789 (꞉ MODIFIER LETTER COLON) → ASCII colon, curly apostrophes → straight
+    const normalizedRaw = rawTerm
+      .replace(/\u{A789}/gu, ':')
+      .replace(/[\u2019\u2018]/gu, "'");
+
     // Strip commas and apostrophes from query, then split into words
     // so "mishra claimed by" also matches "Mishra, Claimed by Gix"
-    const cleanTerm = rawTerm.replace(/[,'\u2019\u2018]/g, '').replace(/\s+/g, ' ').trim();
+    const cleanTerm = normalizedRaw.replace(/[,'\u2019\u2018]/g, '').replace(/\s+/g, ' ').trim();
     const words = cleanTerm.split(/\s+/).filter(Boolean);
-    // Flexible pattern: words separated by optional commas/apostrophes/spaces/hyphens
+    // Flexible pattern: words separated by optional commas/apostrophes/colons/spaces/hyphens
     const flexPattern = words
       .map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
-      .join("[,'\\s\\-]*");
+      .join("[,':\\uA789\\s\\-]*");
 
     // Also keep hyphen-variation patterns for existing searches like "goblin-guide"
     const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
