@@ -8,9 +8,51 @@ const AdminMissingImagesPage: React.FC = () => {
   const [importingSet, setImportingSet] = useState<string | null>(null);
   const [importResults, setImportResults] = useState<Record<string, { success: boolean; message: string }>>({});
 
+  // Bulk download state
+  const [bulkImporting, setBulkImporting] = useState(false);
+  const [bulkAbort, setBulkAbort] = useState(false);
+  const bulkAbortRef = React.useRef(false);
+  const [bulkDone, setBulkDone] = useState(0);
+  const [bulkTotal, setBulkTotal] = useState(0);
+  const [bulkCurrentSet, setBulkCurrentSet] = useState<string>('');
+  const [bulkLog, setBulkLog] = useState<Array<{ setCode: string; ok: boolean; msg: string }>>([]);
+
   useEffect(() => {
     loadSetsWithMissingImages();
   }, []);
+
+  const handleImportAll = async () => {
+    if (sets.length === 0) return;
+    setBulkImporting(true);
+    setBulkAbort(false);
+    bulkAbortRef.current = false;
+    setBulkDone(0);
+    setBulkTotal(sets.length);
+    setBulkCurrentSet('');
+    setBulkLog([]);
+
+    for (let i = 0; i < sets.length; i++) {
+      if (bulkAbortRef.current) break;
+      const set = sets[i];
+      setBulkCurrentSet(set.setCode);
+      setBulkDone(i);
+      try {
+        const result = await adminApi.importSetFromMTGJson(set.setCode);
+        setBulkLog(prev => [...prev, { setCode: set.setCode, ok: true, msg: `✅ ${set.setName} — ${result.imported}/${result.totalCards} cards` }]);
+        setImportResults(prev => ({ ...prev, [set.setCode]: { success: true, message: `✅ ${result.imported}/${result.totalCards}` } }));
+      } catch (err: any) {
+        const msg = err.response?.data?.error || err.message || 'Import failed';
+        setBulkLog(prev => [...prev, { setCode: set.setCode, ok: false, msg: `❌ ${set.setName} — ${msg}` }]);
+        setImportResults(prev => ({ ...prev, [set.setCode]: { success: false, message: `❌ ${msg}` } }));
+      }
+    }
+
+    setBulkDone(prev => bulkAbortRef.current ? prev : sets.length);
+    setBulkCurrentSet('');
+    setBulkImporting(false);
+    // Refresh list
+    setTimeout(() => loadSetsWithMissingImages(), 1000);
+  };
 
   const handleImportFromMTGJson = async (setCode: string) => {
     setImportingSet(setCode);
@@ -70,20 +112,88 @@ const AdminMissingImagesPage: React.FC = () => {
                 </p>
               </div>
             </div>
-            <button
-              onClick={loadSetsWithMissingImages}
-              className="px-4 py-2 rounded-lg font-medium hover:opacity-90 transition-opacity flex items-center gap-2"
-              style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-panel)' }}
-              disabled={loading}
-            >
-              <svg className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-              Refresh
-            </button>
+            <div className="flex items-center gap-2">
+              {/* Download All button */}
+              {!bulkImporting ? (
+                <button
+                  onClick={handleImportAll}
+                  disabled={loading || sets.length === 0}
+                  className="px-4 py-2 rounded-lg font-medium hover:opacity-90 transition-opacity flex items-center gap-2 disabled:opacity-40"
+                  style={{ backgroundColor: '#6366f1', color: 'white' }}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  Download All ({sets.length})
+                </button>
+              ) : (
+                <button
+                  onClick={() => { bulkAbortRef.current = true; setBulkAbort(true); }}
+                  className="px-4 py-2 rounded-lg font-medium flex items-center gap-2"
+                  style={{ backgroundColor: '#ef4444', color: 'white' }}
+                >
+                  ⏹ Stop
+                </button>
+              )}
+              <button
+                onClick={loadSetsWithMissingImages}
+                className="px-4 py-2 rounded-lg font-medium hover:opacity-90 transition-opacity flex items-center gap-2"
+                style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-panel)' }}
+                disabled={loading || bulkImporting}
+              >
+                <svg className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                Refresh
+              </button>
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Bulk Import Progress Panel */}
+      {(bulkImporting || bulkLog.length > 0) && (
+        <div className="border-b px-4 py-4" style={{ backgroundColor: 'var(--color-panel)', borderColor: 'var(--color-border)' }}>
+          <div className="max-w-7xl mx-auto">
+            {/* Status line */}
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-semibold" style={{ color: 'var(--color-text)' }}>
+                {bulkImporting
+                  ? `⬇️ Downloading ${bulkCurrentSet ? `${bulkCurrentSet}…` : '…'}`
+                  : bulkAbort ? '⏹ Stopped' : '✅ All done!'}
+              </span>
+              <span className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+                {bulkDone} / {bulkTotal} sets
+              </span>
+            </div>
+
+            {/* Progress bar */}
+            <div className="w-full rounded-full h-3 overflow-hidden mb-3" style={{ backgroundColor: 'var(--color-background)' }}>
+              <div
+                className="h-3 rounded-full transition-all duration-300"
+                style={{
+                  width: bulkTotal > 0 ? `${Math.round((bulkDone / bulkTotal) * 100)}%` : '0%',
+                  backgroundColor: bulkAbort ? '#ef4444' : bulkImporting ? '#6366f1' : '#10b981',
+                }}
+              />
+            </div>
+
+            {/* Log */}
+            {bulkLog.length > 0 && (
+              <div
+                className="max-h-32 overflow-y-auto rounded-lg px-3 py-2 text-xs font-mono space-y-0.5"
+                style={{ backgroundColor: 'var(--color-background)' }}
+              >
+                {[...bulkLog].reverse().map((entry, i) => (
+                  <div key={i} style={{ color: entry.ok ? '#10b981' : '#ef4444' }}>
+                    {entry.msg}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
