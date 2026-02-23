@@ -24,7 +24,8 @@ interface MTGJsonCard {
   frameEffects?: string[];
   uuid?: string;
   availability?: string[];
-  side?: string; // 'a' = front face, 'b' = back face (DFC cards)
+  side?: string; // 'a' = front face, 'b' = back face (DFC/meld cards)
+  faceName?: string; // Per-face name for DFC/meld (e.g. "Mishra, Claimed by Gix" vs full "A // B")
   identifiers?: {
     scryfallId?: string;
   };
@@ -122,14 +123,18 @@ async function processSetData(setData: SetJsonData) {
         typeLine = cardData.type;
       }
 
-      // Check if card already exists (same name, set, and collector number)
-      const existing = await Card.findOne({
-        name: cardData.name,
-        setCode: setCode,
-        collectorNumber: cardData.number,
-      });
+      // For DFC/meld cards MTGJSON uses full name "A // B"; faceName is just "A" or "B".
+      // We store the per-face name so it matches CSV-imported cards and shows cleanly.
+      const displayName = cardData.faceName || cardData.name;
+
+      // Check if card already exists — try face name first, then full combined name as fallback
+      let existing = await Card.findOne({ name: displayName, setCode, collectorNumber: cardData.number });
+      if (!existing && displayName !== cardData.name) {
+        existing = await Card.findOne({ name: cardData.name, setCode, collectorNumber: cardData.number });
+      }
 
       if (existing) {
+        existing.name = displayName; // normalise to face name if it was stored as full "A // B"
         existing.setName = setName;
         existing.releaseDate = releaseDate;
         existing.rarity = rarity;
@@ -151,7 +156,7 @@ async function processSetData(setData: SetJsonData) {
         updatedCards.push(existing);
       } else {
         const newCard = await Card.create({
-          name: cardData.name,
+          name: displayName,
           setCode: setCode,
           setName: setName,
           releaseDate: releaseDate,
