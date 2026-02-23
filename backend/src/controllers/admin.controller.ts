@@ -559,3 +559,48 @@ export const fixInventoryQuantities = asyncHandler(async (req: Request, res: Res
     errors: errors.length > 0 ? errors : undefined
   });
 });
+
+/**
+ * Clean up cards whose name contains " // " (old DFC/meld imports done before the faceName fix).
+ * - If a card with just the face name already exists → copy imageUrl/scryfallId to it, delete the combined-name duplicate.
+ * - If no face-name card exists → rename the combined-name card to use the face part only.
+ */
+export const cleanupCombinedNames = asyncHandler(async (req: Request, res: Response) => {
+  const combinedCards = await Card.find({ name: / \/\/ / });
+
+  let merged = 0;
+  let renamed = 0;
+
+  for (const card of combinedCards) {
+    const facePart = card.name.split(' // ')[0].trim();
+
+    const faceCard = await Card.findOne({
+      name: facePart,
+      setCode: card.setCode,
+      collectorNumber: card.collectorNumber,
+      _id: { $ne: card._id },
+    });
+
+    if (faceCard) {
+      // Prefer the image from whichever card has it; update face card then delete duplicate
+      if (!faceCard.imageUrl && card.imageUrl) faceCard.imageUrl = card.imageUrl;
+      if (!faceCard.scryfallId && card.scryfallId) faceCard.scryfallId = card.scryfallId;
+      await faceCard.save();
+      await Card.deleteOne({ _id: card._id });
+      merged++;
+    } else {
+      // No duplicate — just rename to the clean face name
+      card.name = facePart;
+      await card.save();
+      renamed++;
+    }
+  }
+
+  res.json({
+    success: true,
+    message: `Cleanup complete: ${merged} duplicate(s) merged & deleted, ${renamed} card(s) renamed`,
+    total: combinedCards.length,
+    merged,
+    renamed,
+  });
+});

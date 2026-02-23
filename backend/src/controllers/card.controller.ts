@@ -25,22 +25,27 @@ export const getCards = asyncHandler(async (req: Request, res: Response) => {
 
   // Text search by name
   if (params.q) {
-    // Create variations of the search query to handle hyphens
-    const searchTerm = params.q.trim();
-    const withHyphen = searchTerm.replace(/\s+/g, '-');
-    const withoutHyphen = searchTerm.replace(/-/g, ' ');
-    const withoutSpace = searchTerm.replace(/[\s-]/g, '');
-    
-    // Build regex pattern to match any variation
-    const patterns = [
-      searchTerm,
-      withHyphen,
-      withoutHyphen,
-      withoutSpace
-    ].filter((term, index, self) => self.indexOf(term) === index); // Remove duplicates
-    
-    const regexPattern = patterns.map(p => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
-    
+    const rawTerm = params.q.trim();
+
+    // Strip commas and apostrophes from query, then split into words
+    // so "mishra claimed by" also matches "Mishra, Claimed by Gix"
+    const cleanTerm = rawTerm.replace(/[,'\u2019\u2018]/g, '').replace(/\s+/g, ' ').trim();
+    const words = cleanTerm.split(/\s+/).filter(Boolean);
+    // Flexible pattern: words separated by optional commas/apostrophes/spaces/hyphens
+    const flexPattern = words
+      .map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+      .join("[,'\\s\\-]*");
+
+    // Also keep hyphen-variation patterns for existing searches like "goblin-guide"
+    const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const extraPatterns = [cleanTerm.replace(/\s+/g, '-'), cleanTerm.replace(/-/g, ' ')]
+      .filter(t => t !== cleanTerm)
+      .map(esc);
+
+    const regexPattern = [flexPattern, ...extraPatterns]
+      .filter((t, i, a) => a.indexOf(t) === i)
+      .join('|');
+
     filter.$or = [
       { name: { $regex: regexPattern, $options: 'i' } },
       { setName: { $regex: regexPattern, $options: 'i' } },

@@ -120,4 +120,11 @@ export const adminApi = {
     );
     return response.data;
   },
+
+  cleanupCombinedNames: async (): Promise<{ success: boolean; message: string; total: number; merged: number; renamed: number }> => {
+    const response = await api.post<{ success: boolean; message: string; total: number; merged: number; renamed: number }>(
+      '/admin/cleanup-combined-names'
+    );
+    return response.data;
+  },
 };

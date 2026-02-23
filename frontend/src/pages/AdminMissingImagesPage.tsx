@@ -17,6 +17,10 @@ const AdminMissingImagesPage: React.FC = () => {
   const [bulkCurrentSet, setBulkCurrentSet] = useState<string>('');
   const [bulkLog, setBulkLog] = useState<Array<{ setCode: string; ok: boolean; msg: string }>>([]);
 
+  // Cleanup duplicate names state
+  const [cleaningUp, setCleaningUp] = useState(false);
+  const [cleanupMsg, setCleanupMsg] = useState<string | null>(null);
+
   useEffect(() => {
     loadSetsWithMissingImages();
   }, []);
@@ -87,6 +91,20 @@ const AdminMissingImagesPage: React.FC = () => {
     }
   };
 
+  const handleCleanupCombinedNames = async () => {
+    setCleaningUp(true);
+    setCleanupMsg(null);
+    try {
+      const result = await adminApi.cleanupCombinedNames();
+      setCleanupMsg(`✅ ${result.message}`);
+      setTimeout(() => loadSetsWithMissingImages(), 1000);
+    } catch (err: any) {
+      setCleanupMsg(`❌ ${err.response?.data?.error || err.message || 'Cleanup failed'}`);
+    } finally {
+      setCleaningUp(false);
+    }
+  };
+
   return (
     <div className="min-h-screen pb-20" style={{ backgroundColor: 'var(--color-background)' }}>
       {/* Header */}
@@ -113,6 +131,16 @@ const AdminMissingImagesPage: React.FC = () => {
               </div>
             </div>
             <div className="flex items-center gap-2">
+              {/* Cleanup duplicate combined names button */}
+              <button
+                onClick={handleCleanupCombinedNames}
+                disabled={cleaningUp || bulkImporting}
+                className="px-3 py-2 rounded-lg font-medium hover:opacity-90 transition-opacity flex items-center gap-1.5 disabled:opacity-40 text-sm"
+                style={{ backgroundColor: '#f59e0b', color: 'white' }}
+                title="Remove duplicate cards created by old imports (e.g. 'A // B' vs 'A')"
+              >
+                {cleaningUp ? '⏳' : '🧹'} Fix Names
+              </button>
               {/* Download All button */}
               {!bulkImporting ? (
                 <button
@@ -150,6 +178,15 @@ const AdminMissingImagesPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Cleanup result message */}
+      {cleanupMsg && (
+        <div className="px-4 py-2 border-b" style={{ backgroundColor: 'var(--color-panel)', borderColor: 'var(--color-border)' }}>
+          <div className="max-w-7xl mx-auto">
+            <p className="text-sm" style={{ color: 'var(--color-text)' }}>{cleanupMsg}</p>
+          </div>
+        </div>
+      )}
 
       {/* Bulk Import Progress Panel */}
       {(bulkImporting || bulkLog.length > 0) && (
