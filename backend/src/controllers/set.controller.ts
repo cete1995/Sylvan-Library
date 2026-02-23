@@ -24,6 +24,7 @@ interface MTGJsonCard {
   frameEffects?: string[];
   uuid?: string;
   availability?: string[];
+  side?: string; // 'a' = front face, 'b' = back face (DFC cards)
   identifiers?: {
     scryfallId?: string;
   };
@@ -141,7 +142,10 @@ async function processSetData(setData: SetJsonData) {
         existing.borderColor = cardData.borderColor || 'black';
         existing.frameEffects = cardData.frameEffects || [];
         if (cardData.identifiers?.scryfallId) {
-          existing.imageUrl = `https://cards.scryfall.io/normal/front/${cardData.identifiers.scryfallId.charAt(0)}/${cardData.identifiers.scryfallId.charAt(1)}/${cardData.identifiers.scryfallId}.jpg`;
+          // DFC back face (side='b','c','d') uses /back/ in Scryfall URL; everything else uses /front/
+          const face = (cardData.side && cardData.side !== 'a') ? 'back' : 'front';
+          const sid = cardData.identifiers.scryfallId;
+          existing.imageUrl = `https://cards.scryfall.io/normal/${face}/${sid.charAt(0)}/${sid.charAt(1)}/${sid}.jpg`;
         }
         await existing.save();
         updatedCards.push(existing);
@@ -162,7 +166,11 @@ async function processSetData(setData: SetJsonData) {
           borderColor: cardData.borderColor || 'black',
           frameEffects: cardData.frameEffects || [],
           imageUrl: cardData.identifiers?.scryfallId 
-            ? `https://cards.scryfall.io/normal/front/${cardData.identifiers.scryfallId.charAt(0)}/${cardData.identifiers.scryfallId.charAt(1)}/${cardData.identifiers.scryfallId}.jpg`
+            ? (() => {
+                const face = (cardData.side && cardData.side !== 'a') ? 'back' : 'front';
+                const sid = cardData.identifiers!.scryfallId!;
+                return `https://cards.scryfall.io/normal/${face}/${sid.charAt(0)}/${sid.charAt(1)}/${sid}.jpg`;
+              })()
             : undefined,
           language: 'EN',
           isActive: true,
