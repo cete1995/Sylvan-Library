@@ -47,17 +47,13 @@ router.post('/sync-all', authenticate, requireAdmin, async (req: Request, res: R
 
         const ckPrices = card.uuid ? (priceMap.get(card.uuid) ?? null) : null;
         const isUB = await isUBSet(card.setCode);
-        console.log(`\n=== Processing ${cardIdentifier} ===`);
-        console.log(`UUID: ${card.uuid || 'N/A'} | UB: ${isUB} | CK:`, ckPrices || 'no data');
 
         let updated = false;
         for (const item of card.inventory) {
           if (!item.quantityOwned || item.quantityOwned === 0) {
-            console.log(`  - ${item.condition}/${item.finish}: no stock`);
             continue;
           }
           if (!ckPrices) {
-            console.log(`  - ${item.condition}/${item.finish}: no CK data, keeping existing price`);
             continue;
           }
 
@@ -75,26 +71,18 @@ router.post('/sync-all', authenticate, requireAdmin, async (req: Request, res: R
             const curM = Math.round((item.marketplacePrice || 0) * 100) / 100;
             const calM = Math.round(newMarketplacePrice     * 100) / 100;
 
-            console.log(`  - ${item.condition}/${item.finish}: CK=$${ckPrice.toFixed(2)} → web: ${cur}→${calc}, mkt: ${curM}→${calM}`);
-
             if (!item.sellPrice || item.sellPrice === 0 || Math.abs(cur - calc) > 0.01 ||
                 !item.marketplacePrice || item.marketplacePrice === 0 || Math.abs(curM - calM) > 0.01) {
               item.sellPrice = calc;
               item.marketplacePrice = calM;
               updated = true;
-              console.log(`    ✅ UPDATED`);
-            } else {
-              console.log(`    ⏭️  No change`);
             }
-          } else {
-            console.log(`  - ${item.condition}/${item.finish}: no CK price for this finish`);
           }
         }
 
         if (updated) {
           bulkOps.push({ updateOne: { filter: { _id: card._id }, update: { $set: { inventory: card.inventory } } } });
           updatedCount++;
-          console.log(`✅ Queued update for ${cardIdentifier}`);
         } else {
           skippedCount++;
         }

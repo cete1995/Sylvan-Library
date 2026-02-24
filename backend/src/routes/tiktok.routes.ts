@@ -805,8 +805,6 @@ router.post('/bulk-update-csv-stream', authenticate, requireAdmin, upload.single
 
     // Parse CSV file
     const csvContent = req.file.buffer.toString('utf-8');
-    console.log('\n=== CSV PARSING (STREAM) ===');
-    console.log('CSV Content:', csvContent);
     
     const records = parse(csvContent, {
       columns: true,
@@ -814,8 +812,7 @@ router.post('/bulk-update-csv-stream', authenticate, requireAdmin, upload.single
       trim: true
     });
 
-    console.log('Parsed Records Count:', records.length);
-    console.log('Parsed Records:', JSON.stringify(records, null, 2));
+    console.log(`[bulk-update-csv-stream] Parsed ${records.length} rows from CSV`);
 
     // Validate and transform CSV data - Filter out empty rows
     const updates = records
@@ -841,9 +838,7 @@ router.post('/bulk-update-csv-stream', authenticate, requireAdmin, upload.single
         return update;
       });
 
-    console.log('After Filtering - Updates Count:', updates.length);
-    console.log('Filtered Updates:', JSON.stringify(updates, null, 2));
-    console.log('============================\n');
+    console.log(`[bulk-update-csv-stream] ${updates.length} valid updates after filtering`);
 
     if (updates.length === 0) {
       res.status(400).json({

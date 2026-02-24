@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import axios from 'axios';
 import CardPrice from '../models/CardPrice';
 import { authenticate, requireAdmin } from '../middleware/auth.middleware';
+import { verifyToken } from '../utils/auth.utils';
 
 const router = Router();
 
@@ -27,6 +28,18 @@ router.get('/import-progress', (req: Request, res: Response) => {
   
   if (!token) {
     res.status(401).json({ error: 'No token provided' });
+    return;
+  }
+
+  // Verify the JWT is valid and belongs to an admin
+  try {
+    const decoded = verifyToken(token);
+    if (decoded.role !== 'admin') {
+      res.status(403).json({ error: 'Admin access required' });
+      return;
+    }
+  } catch {
+    res.status(401).json({ error: 'Invalid or expired token' });
     return;
   }
 
@@ -138,6 +151,12 @@ router.post('/import-prices', authenticate, requireAdmin, async (req: Request, r
     importProgress.status = 'processing';
     console.log(`Processing ${uuids.length} card prices...`);
 
+    // Pre-fetch ALL UUIDs that already have a price record for today in a single query
+    // This replaces the N individual findOne calls that were in the loop
+    const alreadyImportedUuids = await CardPrice.distinct('uuid', { date: today }) as string[];
+    const alreadyImportedSet = new Set<string>(alreadyImportedUuids);
+    console.log(`Loaded ${alreadyImportedSet.size} already-imported UUIDs for today`);
+
     for (const uuid of uuids) {
       const cardPriceData = priceData[uuid];
       
@@ -150,10 +169,8 @@ router.post('/import-prices', authenticate, requireAdmin, async (req: Request, r
         continue;
       }
       
-      // Check if we already have data for this UUID today
-      const existingPrice = await CardPrice.findOne({ uuid, date: today });
-
-      if (existingPrice) {
+      // Check if we already have data for this UUID today (O(1) Set lookup, no DB query)
+      if (alreadyImportedSet.has(uuid)) {
         skippedCount++;
         importProgress.currentCard++;
         importProgress.skipped = skippedCount;

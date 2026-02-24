@@ -3,6 +3,7 @@ import multer from 'multer';
 import csvParser from 'csv-parser';
 import { Readable } from 'stream';
 import Card from '../models/Card.model';
+import User from '../models/User.model';
 import { authenticate } from '../middleware/auth.middleware';
 
 const router = Router();
@@ -60,7 +61,9 @@ router.post('/upload', authenticate, upload.single('file'), async (req: Request,
     }
 
     const sellerId = req.user.id;
-    const sellerName = req.user.name || req.user.email.split('@')[0]; // Use seller name or fallback to email prefix
+    // Look up the seller's display name from the database — the JWT only carries id/email/role
+    const sellerUser = await User.findById(sellerId).select('name email').lean();
+    const sellerName = sellerUser?.name || (sellerUser?.email || req.user.email).split('@')[0];
 
     const results: any[] = [];
     const errors: any[] = [];
