@@ -832,7 +832,7 @@ const AdminTikTokDebugPage: React.FC = () => {
 
       const expiresInHours = Math.floor(data.data.accessTokenExpireIn / 3600);
       setTokenRefreshMessage(
-        `✅ Token refreshed successfully!\n` +
+        `✅ Token refreshed & saved automatically!\n` +
         `New Access Token expires in: ${expiresInHours} hours\n` +
         `Seller: ${data.data.sellerName} (${data.data.sellerBaseRegion})`
       );

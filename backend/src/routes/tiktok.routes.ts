@@ -1253,11 +1253,33 @@ router.post('/refresh-token', authenticate, requireAdmin, async (req: Request, r
     }
 
     // Return the new tokens
+    const newAccessToken  = response.data.data.access_token;
+    const newRefreshToken = response.data.data.refresh_token;
+
+    // Auto-save the refreshed tokens to DB so the page pre-fills next time
+    // We only update accessToken + refreshToken; other fields stay as-is.
+    const existing = await TikTokCredentials.findOne();
+    if (existing) {
+      existing.accessToken  = encrypt(newAccessToken  || '');
+      existing.refreshToken = encrypt(newRefreshToken || '');
+      await existing.save();
+    } else {
+      // No existing record — save full credentials so they are available later.
+      await TikTokCredentials.create({
+        appKey:       encrypt(appKey      || ''),
+        appSecret:    encrypt(appSecret   || ''),
+        accessToken:  encrypt(newAccessToken  || ''),
+        refreshToken: encrypt(newRefreshToken || ''),
+        shopCipher:   encrypt(''),
+      });
+    }
+
     res.json({
       success: true,
+      savedToDb: true,
       data: {
-        accessToken: response.data.data.access_token,
-        refreshToken: response.data.data.refresh_token,
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken,
         accessTokenExpireIn: response.data.data.access_token_expire_in,
         refreshTokenExpireIn: response.data.data.refresh_token_expire_in,
         openId: response.data.data.open_id,
