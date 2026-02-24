@@ -1007,8 +1007,8 @@ router.post('/bulk-update-csv-stream', authenticate, requireAdmin, upload.single
       }
     };
 
-    // ── Process in concurrent batches of 25 (TikTok allows 30 req/s) ───────────
-    const CONCURRENCY = 25;
+    // ── Process in concurrent batches of 20 (safe margin under TikTok's 30 req/s) ──
+    const CONCURRENCY = 20;
     const entries = Object.entries(groupedUpdates);
     for (let i = 0; i < entries.length; i += CONCURRENCY) {
       const batch = entries.slice(i, i + CONCURRENCY);
