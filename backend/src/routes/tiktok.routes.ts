@@ -888,151 +888,76 @@ router.post('/bulk-update-csv-stream', authenticate, requireAdmin, upload.single
       message: 'Starting bulk update...'
     });
 
-    // Process each product
-    for (const [productId, productUpdates] of Object.entries(groupedUpdates)) {
-      try {
-        const skuUpdates = productUpdates as any[];
-        
-        console.log('=== Processing Product ===');
-        console.log('Product ID:', productId);
-        console.log('SKU Updates:', JSON.stringify(skuUpdates, null, 2));
-        
-        // Separate price and stock updates
-        const hasPriceUpdates = skuUpdates.some(u => u.price !== undefined);
-        const hasStockUpdates = skuUpdates.some(u => u.stock !== undefined);
-        
-        console.log('Has Price Updates:', hasPriceUpdates);
-        console.log('Has Stock Updates:', hasStockUpdates);
-        
-        let successCount = 0;
-        let lastResponse: any = null;
+    // ── Helper: process a single product ────────────────────────────────────────
+    const processOneProduct = async (productId: string, productUpdates: any[]): Promise<void> => {
+      const skuUpdates = productUpdates as any[];
+      const hasPriceUpdates = skuUpdates.some(u => u.price !== undefined);
+      const hasStockUpdates = skuUpdates.some(u => u.stock !== undefined);
 
+      let lastResponse: any = null;
+
+      try {
         // Update prices if needed
         if (hasPriceUpdates) {
           const timestamp = Math.floor(Date.now() / 1000);
-          const queryParams: any = {
-            app_key: appKey,
-            timestamp: timestamp.toString()
-          };
-
-          if (shopCipher) {
-            queryParams.shop_cipher = shopCipher;
-          }
+          const queryParams: any = { app_key: appKey, timestamp: timestamp.toString() };
+          if (shopCipher) queryParams.shop_cipher = shopCipher;
 
           const sortedKeys = Object.keys(queryParams).sort();
           let signString = '';
-          for (const key of sortedKeys) {
-            signString += `${key}${queryParams[key]}`;
-          }
+          for (const key of sortedKeys) signString += `${key}${queryParams[key]}`;
 
           const apiPath = `/product/202309/products/${productId}/prices/update`;
-
-          // Build price SKU updates - match TikTok API format exactly
           const skus = skuUpdates
             .filter(u => u.price !== undefined)
             .map((update: any) => {
-              const priceObj: any = {
-                amount: update.price.toString(),
-                currency: currency
-              };
-              
-              // Add sale_price if provided (optional)
-              if (update.salePrice) {
-                priceObj.sale_price = update.salePrice.toString();
-              }
-              
-              return {
-                id: update.skuId,
-                price: priceObj
-              };
+              const priceObj: any = { amount: update.price.toString(), currency };
+              if (update.salePrice) priceObj.sale_price = update.salePrice.toString();
+              return { id: update.skuId, price: priceObj };
             });
 
           const productData = { skus };
-          
           const bodyString = JSON.stringify(productData);
           const baseString = apiPath + signString + bodyString;
           const wrappedString = appSecret + baseString + appSecret;
-          const sign = generateSignature(appSecret, wrappedString);
-          queryParams.sign = sign;
+          queryParams.sign = generateSignature(appSecret, wrappedString);
 
-          const queryString = new URLSearchParams(queryParams).toString();
-          const url = `${TIKTOK_API_BASE}${apiPath}?${queryString}`;
-
-          console.log('\n=== PRICE UPDATE REQUEST ===');
-          console.log('URL:', url);
-          console.log('Request Body:', JSON.stringify(productData, null, 2));
-          console.log('SKUs Count:', skus.length);
-          console.log('============================\n');
-
+          const url = `${TIKTOK_API_BASE}${apiPath}?${new URLSearchParams(queryParams).toString()}`;
           const response = await axios.post(url, productData, {
-            headers: {
-              'x-tts-access-token': accessToken,
-              'Content-Type': 'application/json'
-            }
+            headers: { 'x-tts-access-token': accessToken, 'Content-Type': 'application/json' }
           });
-
-          console.log('Price Update Response:', JSON.stringify(response.data, null, 2));
           lastResponse = response.data;
-          successCount++;
         }
 
         // Update inventory if needed
         if (hasStockUpdates) {
           const timestamp = Math.floor(Date.now() / 1000);
-          const queryParams: any = {
-            app_key: appKey,
-            timestamp: timestamp.toString()
-          };
-
-          if (shopCipher) {
-            queryParams.shop_cipher = shopCipher;
-          }
+          const queryParams: any = { app_key: appKey, timestamp: timestamp.toString() };
+          if (shopCipher) queryParams.shop_cipher = shopCipher;
 
           const sortedKeys = Object.keys(queryParams).sort();
           let signString = '';
-          for (const key of sortedKeys) {
-            signString += `${key}${queryParams[key]}`;
-          }
+          for (const key of sortedKeys) signString += `${key}${queryParams[key]}`;
 
           const apiPath = `/product/202309/products/${productId}/inventory/update`;
-
-          // Build inventory SKU updates - match TikTok API format exactly
           const skus = skuUpdates
             .filter(u => u.stock !== undefined)
             .map((update: any) => ({
               id: update.skuId,
-              inventory: [{
-                quantity: parseInt(update.stock)
-              }]
+              inventory: [{ quantity: parseInt(update.stock) }]
             }));
 
           const productData = { skus };
-          
           const bodyString = JSON.stringify(productData);
           const baseString = apiPath + signString + bodyString;
           const wrappedString = appSecret + baseString + appSecret;
-          const sign = generateSignature(appSecret, wrappedString);
-          queryParams.sign = sign;
+          queryParams.sign = generateSignature(appSecret, wrappedString);
 
-          const queryString = new URLSearchParams(queryParams).toString();
-          const url = `${TIKTOK_API_BASE}${apiPath}?${queryString}`;
-
-          console.log('\n=== INVENTORY UPDATE REQUEST ===');
-          console.log('URL:', url);
-          console.log('Request Body:', JSON.stringify(productData, null, 2));
-          console.log('SKUs Count:', skus.length);
-          console.log('================================\n');
-
+          const url = `${TIKTOK_API_BASE}${apiPath}?${new URLSearchParams(queryParams).toString()}`;
           const response = await axios.post(url, productData, {
-            headers: {
-              'x-tts-access-token': accessToken,
-              'Content-Type': 'application/json'
-            }
+            headers: { 'x-tts-access-token': accessToken, 'Content-Type': 'application/json' }
           });
-
-          console.log('Inventory Update Response:', JSON.stringify(response.data, null, 2));
           lastResponse = response.data;
-          successCount++;
         }
 
         results.successful.push({
@@ -1046,8 +971,6 @@ router.post('/bulk-update-csv-stream', authenticate, requireAdmin, upload.single
         });
 
         processedProducts++;
-
-        // Send progress update
         sendProgress({
           type: 'progress',
           productId,
@@ -1062,14 +985,6 @@ router.post('/bulk-update-csv-stream', authenticate, requireAdmin, upload.single
         });
 
       } catch (error: any) {
-        const skuUpdates = productUpdates as any[];
-        console.error('Price/Inventory Update Error:', {
-          productId,
-          productName: skuUpdates[0]?.productName || null,
-          fullError: error.response?.data || error.message,
-          statusCode: error.response?.status
-        });
-        
         const errorDetail = {
           productId,
           productName: skuUpdates[0]?.productName || null,
@@ -1079,11 +994,8 @@ router.post('/bulk-update-csv-stream', authenticate, requireAdmin, upload.single
           statusCode: error.response?.status,
           fullResponse: error.response?.data
         };
-
         results.failed.push(errorDetail);
         processedProducts++;
-
-        // Send error update
         sendProgress({
           type: 'progress',
           productId,
@@ -1098,6 +1010,16 @@ router.post('/bulk-update-csv-stream', authenticate, requireAdmin, upload.single
           failed: results.failed.length
         });
       }
+    };
+
+    // ── Process in concurrent batches of 25 (TikTok allows 30 req/s) ───────────
+    const CONCURRENCY = 25;
+    const entries = Object.entries(groupedUpdates);
+    for (let i = 0; i < entries.length; i += CONCURRENCY) {
+      const batch = entries.slice(i, i + CONCURRENCY);
+      await Promise.allSettled(
+        batch.map(([productId, productUpdates]) => processOneProduct(productId, productUpdates as any[]))
+      );
     }
 
     // Send completion
