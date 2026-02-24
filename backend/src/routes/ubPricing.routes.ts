@@ -232,45 +232,53 @@ router.post('/sync-ub-prices', authenticate, requireAdmin, async (req: Request, 
       });
     }
 
+    // ── Bulk-fetch latest CK prices for every UUID in one aggregation ──────────
+    const allUuids = cardsToUpdate.map((c: any) => c.uuid).filter((u: any): u is string => Boolean(u));
+    const latestPriceDocs = await CardPrice.aggregate<{ _id: string; prices: any }>([
+      { $match: { uuid: { $in: allUuids } } },
+      { $sort: { date: -1 } },
+      { $group: { _id: '$uuid', prices: { $first: '$prices' } } },
+    ]);
+    const priceMap = new Map<string, any>();
+    for (const p of latestPriceDocs) {
+      if (p.prices?.cardkingdom?.retail) priceMap.set(p._id, p.prices.cardkingdom.retail);
+    }
+    console.log(`📦 [sync-ub] Loaded prices for ${priceMap.size} / ${allUuids.length} UUIDs`);
+
     let updatedCount = 0;
     let skippedCount = 0;
     const errors: string[] = [];
+    const bulkOps: any[] = [];
 
     for (const card of cardsToUpdate) {
       try {
         const cardIdentifier = `${card.name} (${card.setCode} #${card.collectorNumber})`;
-        
+
         // Skip if not a UB set (shouldn't happen but safety check)
         if (!(await isUBSet(card.setCode))) {
           skippedCount++;
           continue;
         }
 
-        // Get latest CK prices for this card
         if (!card.uuid) {
           skippedCount++;
           errors.push(`${cardIdentifier}: No UUID`);
           continue;
         }
 
-        const latestPrice = await CardPrice.findOne({ uuid: card.uuid })
-          .sort({ date: -1 })
-          .lean();
-
-        if (!latestPrice || !latestPrice.prices?.cardkingdom?.retail) {
+        const ckPrices = priceMap.get(card.uuid) ?? null;
+        if (!ckPrices) {
           skippedCount++;
           errors.push(`${cardIdentifier}: No CK price data`);
           continue;
         }
 
-        const ckPrices = latestPrice.prices.cardkingdom.retail;
         let updated = false;
 
         // Update inventory prices based on CK prices
         for (const item of card.inventory) {
           let ckPrice: number | undefined;
 
-          // Get CK price based on finish
           if (item.finish === 'etched') {
             ckPrice = ckPrices.etched || ckPrices.foil || ckPrices.normal;
           } else if (item.finish === 'foil') {
@@ -280,13 +288,10 @@ router.post('/sync-ub-prices', authenticate, requireAdmin, async (req: Request, 
           }
 
           if (ckPrice && ckPrice > 0) {
-            // Calculate UB price
             const newSellPrice = await calculateUBPrice(ckPrice);
-            
-            // Always update if sellPrice is 0 or different (round to 2 decimals for comparison)
             const currentPrice = Math.round(item.sellPrice * 100) / 100;
             const calculatedPrice = Math.round(newSellPrice * 100) / 100;
-            
+
             if (item.sellPrice === 0 || Math.abs(currentPrice - calculatedPrice) > 0.01) {
               item.sellPrice = calculatedPrice;
               updated = true;
@@ -295,7 +300,7 @@ router.post('/sync-ub-prices', authenticate, requireAdmin, async (req: Request, 
         }
 
         if (updated) {
-          await card.save();
+          bulkOps.push({ updateOne: { filter: { _id: card._id }, update: { $set: { inventory: card.inventory } } } });
           updatedCount++;
         } else {
           skippedCount++;
@@ -306,6 +311,12 @@ router.post('/sync-ub-prices', authenticate, requireAdmin, async (req: Request, 
         errors.push(`${cardIdentifier}: ${err.message}`);
         skippedCount++;
       }
+    }
+
+    // ── Flush all writes in one bulkWrite call ────────────────────────────────
+    if (bulkOps.length > 0) {
+      await Card.bulkWrite(bulkOps);
+      console.log(`💾 [sync-ub] bulkWrite flushed ${bulkOps.length} card updates`);
     }
 
     res.json({
