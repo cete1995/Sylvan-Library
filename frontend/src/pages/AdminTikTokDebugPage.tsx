@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../api/client';
 
 type ActiveTab = 'category' | 'price-inventory';
 
@@ -81,7 +82,7 @@ const AdminTikTokDebugPage: React.FC = () => {
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) return;
-    fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/tiktok/credentials`, {
+    fetch(`${API_BASE_URL}/admin/tiktok/credentials`, {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(r => r.json())
@@ -252,8 +253,8 @@ const AdminTikTokDebugPage: React.FC = () => {
         formData.append('shopCipher', shopCipher);
       }
 
-      // Use fetch to upload, then connect to SSE
-      const uploadRes = await fetch('/api/admin/tiktok/bulk-update-csv-stream', {
+      // Use fetch directly to the backend (bypasses Vite proxy which can buffer SSE streams)
+      const uploadRes = await fetch(`${API_BASE_URL}/admin/tiktok/bulk-update-csv-stream`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -455,7 +456,7 @@ const AdminTikTokDebugPage: React.FC = () => {
         setCategoryResponse(`Processing ${i + 1}/${productIds.length}: Product ID ${productId}...`);
 
         try {
-          const res = await fetch('/api/admin/tiktok/update-category', {
+          const res = await fetch(`${API_BASE_URL}/admin/tiktok/update-category`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -588,8 +589,8 @@ const AdminTikTokDebugPage: React.FC = () => {
         formData.append('shopCipher', shopCipher);
       }
 
-      // Use fetch to upload, then connect to SSE
-      const uploadRes = await fetch('/api/admin/tiktok/bulk-update-csv-stream', {
+      // Use fetch directly to the backend (bypasses Vite proxy which can buffer SSE streams)
+      const uploadRes = await fetch(`${API_BASE_URL}/admin/tiktok/bulk-update-csv-stream`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -771,7 +772,7 @@ const AdminTikTokDebugPage: React.FC = () => {
     if (!token) return;
     setCredsSaving(true);
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/tiktok/credentials`, {
+      const res = await fetch(`${API_BASE_URL}/admin/tiktok/credentials`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ appKey, appSecret, accessToken, refreshToken, shopCipher }),
@@ -801,7 +802,7 @@ const AdminTikTokDebugPage: React.FC = () => {
     setTokenRefreshMessage('🔄 Refreshing access token...');
 
     try {
-      const response = await fetch('/api/admin/tiktok/refresh-token', {
+      const response = await fetch(`${API_BASE_URL}/admin/tiktok/refresh-token`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -901,7 +902,7 @@ const AdminTikTokDebugPage: React.FC = () => {
         setAutoFillMessage(`Fetching ${i + 1}/${uniqueProductIds.length}: Product ${productId}...`);
 
         try {
-          const response = await fetch('/api/admin/tiktok/get-product-details', {
+          const response = await fetch(`${API_BASE_URL}/admin/tiktok/get-product-details`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
