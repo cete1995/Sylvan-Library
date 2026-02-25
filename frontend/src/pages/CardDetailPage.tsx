@@ -198,24 +198,29 @@ const CardDetailPage: React.FC = () => {
 
         {/* Card Image - Mobile */}
         <div className="px-4 py-4">
-          <div className="border-4 border-yellow-400 rounded-xl overflow-hidden shadow-lg max-w-sm mx-auto relative">
-            {card.imageUrl ? (
-              <img src={displayUrl} alt={card.name} className="w-full" />
-            ) : (
-              <div className="aspect-[5/7] flex items-center justify-center" style={{ backgroundColor: 'var(--color-background)' }}>
-                <svg className="w-24 h-24" style={{ color: 'var(--color-text-secondary)' }} fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
-                </svg>
-              </div>
-            )}
+          <div className="max-w-sm mx-auto">
+            <div className="border-4 border-yellow-400 rounded-xl overflow-hidden shadow-lg">
+              {card.imageUrl ? (
+                <img src={displayUrl} alt={card.name} className="w-full" />
+              ) : (
+                <div className="aspect-[5/7] flex items-center justify-center" style={{ backgroundColor: 'var(--color-background)' }}>
+                  <svg className="w-24 h-24" style={{ color: 'var(--color-text-secondary)' }} fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                  </svg>
+                </div>
+              )}
+            </div>
             {isDfc && (
               <button
                 onClick={() => setShowFront(f => !f)}
-                className="absolute bottom-3 right-3 w-9 h-9 rounded-full flex items-center justify-center shadow-lg text-base font-bold"
-                style={{ backgroundColor: 'rgba(0,0,0,0.7)', color: 'white' }}
-                title={showFront ? 'Show back face' : 'Show front face'}
+                className="mt-2 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold text-sm shadow"
+                style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)', border: '2px solid var(--color-border)' }}
               >
-                ↺
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                  <path d="M3 3v5h5" />
+                </svg>
+                {showFront ? 'Turn Over — See Back Face' : 'Turn Over — See Front Face'}
               </button>
             )}
           </div>
@@ -417,24 +422,29 @@ const CardDetailPage: React.FC = () => {
           {/* Left Column - Card Image and Info */}
           <div>
             {/* Card Image with Yellow Border - Desktop */}
-            <div className="border-4 border-yellow-400 rounded-xl overflow-hidden mb-6 shadow-lg relative">
-              {card.imageUrl ? (
-                <img src={displayUrl} alt={card.name} className="w-full" />
-              ) : (
-                <div className="aspect-[5/7] bg-gray-200 flex items-center justify-center">
-                  <svg className="w-32 h-32 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
-                  </svg>
-                </div>
-              )}
+            <div className="mb-6">
+              <div className="border-4 border-yellow-400 rounded-xl overflow-hidden shadow-lg">
+                {card.imageUrl ? (
+                  <img src={displayUrl} alt={card.name} className="w-full" />
+                ) : (
+                  <div className="aspect-[5/7] bg-gray-200 flex items-center justify-center">
+                    <svg className="w-32 h-32 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                )}
+              </div>
               {isDfc && (
                 <button
                   onClick={() => setShowFront(f => !f)}
-                  className="absolute bottom-3 right-3 w-10 h-10 rounded-full flex items-center justify-center shadow-lg text-lg font-bold"
-                  style={{ backgroundColor: 'rgba(0,0,0,0.7)', color: 'white' }}
-                  title={showFront ? 'Show back face' : 'Show front face'}
+                  className="mt-2 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold text-sm shadow"
+                  style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)', border: '2px solid var(--color-border)' }}
                 >
-                  ↺
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                    <path d="M3 3v5h5" />
+                  </svg>
+                  {showFront ? 'Turn Over — See Back Face' : 'Turn Over — See Front Face'}
                 </button>
               )}
             </div>

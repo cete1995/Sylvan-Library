@@ -139,21 +139,26 @@ const CardFeedItem: React.FC<CardFeedItemProps> = ({ card, onAddToCart, onQuickV
             </div>
           </div>
 
-          {/* Condition Badge + DFC flip - Top Left */}
-          <div className="absolute top-4 left-4 flex items-center gap-2">
-            <div className="bg-black/50 backdrop-blur-sm px-3 py-1.5 rounded-lg text-white text-sm font-semibold">
-              NM
-            </div>
-            {isDfc && (
-              <button
-                onClick={(e) => { e.stopPropagation(); setShowFront(f => !f); }}
-                className="bg-black/60 backdrop-blur-sm w-8 h-8 rounded-lg flex items-center justify-center text-white text-base font-bold shadow"
-                title={showFront ? 'Show back face' : 'Show front face'}
-              >
-                ↺
-              </button>
-            )}
+          {/* Condition Badge - Top Left */}
+          <div className="absolute top-4 left-4">
+            <div className="bg-black/50 backdrop-blur-sm px-3 py-1.5 rounded-lg text-white text-sm font-semibold">NM</div>
           </div>
+
+          {/* DFC Turn Over button - bottom center, above gradient text */}
+          {isDfc && (
+            <button
+              onClick={(e) => { e.stopPropagation(); setShowFront(f => !f); }}
+              className="absolute bottom-20 left-1/2 -translate-x-1/2 flex items-center gap-2 px-4 py-2 rounded-full text-white text-sm font-bold shadow-lg z-10"
+              style={{ backgroundColor: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)', border: '1px solid rgba(255,255,255,0.25)' }}
+              title={showFront ? 'Show back face' : 'Show front face'}
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                <path d="M3 3v5h5" />
+              </svg>
+              Turn Over
+            </button>
+          )}
 
           {/* Out of Stock Overlay */}
           {!isAvailable && (
