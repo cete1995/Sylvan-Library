@@ -18,6 +18,7 @@ export interface InventoryItem {
   quantityForSale: number;
   buyPrice: number;
   sellPrice: number;
+  marketplacePrice?: number;
   sellerId?: string;
   sellerName?: string;
   // TikTok Shop / Tokopedia sync fields

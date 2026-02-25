@@ -289,8 +289,15 @@ const AdminCardListPage: React.FC = () => {
                       const inventory = card.inventory || [];
                       const totalOwned = inventory.reduce((s, i) => s + i.quantityOwned, 0);
                       const totalForSale = inventory.reduce((s, i) => s + i.quantityForSale, 0);
-                      const lowestPrice = inventory.length > 0 ? Math.min(...inventory.map(i => i.sellPrice)) : 0;
-                      const lowestMarket = inventory.length > 0 ? Math.min(...inventory.map(i => i.marketplacePrice || 0)) : 0;
+
+                      const nonfoilInv = inventory.filter(i => i.finish === 'nonfoil');
+                      const foilInv = inventory.filter(i => i.finish !== 'nonfoil');
+                      const lowestNonfoilPrice = nonfoilInv.length > 0 ? Math.min(...nonfoilInv.map(i => i.sellPrice)) : null;
+                      const lowestFoilPrice = foilInv.length > 0 ? Math.min(...foilInv.map(i => i.sellPrice)) : null;
+                      const nonfoilMarketPrices = nonfoilInv.map(i => i.marketplacePrice || 0).filter(p => p > 0);
+                      const foilMarketPrices = foilInv.map(i => i.marketplacePrice || 0).filter(p => p > 0);
+                      const lowestNonfoilMarket = nonfoilMarketPrices.length > 0 ? Math.min(...nonfoilMarketPrices) : null;
+                      const lowestFoilMarket = foilMarketPrices.length > 0 ? Math.min(...foilMarketPrices) : null;
 
                       const sellerMap = inventory.reduce((acc, item) => {
                         if (!item.sellerId) return acc;
@@ -377,12 +384,36 @@ const AdminCardListPage: React.FC = () => {
 
                             <td className="px-5 py-3.5 text-right text-xs" style={{ color: 'var(--color-text-secondary)' }}>&mdash;</td>
 
-                            <td className="px-5 py-3.5 text-right text-sm font-semibold" style={{ color: '#10B981' }}>
-                              Rp {lowestPrice.toLocaleString('id-ID')}
+                            <td className="px-5 py-3.5 text-right">
+                              {lowestNonfoilPrice !== null ? (
+                                <div className="text-sm font-semibold" style={{ color: '#10B981' }}>
+                                  Rp {lowestNonfoilPrice.toLocaleString('id-ID')}
+                                </div>
+                              ) : (
+                                <div className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>&mdash;</div>
+                              )}
+                              {lowestFoilPrice !== null && (
+                                <div className="flex items-center justify-end gap-1 mt-0.5">
+                                  <span className="text-xs px-1 py-0.5 rounded font-bold" style={{ backgroundColor: '#FEF9C3', color: '#B45309' }}>&#10022; Foil</span>
+                                  <span className="text-xs font-semibold" style={{ color: '#F59E0B' }}>Rp {lowestFoilPrice.toLocaleString('id-ID')}</span>
+                                </div>
+                              )}
                             </td>
 
-                            <td className="px-5 py-3.5 text-right text-sm font-semibold" style={{ color: '#3B82F6' }}>
-                              {lowestMarket > 0 ? `Rp ${lowestMarket.toLocaleString('id-ID')}` : <span style={{ color: 'var(--color-text-secondary)' }}>&mdash;</span>}
+                            <td className="px-5 py-3.5 text-right">
+                              {lowestNonfoilMarket !== null ? (
+                                <div className="text-sm font-semibold" style={{ color: '#3B82F6' }}>
+                                  Rp {lowestNonfoilMarket.toLocaleString('id-ID')}
+                                </div>
+                              ) : (
+                                <div className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>&mdash;</div>
+                              )}
+                              {lowestFoilMarket !== null && (
+                                <div className="flex items-center justify-end gap-1 mt-0.5">
+                                  <span className="text-xs px-1 py-0.5 rounded font-bold" style={{ backgroundColor: '#FEF9C3', color: '#B45309' }}>&#10022; Foil</span>
+                                  <span className="text-xs font-semibold" style={{ color: '#F59E0B' }}>Rp {lowestFoilMarket.toLocaleString('id-ID')}</span>
+                                </div>
+                              )}
                             </td>
 
                             <td className="px-5 py-3.5 text-right" onClick={e => e.stopPropagation()}>
