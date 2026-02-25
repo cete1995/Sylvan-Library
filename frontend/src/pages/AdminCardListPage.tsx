@@ -326,12 +326,12 @@ const AdminCardListPage: React.FC = () => {
                                 </svg>
                                 {card.imageUrl ? (
                                   <img src={card.imageUrl} alt={card.name}
-                                    className="w-9 h-12 object-cover rounded-lg flex-shrink-0 shadow-sm"
+                                    className="w-12 h-16 object-cover rounded-lg flex-shrink-0 shadow-sm"
                                     style={{ border: '1px solid var(--color-border)' }} />
                                 ) : (
-                                  <div className="w-9 h-12 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm"
+                                  <div className="w-12 h-16 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm"
                                     style={{ backgroundColor: 'var(--color-background)', border: '1px solid var(--color-border)' }}>
-                                    <svg className="w-4 h-4" style={{ color: 'var(--color-text-secondary)' }} fill="currentColor" viewBox="0 0 20 20">
+                                    <svg className="w-5 h-5" style={{ color: 'var(--color-text-secondary)' }} fill="currentColor" viewBox="0 0 20 20">
                                       <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
                                     </svg>
                                   </div>
@@ -378,7 +378,7 @@ const AdminCardListPage: React.FC = () => {
                             <td className="px-5 py-3.5 text-right text-xs" style={{ color: 'var(--color-text-secondary)' }}>â€”</td>
 
                             <td className="px-5 py-3.5 text-right text-sm font-semibold" style={{ color: '#10B981' }}>
-                              {totalOwned > 0 ? `Rp ${lowestPrice.toLocaleString('id-ID')}` : <span style={{ color: 'var(--color-text-secondary)' }}>â€”</span>}
+                              Rp {lowestPrice.toLocaleString('id-ID')}
                             </td>
 
                             <td className="px-5 py-3.5 text-right text-sm font-semibold" style={{ color: '#3B82F6' }}>
