@@ -594,10 +594,10 @@ export const listMembers = asyncHandler(async (req: Request, res: Response) => {
  */
 export const createMember = asyncHandler(async (req: Request, res: Response) => {
   const { name, email, wpnEmail, phoneNumber } = req.body;
-  if (!name || !email) throw new AppError('Name and email are required', 400);
+  if (!name || !email) throw new AppError(400, 'Name and email are required');
 
   const existing = await User.findOne({ email: email.toLowerCase().trim() });
-  if (existing) throw new AppError('A user with this email already exists', 409);
+  if (existing) throw new AppError(409, 'A user with this email already exists');
 
   const tempPassword = 'Sylvan' + Math.floor(1000 + Math.random() * 9000);
   const passwordHash = await hashPassword(tempPassword);
@@ -633,7 +633,7 @@ export const updateMember = asyncHandler(async (req: Request, res: Response) => 
     { new: true, runValidators: true }
   ).select('name email wpnEmail phoneNumber role createdAt');
 
-  if (!member) throw new AppError('Member not found', 404);
+  if (!member) throw new AppError(404, 'Member not found');
   res.json({ success: true, member });
 });
 
@@ -643,8 +643,8 @@ export const updateMember = asyncHandler(async (req: Request, res: Response) => 
 export const deleteMember = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
   const member = await User.findById(id);
-  if (!member) throw new AppError('Member not found', 404);
-  if (member.role === 'admin') throw new AppError('Cannot delete an admin account', 403);
+  if (!member) throw new AppError(404, 'Member not found');
+  if (member.role === 'admin') throw new AppError(403, 'Cannot delete an admin account');
   await User.deleteOne({ _id: id });
   res.json({ success: true, message: 'Member deleted' });
 });
