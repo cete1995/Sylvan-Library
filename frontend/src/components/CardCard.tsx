@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card } from '../types';
 import { Link } from 'react-router-dom';
 
@@ -7,6 +7,15 @@ interface CardCardProps {
 }
 
 const CardCard: React.FC<CardCardProps> = ({ card }) => {
+  const [showFront, setShowFront] = useState(true);
+
+  // DFC / back-face detection via Scryfall URL
+  const rawUrl = card.imageUrl || '';
+  const isDfc = rawUrl.includes('scryfall.io') && (rawUrl.includes('/back/') || rawUrl.includes('/front/'));
+  const frontUrl = rawUrl.replace('/back/', '/front/');
+  const backUrl  = rawUrl.replace('/front/', '/back/');
+  const displayUrl = isDfc ? (showFront ? frontUrl : backUrl) : rawUrl;
+
   // Get inventory data
   const inventory = card.inventory || [];
   
@@ -48,9 +57,19 @@ const CardCard: React.FC<CardCardProps> = ({ card }) => {
     <Link to={`/cards/${card._id}`} className={`rounded-lg shadow hover:shadow-lg transition-shadow overflow-hidden block ${!isAvailable ? 'opacity-70' : ''}`} style={{ backgroundColor: 'var(--color-panel)' }}>
       {/* Card Image */}
       <div className="aspect-[5/7] relative overflow-hidden" style={{ backgroundColor: 'var(--color-background)' }}>
-        {card.imageUrl ? (
+        {isDfc && (
+          <button
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowFront(f => !f); }}
+            className="absolute top-1.5 right-1.5 z-10 w-7 h-7 rounded-full flex items-center justify-center shadow-md text-sm font-bold"
+            style={{ backgroundColor: 'rgba(0,0,0,0.65)', color: 'white' }}
+            title={showFront ? 'Show back face' : 'Show front face'}
+          >
+            ↺
+          </button>
+        )}
+        {displayUrl ? (
           <img
-            src={card.imageUrl}
+            src={displayUrl}
             alt={card.name}
             className={`w-full h-full object-cover ${!isAvailable ? 'grayscale' : ''}`}
           />

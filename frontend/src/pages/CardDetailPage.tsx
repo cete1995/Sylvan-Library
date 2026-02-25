@@ -21,6 +21,7 @@ const CardDetailPage: React.FC = () => {
   const [quantities, setQuantities] = useState<{ [key: number]: number }>({});
   const [isMobile, setIsMobile] = useState(false);
   const [calculatedPrices, setCalculatedPrices] = useState<{ nonfoil: number; foil: number } | null>(null);
+  const [showFront, setShowFront] = useState(true);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -138,6 +139,13 @@ const CardDetailPage: React.FC = () => {
   const currentItem = getCurrentInventoryItem();
   const currentIndex = getCurrentInventoryIndex();
 
+  // DFC / back-face detection via Scryfall URL
+  const rawUrl = card?.imageUrl || '';
+  const isDfc = rawUrl.includes('scryfall.io') && (rawUrl.includes('/back/') || rawUrl.includes('/front/'));
+  const frontUrl = rawUrl.replace('/back/', '/front/');
+  const backUrl  = rawUrl.replace('/front/', '/back/');
+  const displayUrl = isDfc ? (showFront ? frontUrl : backUrl) : rawUrl;
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--color-background)' }}>
@@ -188,17 +196,27 @@ const CardDetailPage: React.FC = () => {
           </h1>
         </div>
 
-        {/* Card Image */}
+        {/* Card Image - Mobile */}
         <div className="px-4 py-4">
-          <div className="border-4 border-yellow-400 rounded-xl overflow-hidden shadow-lg max-w-sm mx-auto">
+          <div className="border-4 border-yellow-400 rounded-xl overflow-hidden shadow-lg max-w-sm mx-auto relative">
             {card.imageUrl ? (
-              <img src={card.imageUrl} alt={card.name} className="w-full" />
+              <img src={displayUrl} alt={card.name} className="w-full" />
             ) : (
               <div className="aspect-[5/7] flex items-center justify-center" style={{ backgroundColor: 'var(--color-background)' }}>
                 <svg className="w-24 h-24" style={{ color: 'var(--color-text-secondary)' }} fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
                 </svg>
               </div>
+            )}
+            {isDfc && (
+              <button
+                onClick={() => setShowFront(f => !f)}
+                className="absolute bottom-3 right-3 w-9 h-9 rounded-full flex items-center justify-center shadow-lg text-base font-bold"
+                style={{ backgroundColor: 'rgba(0,0,0,0.7)', color: 'white' }}
+                title={showFront ? 'Show back face' : 'Show front face'}
+              >
+                ↺
+              </button>
             )}
           </div>
         </div>
@@ -398,16 +416,26 @@ const CardDetailPage: React.FC = () => {
         <div className="grid lg:grid-cols-[400px_1fr] gap-8">
           {/* Left Column - Card Image and Info */}
           <div>
-            {/* Card Image with Yellow Border */}
-            <div className="border-4 border-yellow-400 rounded-xl overflow-hidden mb-6 shadow-lg">
+            {/* Card Image with Yellow Border - Desktop */}
+            <div className="border-4 border-yellow-400 rounded-xl overflow-hidden mb-6 shadow-lg relative">
               {card.imageUrl ? (
-                <img src={card.imageUrl} alt={card.name} className="w-full" />
+                <img src={displayUrl} alt={card.name} className="w-full" />
               ) : (
                 <div className="aspect-[5/7] bg-gray-200 flex items-center justify-center">
                   <svg className="w-32 h-32 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
                   </svg>
                 </div>
+              )}
+              {isDfc && (
+                <button
+                  onClick={() => setShowFront(f => !f)}
+                  className="absolute bottom-3 right-3 w-10 h-10 rounded-full flex items-center justify-center shadow-lg text-lg font-bold"
+                  style={{ backgroundColor: 'rgba(0,0,0,0.7)', color: 'white' }}
+                  title={showFront ? 'Show back face' : 'Show front face'}
+                >
+                  ↺
+                </button>
               )}
             </div>
 

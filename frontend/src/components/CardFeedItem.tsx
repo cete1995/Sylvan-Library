@@ -20,6 +20,14 @@ const CardFeedItem: React.FC<CardFeedItemProps> = ({ card, onAddToCart, onQuickV
     return price.toLocaleString('id-ID');
   };
 
+  // DFC / back-face detection via Scryfall URL
+  const rawUrl = card.imageUrl || '';
+  const isDfc = rawUrl.includes('scryfall.io') && (rawUrl.includes('/back/') || rawUrl.includes('/front/'));
+  const frontUrl = rawUrl.replace('/back/', '/front/');
+  const backUrl  = rawUrl.replace('/front/', '/back/');
+  const [showFront, setShowFront] = useState(true);
+  const displayUrl = isDfc ? (showFront ? frontUrl : backUrl) : rawUrl;
+
   // Get default condition (NM nonfoil) - aggregate from all sellers
   const getDefaultInventory = () => {
     const matchingItems = card.inventory?.filter(item => item.condition === 'NM' && item.finish === 'nonfoil') || [];
@@ -102,7 +110,7 @@ const CardFeedItem: React.FC<CardFeedItemProps> = ({ card, onAddToCart, onQuickV
         {/* Card Image */}
         <div className="relative w-full aspect-[5/7] bg-gray-200 dark:bg-gray-800">
           <img
-            src={card.imageUrl || 'https://via.placeholder.com/500x700?text=No+Image'}
+            src={displayUrl || 'https://via.placeholder.com/500x700?text=No+Image'}
             alt={card.name}
             className={`w-full h-full object-contain ${!isAvailable ? 'grayscale opacity-70' : ''}`}
             loading="lazy"
@@ -131,11 +139,20 @@ const CardFeedItem: React.FC<CardFeedItemProps> = ({ card, onAddToCart, onQuickV
             </div>
           </div>
 
-          {/* Condition Badge - Top Left */}
-          <div className="absolute top-4 left-4">
+          {/* Condition Badge + DFC flip - Top Left */}
+          <div className="absolute top-4 left-4 flex items-center gap-2">
             <div className="bg-black/50 backdrop-blur-sm px-3 py-1.5 rounded-lg text-white text-sm font-semibold">
               NM
             </div>
+            {isDfc && (
+              <button
+                onClick={(e) => { e.stopPropagation(); setShowFront(f => !f); }}
+                className="bg-black/60 backdrop-blur-sm w-8 h-8 rounded-lg flex items-center justify-center text-white text-base font-bold shadow"
+                title={showFront ? 'Show back face' : 'Show front face'}
+              >
+                ↺
+              </button>
+            )}
           </div>
 
           {/* Out of Stock Overlay */}
