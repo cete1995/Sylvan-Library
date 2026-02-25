@@ -142,7 +142,7 @@ const AdminMembershipPage: React.FC = () => {
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
-          <Link to="/admin" className="p-2 rounded-lg hover:opacity-80" style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)' }}>
+          <Link to="/admin/dashboard" className="p-2 rounded-lg hover:opacity-80" style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)' }}>
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { regularPricingApi, PriceTier } from '../api/regularPricing';
 
@@ -102,6 +103,10 @@ const AdminRegularSettingsPage: React.FC = () => {
   return (
     <div className="p-6" style={{ backgroundColor: 'var(--color-background)', minHeight: '100vh' }}>
       <div className="max-w-6xl mx-auto">
+        <Link to="/admin/dashboard" className="inline-flex items-center gap-1.5 text-sm mb-5 hover:opacity-80" style={{ color: 'var(--color-accent)' }}>
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+          Back to Dashboard
+        </Link>
         <h1 className="text-4xl font-bold mb-6" style={{ color: 'var(--color-text)' }}>
           ⚙️ Regular Sets Pricing Configuration
         </h1>

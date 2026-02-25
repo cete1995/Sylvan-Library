@@ -185,6 +185,10 @@ const AdminFeaturedPage: React.FC = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-6xl mx-auto">
+        <a href="/admin/dashboard" className="inline-flex items-center gap-1.5 text-sm mb-5 hover:opacity-80" style={{ color: 'var(--color-accent)' }}>
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+          Back to Dashboard
+        </a>
         <h1 className="text-4xl font-bold mb-8" style={{ color: 'var(--color-text)' }}>Manage Featured Section</h1>
 
         {/* Message Display */}

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { sellerApi, Seller } from '../api/seller';
 import {
   offlineSaleApi,
@@ -235,6 +236,10 @@ const AdminOfflineSalePage: React.FC = () => {
 
         {/* Header */}
         <div className="mb-6">
+          <Link to="/admin/dashboard" className="inline-flex items-center gap-1.5 text-sm mb-3 hover:opacity-80" style={{ color: 'var(--color-accent)' }}>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+            Back to Dashboard
+          </Link>
           <h1 className="text-3xl font-bold mb-1" style={{ color: 'var(--color-text)' }}>
             🏬 Sold Offline
           </h1>

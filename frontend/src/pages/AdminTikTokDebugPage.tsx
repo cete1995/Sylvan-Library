@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { API_BASE_URL } from '../api/client';
 
 type ActiveTab = 'category' | 'price-inventory';
@@ -970,6 +971,10 @@ const AdminTikTokDebugPage: React.FC = () => {
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Header */}
         <div className="mb-8">
+          <Link to="/admin/dashboard" className="inline-flex items-center gap-1.5 text-sm mb-5 hover:opacity-80" style={{ color: 'var(--color-accent)' }}>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+            Back to Dashboard
+          </Link>
           <h1 className="text-4xl font-bold mb-2" style={{ color: 'var(--color-text)' }}>
             🛠️ TikTok Shop API Management
           </h1>

@@ -37,6 +37,7 @@ import AdminTikTokSavedOrdersPage from './pages/AdminTikTokSavedOrdersPage';
 import AdminMissingImagesPage from './pages/AdminMissingImagesPage';
 import AdminDebugPage from './pages/AdminDebugPage';
 import AdminOfflineSalePage from './pages/AdminOfflineSalePage';
+import AdminOfflineBuyPage from './pages/AdminOfflineBuyPage';
 import ManaboxUploadPage from './pages/ManaboxUploadPage';
 import SellerDashboardPage from './pages/SellerDashboardPage';
 import SellerInventoryFormPage from './pages/SellerInventoryFormPage';
@@ -245,6 +246,14 @@ const App: React.FC = () => {
                 element={
                   <ProtectedRoute adminOnly={true}>
                     <AdminOfflineSalePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/offline-buys"
+                element={
+                  <ProtectedRoute adminOnly={true}>
+                    <AdminOfflineBuyPage />
                   </ProtectedRoute>
                 }
               />
