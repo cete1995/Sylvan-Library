@@ -134,4 +134,24 @@ export const adminApi = {
     );
     return response.data;
   },
+
+  getMembers: async (search?: string): Promise<{ success: boolean; members: any[] }> => {
+    const response = await api.get('/admin/members', { params: search ? { search } : undefined });
+    return response.data;
+  },
+
+  createMember: async (data: { name: string; email: string; wpnEmail?: string; phoneNumber?: string }): Promise<{ success: boolean; member: any; tempPassword: string }> => {
+    const response = await api.post('/admin/members', data);
+    return response.data;
+  },
+
+  updateMember: async (id: string, data: { name?: string; wpnEmail?: string; phoneNumber?: string }): Promise<{ success: boolean; member: any }> => {
+    const response = await api.put(`/admin/members/${id}`, data);
+    return response.data;
+  },
+
+  deleteMember: async (id: string): Promise<{ success: boolean; message: string }> => {
+    const response = await api.delete(`/admin/members/${id}`);
+    return response.data;
+  },
 };

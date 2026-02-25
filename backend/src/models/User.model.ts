@@ -7,6 +7,7 @@ export interface IUser extends Document {
   role: 'admin' | 'customer' | 'seller';
   address?: string;
   phoneNumber?: string;
+  wpnEmail?: string;
   courierNotes?: string;
   profilePhoto?: string;
   refreshToken?: string;
@@ -45,6 +46,10 @@ const userSchema = new Schema<IUser>(
       trim: true,
     },
     phoneNumber: {
+      type: String,
+      trim: true,
+    },
+    wpnEmail: {
       type: String,
       trim: true,
     },

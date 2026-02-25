@@ -16,6 +16,10 @@ import {
   fixInventoryQuantities,
   fixDfcImageUrls,
   cleanupCombinedNames,
+  listMembers,
+  createMember,
+  updateMember,
+  deleteMember,
 } from '../controllers/admin.controller';
 import { uploadSetJson, importSetFromMTGJson } from '../controllers/set.controller';
 
@@ -139,5 +143,11 @@ router.post('/regenerate-seller-skus', regenerateSellerSKUs);
 router.post('/fix-inventory-quantities', fixInventoryQuantities);
 router.post('/fix-dfc-image-urls', fixDfcImageUrls);
 router.post('/cleanup-combined-names', cleanupCombinedNames);
+
+// Member management
+router.get('/members', listMembers);
+router.post('/members', createMember);
+router.put('/members/:id', updateMember);
+router.delete('/members/:id', deleteMember);
 
 export default router;

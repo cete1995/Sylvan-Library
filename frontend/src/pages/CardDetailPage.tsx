@@ -22,6 +22,16 @@ const CardDetailPage: React.FC = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [calculatedPrices, setCalculatedPrices] = useState<{ nonfoil: number; foil: number } | null>(null);
   const [showFront, setShowFront] = useState(true);
+  const [isFlipping, setIsFlipping] = useState(false);
+
+  const handleFlip = () => {
+    if (isFlipping) return;
+    setIsFlipping(true);
+    setTimeout(() => {
+      setShowFront(f => !f);
+      setIsFlipping(false);
+    }, 220);
+  };
 
   useEffect(() => {
     const checkMobile = () => {
@@ -199,9 +209,12 @@ const CardDetailPage: React.FC = () => {
         {/* Card Image - Mobile */}
         <div className="px-4 py-4">
           <div className="max-w-sm mx-auto">
-            <div className="border-4 border-yellow-400 rounded-xl overflow-hidden shadow-lg">
+            <div
+              className="border-4 border-yellow-400 rounded-xl shadow-lg overflow-hidden"
+              style={{ transition: 'transform 0.22s ease-in-out', transform: isFlipping ? 'scaleX(0)' : 'scaleX(1)' }}
+            >
               {card.imageUrl ? (
-                <img src={displayUrl} alt={card.name} className="w-full" />
+                <img src={displayUrl} alt={card.name} className="w-full block" />
               ) : (
                 <div className="aspect-[5/7] flex items-center justify-center" style={{ backgroundColor: 'var(--color-background)' }}>
                   <svg className="w-24 h-24" style={{ color: 'var(--color-text-secondary)' }} fill="currentColor" viewBox="0 0 20 20">
@@ -212,7 +225,8 @@ const CardDetailPage: React.FC = () => {
             </div>
             {isDfc && (
               <button
-                onClick={() => setShowFront(f => !f)}
+                onClick={handleFlip}
+                disabled={isFlipping}
                 className="mt-2 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold text-sm shadow"
                 style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)', border: '2px solid var(--color-border)' }}
               >
@@ -423,9 +437,12 @@ const CardDetailPage: React.FC = () => {
           <div>
             {/* Card Image with Yellow Border - Desktop */}
             <div className="mb-6">
-              <div className="border-4 border-yellow-400 rounded-xl overflow-hidden shadow-lg">
+              <div
+                className="border-4 border-yellow-400 rounded-xl shadow-lg overflow-hidden"
+                style={{ transition: 'transform 0.22s ease-in-out', transform: isFlipping ? 'scaleX(0)' : 'scaleX(1)' }}
+              >
                 {card.imageUrl ? (
-                  <img src={displayUrl} alt={card.name} className="w-full" />
+                  <img src={displayUrl} alt={card.name} className="w-full block" />
                 ) : (
                   <div className="aspect-[5/7] bg-gray-200 flex items-center justify-center">
                     <svg className="w-32 h-32 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
@@ -436,7 +453,8 @@ const CardDetailPage: React.FC = () => {
               </div>
               {isDfc && (
                 <button
-                  onClick={() => setShowFront(f => !f)}
+                  onClick={handleFlip}
+                  disabled={isFlipping}
                   className="mt-2 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold text-sm shadow"
                   style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)', border: '2px solid var(--color-border)' }}
                 >

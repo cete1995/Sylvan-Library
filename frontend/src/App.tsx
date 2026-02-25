@@ -28,6 +28,7 @@ import AdminUBPricingPage from './pages/AdminUBPricingPage';
 import AdminUBSettingsPage from './pages/AdminUBSettingsPage';
 import AdminRegularSettingsPage from './pages/AdminRegularSettingsPage';
 import AdminSellerManagementPage from './pages/AdminSellerManagementPage';
+import AdminMembershipPage from './pages/AdminMembershipPage';
 import AdminTikTokDebugPage from './pages/AdminTikTokDebugPage';
 import AdminTikTokGetOrdersPage from './pages/AdminTikTokGetOrdersPage';
 import AdminTikTokOrdersPage from './pages/AdminTikTokOrdersPage';
@@ -260,6 +261,14 @@ const App: React.FC = () => {
                 element={
                   <ProtectedRoute adminOnly={true}>
                     <AdminDebugPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/membership"
+                element={
+                  <ProtectedRoute adminOnly={true}>
+                    <AdminMembershipPage />
                   </ProtectedRoute>
                 }
               />

@@ -4,6 +4,7 @@ import { AppError } from '../middleware/errorHandler';
 import { asyncHandler } from '../middleware/asyncHandler';
 import { createCardSchema, updateCardSchema } from '../validators/card.validator';
 import { parse } from 'csv-parse/sync';
+import { hashPassword } from '../utils/auth.utils';
 
 /**
  * Create a new card
@@ -565,6 +566,89 @@ export const fixInventoryQuantities = asyncHandler(async (req: Request, res: Res
  * - If a card with just the face name already exists → copy imageUrl/scryfallId to it, delete the combined-name duplicate.
  * - If no face-name card exists → rename the combined-name card to use the face part only.
  */
+/**
+ * GET /api/admin/members
+ * List all members (customers + admins) with their WPN/phone data
+ */
+export const listMembers = asyncHandler(async (req: Request, res: Response) => {
+  const search = req.query.search as string | undefined;
+  const query: any = {};
+  if (search) {
+    query.$or = [
+      { name:      { $regex: search, $options: 'i' } },
+      { email:     { $regex: search, $options: 'i' } },
+      { wpnEmail:  { $regex: search, $options: 'i' } },
+      { phoneNumber: { $regex: search, $options: 'i' } },
+    ];
+  }
+  const members = await User.find(query)
+    .select('name email wpnEmail phoneNumber role createdAt')
+    .sort({ createdAt: -1 })
+    .lean();
+  res.json({ success: true, members });
+});
+
+/**
+ * POST /api/admin/members
+ * Admin creates a new member account
+ */
+export const createMember = asyncHandler(async (req: Request, res: Response) => {
+  const { name, email, wpnEmail, phoneNumber } = req.body;
+  if (!name || !email) throw new AppError('Name and email are required', 400);
+
+  const existing = await User.findOne({ email: email.toLowerCase().trim() });
+  if (existing) throw new AppError('A user with this email already exists', 409);
+
+  const tempPassword = 'Sylvan' + Math.floor(1000 + Math.random() * 9000);
+  const passwordHash = await hashPassword(tempPassword);
+
+  const member = await User.create({
+    name: name.trim(),
+    email: email.toLowerCase().trim(),
+    passwordHash,
+    wpnEmail: wpnEmail?.trim() || undefined,
+    phoneNumber: phoneNumber?.trim() || undefined,
+    role: 'customer',
+  });
+
+  res.status(201).json({
+    success: true,
+    message: 'Member created successfully',
+    member: { _id: member._id, name: member.name, email: member.email, wpnEmail: member.wpnEmail, phoneNumber: member.phoneNumber, role: member.role, createdAt: member.createdAt },
+    tempPassword,
+  });
+});
+
+/**
+ * PUT /api/admin/members/:id
+ * Update member name, wpnEmail, phoneNumber
+ */
+export const updateMember = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { name, wpnEmail, phoneNumber } = req.body;
+
+  const member = await User.findByIdAndUpdate(
+    id,
+    { $set: { name, wpnEmail: wpnEmail || undefined, phoneNumber: phoneNumber || undefined } },
+    { new: true, runValidators: true }
+  ).select('name email wpnEmail phoneNumber role createdAt');
+
+  if (!member) throw new AppError('Member not found', 404);
+  res.json({ success: true, member });
+});
+
+/**
+ * DELETE /api/admin/members/:id
+ */
+export const deleteMember = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const member = await User.findById(id);
+  if (!member) throw new AppError('Member not found', 404);
+  if (member.role === 'admin') throw new AppError('Cannot delete an admin account', 403);
+  await User.deleteOne({ _id: id });
+  res.json({ success: true, message: 'Member deleted' });
+});
+
 export const fixDfcImageUrls = asyncHandler(async (req: Request, res: Response) => {
   // Replace /back/ with /front/ in all Scryfall imageUrls that point to the back face
   const result = await Card.updateMany(
