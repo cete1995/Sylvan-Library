@@ -121,6 +121,13 @@ export const adminApi = {
     return response.data;
   },
 
+  fixDfcImageUrls: async (): Promise<{ success: boolean; message: string; modifiedCount: number }> => {
+    const response = await api.post<{ success: boolean; message: string; modifiedCount: number }>(
+      '/admin/fix-dfc-image-urls'
+    );
+    return response.data;
+  },
+
   cleanupCombinedNames: async (): Promise<{ success: boolean; message: string; total: number; merged: number; renamed: number }> => {
     const response = await api.post<{ success: boolean; message: string; total: number; merged: number; renamed: number }>(
       '/admin/cleanup-combined-names'

@@ -12,6 +12,7 @@ const AdminDashboardPage: React.FC = () => {
   const [fixingSellers, setFixingSellers] = useState(false);
   const [regeneratingSKUs, setRegeneratingSKUs] = useState(false);
   const [fixingInventory, setFixingInventory] = useState(false);
+  const [fixingDfcImages, setFixingDfcImages] = useState(false);
   const [forceSyncing, setForceSyncing] = useState(false);
   const [sets, setSets] = useState<Array<{setCode: string; setName: string; cardCount: number}>>([]); 
   const [setsLoading, setSetsLoading] = useState(false);
@@ -176,6 +177,22 @@ const AdminDashboardPage: React.FC = () => {
       alert('Failed to regenerate seller SKUs: ' + (error.response?.data?.error || error.message));
     } finally {
       setRegeneratingSKUs(false);
+    }
+  };
+
+  const handleFixDfcImages = async () => {
+    if (!confirm('This will update all DFC cards stored with a back-face Scryfall URL to use the front-face URL instead. Continue?')) {
+      return;
+    }
+
+    setFixingDfcImages(true);
+    try {
+      const result = await adminApi.fixDfcImageUrls();
+      alert(`DFC image URLs fixed!\n\n${result.modifiedCount} card(s) updated to front-face URL.`);
+    } catch (error: any) {
+      alert('Failed to fix DFC image URLs: ' + (error.response?.data?.error || error.message));
+    } finally {
+      setFixingDfcImages(false);
     }
   };
 
@@ -657,6 +674,24 @@ const AdminDashboardPage: React.FC = () => {
                 </span>
               ) : (
                 '🔢 Fix Inventory Quantities'
+              )}
+            </button>
+            <button
+              onClick={handleFixDfcImages}
+              disabled={fixingDfcImages}
+              className="px-6 py-3 rounded-lg font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+              style={{ backgroundColor: '#3B82F6', color: 'white' }}
+            >
+              {fixingDfcImages ? (
+                <span className="flex items-center">
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Fixing DFC Images...
+                </span>
+              ) : (
+                '🔄 Fix DFC Image URLs'
               )}
             </button>
             <button

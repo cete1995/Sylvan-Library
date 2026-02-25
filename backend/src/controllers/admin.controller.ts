@@ -565,6 +565,20 @@ export const fixInventoryQuantities = asyncHandler(async (req: Request, res: Res
  * - If a card with just the face name already exists → copy imageUrl/scryfallId to it, delete the combined-name duplicate.
  * - If no face-name card exists → rename the combined-name card to use the face part only.
  */
+export const fixDfcImageUrls = asyncHandler(async (req: Request, res: Response) => {
+  // Replace /back/ with /front/ in all Scryfall imageUrls that point to the back face
+  const result = await Card.updateMany(
+    { imageUrl: /\/back\// },
+    [{ $set: { imageUrl: { $replaceAll: { input: '$imageUrl', find: '/back/', replacement: '/front/' } } } }]
+  );
+
+  res.json({
+    success: true,
+    message: `DFC image URLs fixed: ${result.modifiedCount} card(s) updated to front-face URL`,
+    modifiedCount: result.modifiedCount,
+  });
+});
+
 export const cleanupCombinedNames = asyncHandler(async (req: Request, res: Response) => {
   const combinedCards = await Card.find({ name: / \/\/ / });
 

@@ -14,6 +14,7 @@ import {
   fixSellerNames,
   regenerateSellerSKUs,
   fixInventoryQuantities,
+  fixDfcImageUrls,
   cleanupCombinedNames,
 } from '../controllers/admin.controller';
 import { uploadSetJson, importSetFromMTGJson } from '../controllers/set.controller';
@@ -136,6 +137,7 @@ router.post('/regenerate-seller-skus', regenerateSellerSKUs);
  * @access  Private (Admin)
  */
 router.post('/fix-inventory-quantities', fixInventoryQuantities);
+router.post('/fix-dfc-image-urls', fixDfcImageUrls);
 router.post('/cleanup-combined-names', cleanupCombinedNames);
 
 export default router;
