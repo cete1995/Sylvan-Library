@@ -19,6 +19,7 @@ const AdminCardFormPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [allPrices, setAllPrices] = useState<any>(null);
+  const [showFront, setShowFront] = useState(true);
   const [calculatingPrice, setCalculatingPrice] = useState<number | null>(null);
   const [syncingAllPrices, setSyncingAllPrices] = useState(false);
   const [formData, setFormData] = useState<CardFormData>({
@@ -241,19 +242,38 @@ const AdminCardFormPage: React.FC = () => {
 
       <div className="grid lg:grid-cols-[320px_1fr] gap-6">
         {/* Left Column - Sticky Card Image (Edit Mode Only) */}
-        {isEdit && formData.imageUrl && (
-          <div className="lg:sticky lg:top-4 self-start">
-            <div className="rounded-lg shadow p-4" style={{ backgroundColor: 'var(--color-panel)' }}>
-              <h2 className="text-xl font-bold mb-3" style={{ color: 'var(--color-text)' }}>Card Image</h2>
-              <img 
-                src={formData.imageUrl} 
-                alt={formData.name}
-                className="w-full rounded-lg shadow-lg border-2"
-                style={{ borderColor: 'var(--color-accent)' }}
-              />
+        {isEdit && formData.imageUrl && (() => {
+          const rawUrl = formData.imageUrl;
+          const isDfc = rawUrl.includes('scryfall.io') && (rawUrl.includes('/back/') || rawUrl.includes('/front/'));
+          const displayUrl = isDfc ? (showFront ? rawUrl.replace('/back/', '/front/') : rawUrl.replace('/front/', '/back/')) : rawUrl;
+          return (
+            <div className="lg:sticky lg:top-4 self-start">
+              <div className="rounded-lg shadow p-4" style={{ backgroundColor: 'var(--color-panel)' }}>
+                <h2 className="text-xl font-bold mb-3" style={{ color: 'var(--color-text)' }}>Card Image</h2>
+                <img
+                  src={displayUrl}
+                  alt={formData.name}
+                  className="w-full rounded-lg shadow-lg border-2"
+                  style={{ borderColor: 'var(--color-accent)' }}
+                />
+                {isDfc && (
+                  <button
+                    type="button"
+                    onClick={() => setShowFront(f => !f)}
+                    className="mt-3 w-full flex items-center justify-center gap-2 py-2.5 rounded-lg font-bold text-sm shadow"
+                    style={{ backgroundColor: 'var(--color-background)', color: 'var(--color-text)', border: '2px solid var(--color-border)' }}
+                  >
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                      <path d="M3 3v5h5" />
+                    </svg>
+                    {showFront ? 'Turn Over — See Back Face' : 'Turn Over — See Front Face'}
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         {/* Right Column - Form */}
         <div>
