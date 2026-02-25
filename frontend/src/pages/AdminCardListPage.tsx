@@ -170,7 +170,7 @@ const AdminCardListPage: React.FC = () => {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Card name, set codeâ€¦"
+                  placeholder="Card name, set code..."
                   className="w-full pl-9 pr-4 py-2.5 rounded-xl text-sm focus:ring-2 focus:ring-purple-500 focus:outline-none transition-all"
                   style={{
                     backgroundColor: 'var(--color-background)',
@@ -220,7 +220,7 @@ const AdminCardListPage: React.FC = () => {
         {loading ? (
           <div className="rounded-2xl border p-16 text-center" style={{ backgroundColor: 'var(--color-panel)', borderColor: 'var(--color-border)' }}>
             <div className="inline-block animate-spin rounded-full h-10 w-10 border-b-2 border-purple-600 mb-4"></div>
-            <div className="text-base font-medium" style={{ color: 'var(--color-text-secondary)' }}>Loading cardsâ€¦</div>
+            <div className="text-base font-medium" style={{ color: 'var(--color-text-secondary)' }}>Loading cards...</div>
           </div>
         ) : cards.length === 0 ? (
           <div className="rounded-2xl border p-16 text-center" style={{ backgroundColor: 'var(--color-panel)', borderColor: 'var(--color-border)' }}>
@@ -248,9 +248,9 @@ const AdminCardListPage: React.FC = () => {
             <div className="flex items-center justify-between mb-3">
               <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
                 <span className="font-semibold" style={{ color: 'var(--color-text)' }}>{cards.length}</span> cards on this page
-                {totalPages > 1 && <> Â· page <span className="font-semibold" style={{ color: 'var(--color-text)' }}>{page}</span> of <span className="font-semibold" style={{ color: 'var(--color-text)' }}>{totalPages}</span></>}
+                {totalPages > 1 && <> &middot; page <span className="font-semibold" style={{ color: 'var(--color-text)' }}>{page}</span> of <span className="font-semibold" style={{ color: 'var(--color-text)' }}>{totalPages}</span></>}
               </p>
-              <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>Click column headers to sort Â· Click a row to expand sellers</p>
+              <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>Click column headers to sort &middot; Click a row to expand sellers</p>
             </div>
 
             <div className="rounded-2xl border overflow-hidden shadow-sm" style={{ backgroundColor: 'var(--color-panel)', borderColor: 'var(--color-border)' }}>
@@ -375,14 +375,14 @@ const AdminCardListPage: React.FC = () => {
                                 style={{ backgroundColor: '#D1FAE5', color: '#059669' }}>{totalForSale}</span>
                             </td>
 
-                            <td className="px-5 py-3.5 text-right text-xs" style={{ color: 'var(--color-text-secondary)' }}>â€”</td>
+                            <td className="px-5 py-3.5 text-right text-xs" style={{ color: 'var(--color-text-secondary)' }}>&mdash;</td>
 
                             <td className="px-5 py-3.5 text-right text-sm font-semibold" style={{ color: '#10B981' }}>
                               Rp {lowestPrice.toLocaleString('id-ID')}
                             </td>
 
                             <td className="px-5 py-3.5 text-right text-sm font-semibold" style={{ color: '#3B82F6' }}>
-                              {lowestMarket > 0 ? `Rp ${lowestMarket.toLocaleString('id-ID')}` : <span style={{ color: 'var(--color-text-secondary)' }}>â€”</span>}
+                              {lowestMarket > 0 ? `Rp ${lowestMarket.toLocaleString('id-ID')}` : <span style={{ color: 'var(--color-text-secondary)' }}>&mdash;</span>}
                             </td>
 
                             <td className="px-5 py-3.5 text-right" onClick={e => e.stopPropagation()}>
@@ -416,7 +416,7 @@ const AdminCardListPage: React.FC = () => {
                               <td colSpan={8} style={{ backgroundColor: 'rgba(124,58,237,0.03)', borderBottom: '1px solid var(--color-border)' }}>
                                 <div className="px-6 py-4 ml-10">
                                   {sellers.length === 0 ? (
-                                    <p className="text-sm italic" style={{ color: 'var(--color-text-secondary)' }}>No seller inventory â€” admin-only stock.</p>
+                                    <p className="text-sm italic" style={{ color: 'var(--color-text-secondary)' }}>No seller inventory &mdash; admin-only stock.</p>
                                   ) : (
                                     <>
                                       <div className="flex items-center gap-2 mb-3">
