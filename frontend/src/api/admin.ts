@@ -154,4 +154,9 @@ export const adminApi = {
     const response = await api.delete(`/admin/members/${id}`);
     return response.data;
   },
+
+  adjustStoreCredit: async (id: string, amount: number): Promise<{ success: boolean; storeCredit: number; member: any }> => {
+    const response = await api.post(`/admin/members/${id}/store-credit`, { amount });
+    return response.data;
+  },
 };

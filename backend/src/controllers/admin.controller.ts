@@ -582,7 +582,7 @@ export const listMembers = asyncHandler(async (req: Request, res: Response) => {
     ];
   }
   const members = await User.find(query)
-    .select('name email wpnEmail phoneNumber role createdAt')
+    .select('name email wpnEmail phoneNumber role storeCredit createdAt')
     .sort({ createdAt: -1 })
     .lean();
   res.json({ success: true, members });
@@ -631,7 +631,7 @@ export const updateMember = asyncHandler(async (req: Request, res: Response) => 
     id,
     { $set: { name, wpnEmail: wpnEmail || undefined, phoneNumber: phoneNumber || undefined } },
     { new: true, runValidators: true }
-  ).select('name email wpnEmail phoneNumber role createdAt');
+  ).select('name email wpnEmail phoneNumber role storeCredit createdAt');
 
   if (!member) throw new AppError(404, 'Member not found');
   res.json({ success: true, member });
@@ -647,6 +647,34 @@ export const deleteMember = asyncHandler(async (req: Request, res: Response) => 
   if (member.role === 'admin') throw new AppError(403, 'Cannot delete an admin account');
   await User.deleteOne({ _id: id });
   res.json({ success: true, message: 'Member deleted' });
+});
+
+/**
+ * POST /api/admin/members/:id/store-credit
+ * Add or subtract store credit for a user
+ * body: { amount: number (positive = add, negative = subtract), note?: string }
+ */
+export const adjustStoreCredit = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { amount } = req.body;
+
+  if (typeof amount !== 'number' || isNaN(amount)) {
+    throw new AppError(400, 'amount must be a number');
+  }
+
+  const member = await User.findById(id).select('name email storeCredit role');
+  if (!member) throw new AppError(404, 'Member not found');
+
+  const newCredit = Math.max(0, (member.storeCredit || 0) + amount);
+  member.storeCredit = newCredit;
+  await member.save();
+
+  res.json({
+    success: true,
+    message: `Store credit ${amount >= 0 ? 'added' : 'deducted'} successfully`,
+    storeCredit: newCredit,
+    member: { _id: member._id, name: member.name, email: member.email, storeCredit: newCredit },
+  });
 });
 
 export const fixDfcImageUrls = asyncHandler(async (req: Request, res: Response) => {

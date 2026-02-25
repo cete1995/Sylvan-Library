@@ -9,6 +9,7 @@ interface Member {
   wpnEmail?: string;
   phoneNumber?: string;
   role: string;
+  storeCredit?: number;
   createdAt: string;
 }
 
@@ -31,6 +32,27 @@ const AdminMembershipPage: React.FC = () => {
 
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  // Store credit
+  const [creditInputs, setCreditInputs] = useState<Record<string, string>>({});
+  const [adjustingCredit, setAdjustingCredit] = useState<string | null>(null);
+
+  const handleAdjustCredit = async (id: string, amount: number) => {
+    if (!amount || isNaN(amount)) return;
+    setAdjustingCredit(id);
+    setError('');
+    try {
+      await adminApi.adjustStoreCredit(id, amount);
+      setCreditInputs(prev => ({ ...prev, [id]: '' }));
+      setSuccess(`Store credit ${amount > 0 ? 'added' : 'deducted'} ($${Math.abs(amount).toFixed(2)})`);
+      loadMembers();
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (err: any) {
+      setError(err.response?.data?.error || err.message || 'Failed to adjust credit');
+    } finally {
+      setAdjustingCredit(null);
+    }
+  };
 
   const loadMembers = useCallback(async () => {
     setLoading(true);
@@ -223,6 +245,7 @@ const AdminMembershipPage: React.FC = () => {
                     <th className="text-left px-4 py-3 font-semibold" style={{ color: 'var(--color-text-secondary)' }}>WPN Email</th>
                     <th className="text-left px-4 py-3 font-semibold" style={{ color: 'var(--color-text-secondary)' }}>Phone</th>
                     <th className="text-left px-4 py-3 font-semibold" style={{ color: 'var(--color-text-secondary)' }}>Role</th>
+                    <th className="text-left px-4 py-3 font-semibold" style={{ color: 'var(--color-text-secondary)' }}>Store Credit (USD)</th>
                     <th className="text-left px-4 py-3 font-semibold" style={{ color: 'var(--color-text-secondary)' }}>Joined</th>
                     <th className="px-4 py-3"></th>
                   </tr>
@@ -262,6 +285,9 @@ const AdminMembershipPage: React.FC = () => {
                             />
                           </td>
                           <td className="px-4 py-2">{roleBadge(m.role)}</td>
+                          <td className="px-4 py-2 text-sm font-semibold" style={{ color: '#16A34A' }}>
+                            ${(m.storeCredit || 0).toFixed(2)}
+                          </td>
                           <td className="px-4 py-2 text-xs" style={{ color: 'var(--color-text-secondary)' }}>
                             {new Date(m.createdAt).toLocaleDateString('id-ID')}
                           </td>
@@ -299,6 +325,43 @@ const AdminMembershipPage: React.FC = () => {
                             {m.phoneNumber || <span className="italic opacity-40">—</span>}
                           </td>
                           <td className="px-4 py-3">{roleBadge(m.role)}</td>
+                          <td className="px-4 py-3">
+                            <div className="flex flex-col gap-1.5">
+                              <span className="text-sm font-bold" style={{ color: '#16A34A' }}>
+                                ${(m.storeCredit || 0).toFixed(2)}
+                              </span>
+                              <div className="flex items-center gap-1">
+                                <input
+                                  type="number"
+                                  min="0"
+                                  step="0.01"
+                                  placeholder="0.00"
+                                  value={creditInputs[m._id] || ''}
+                                  onChange={e => setCreditInputs(prev => ({ ...prev, [m._id]: e.target.value }))}
+                                  className="w-20 px-2 py-1 rounded border text-xs"
+                                  style={{ backgroundColor: 'var(--color-background)', color: 'var(--color-text)', borderColor: 'var(--color-border)' }}
+                                />
+                                <button
+                                  onClick={() => handleAdjustCredit(m._id, parseFloat(creditInputs[m._id] || '0'))}
+                                  disabled={adjustingCredit === m._id || !creditInputs[m._id]}
+                                  title="Add credit"
+                                  className="px-2 py-1 rounded text-xs font-bold text-white disabled:opacity-40"
+                                  style={{ backgroundColor: '#16A34A' }}
+                                >
+                                  +
+                                </button>
+                                <button
+                                  onClick={() => handleAdjustCredit(m._id, -parseFloat(creditInputs[m._id] || '0'))}
+                                  disabled={adjustingCredit === m._id || !creditInputs[m._id]}
+                                  title="Deduct credit"
+                                  className="px-2 py-1 rounded text-xs font-bold text-white disabled:opacity-40"
+                                  style={{ backgroundColor: '#DC2626' }}
+                                >
+                                  −
+                                </button>
+                              </div>
+                            </div>
+                          </td>
                           <td className="px-4 py-3 text-xs" style={{ color: 'var(--color-text-secondary)' }}>
                             {new Date(m.createdAt).toLocaleDateString('id-ID')}
                           </td>

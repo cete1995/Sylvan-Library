@@ -8,6 +8,7 @@ export interface IUser extends Document {
   address?: string;
   phoneNumber?: string;
   wpnEmail?: string;
+  storeCredit: number;
   courierNotes?: string;
   profilePhoto?: string;
   refreshToken?: string;
@@ -52,6 +53,11 @@ const userSchema = new Schema<IUser>(
     wpnEmail: {
       type: String,
       trim: true,
+    },
+    storeCredit: {
+      type: Number,
+      default: 0,
+      min: 0,
     },
     courierNotes: {
       type: String,

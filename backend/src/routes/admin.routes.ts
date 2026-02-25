@@ -20,6 +20,7 @@ import {
   createMember,
   updateMember,
   deleteMember,
+  adjustStoreCredit,
 } from '../controllers/admin.controller';
 import { uploadSetJson, importSetFromMTGJson } from '../controllers/set.controller';
 
@@ -149,5 +150,6 @@ router.get('/members', listMembers);
 router.post('/members', createMember);
 router.put('/members/:id', updateMember);
 router.delete('/members/:id', deleteMember);
+router.post('/members/:id/store-credit', adjustStoreCredit);
 
 export default router;
