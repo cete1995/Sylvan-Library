@@ -823,6 +823,11 @@ router.post('/bulk-update-csv-stream', authenticate, requireAdmin, upload.single
           skuId: record.skuId.trim().replace(/^['"]/, '') // Remove leading apostrophe or quote
         };
 
+        // sellerSku is used to match the inventory item in the DB and write back tiktokProductId/tiktokSkuId
+        if (record.sellerSku) {
+          update.sellerSku = record.sellerSku.trim();
+        }
+
         if (record.productName) {
           update.productName = record.productName.trim();
         }
@@ -965,6 +970,20 @@ router.post('/bulk-update-csv-stream', authenticate, requireAdmin, upload.single
           response: lastResponse
         });
 
+        // Write tiktokProductId + tiktokSkuId back to the matched inventory item in DB
+        const dbSaves = skuUpdates
+          .filter((u: any) => u.sellerSku)
+          .map((u: any) =>
+            Card.updateOne(
+              { 'inventory.sellerSku': u.sellerSku },
+              { $set: { 'inventory.$.tiktokProductId': productId, 'inventory.$.tiktokSkuId': u.skuId } }
+            )
+          );
+        if (dbSaves.length > 0) {
+          await Promise.all(dbSaves);
+          console.log(`[bulk-update-csv-stream] Saved tiktokProductId/tiktokSkuId for ${dbSaves.length} inventory item(s) via sellerSku`);
+        }
+
         processedProducts++;
         sendProgress({
           type: 'progress',
@@ -1078,6 +1097,11 @@ router.post('/bulk-update-csv', authenticate, requireAdmin, upload.single('file'
           skuId: record.skuId.trim().replace(/^['"]/, '') // Remove leading apostrophe or quote
         };
 
+        // sellerSku is used to match the inventory item in the DB and write back tiktokProductId/tiktokSkuId
+        if (record.sellerSku) {
+          update.sellerSku = record.sellerSku.trim();
+        }
+
         if (record.productName) {
           update.productName = record.productName.trim();
         }
@@ -1185,6 +1209,20 @@ router.post('/bulk-update-csv', authenticate, requireAdmin, upload.single('file'
           skuCount: skus.length,
           response: response.data
         });
+
+        // Write tiktokProductId + tiktokSkuId back to the matched inventory item in DB
+        const dbSaves = (productUpdates as any[])
+          .filter((u: any) => u.sellerSku)
+          .map((u: any) =>
+            Card.updateOne(
+              { 'inventory.sellerSku': u.sellerSku },
+              { $set: { 'inventory.$.tiktokProductId': productId, 'inventory.$.tiktokSkuId': u.skuId } }
+            )
+          );
+        if (dbSaves.length > 0) {
+          await Promise.all(dbSaves);
+          console.log(`[bulk-update-csv] Saved tiktokProductId/tiktokSkuId for ${dbSaves.length} inventory item(s) via sellerSku`);
+        }
 
       } catch (error: any) {
         results.failed.push({
