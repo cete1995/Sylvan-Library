@@ -351,6 +351,21 @@ const AdminCardListPage: React.FC = () => {
                                         {sellers.length}s
                                       </span>
                                     )}
+                                    {Array.from(new Set(inventory.map(i => i.finish))).map(finish => (
+                                      finish === 'nonfoil' ? (
+                                        <span key={finish} className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-semibold" style={{ backgroundColor: 'var(--color-background)', color: 'var(--color-text-secondary)', border: '1px solid var(--color-border)' }}>
+                                          Normal
+                                        </span>
+                                      ) : finish === 'foil' ? (
+                                        <span key={finish} className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs font-bold" style={{ backgroundColor: '#FEF9C3', color: '#B45309' }}>
+                                          &#10022; Foil
+                                        </span>
+                                      ) : (
+                                        <span key={finish} className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs font-bold" style={{ backgroundColor: '#EEF2FF', color: '#4F46E5' }}>
+                                          &#10022; {finish.charAt(0).toUpperCase() + finish.slice(1)}
+                                        </span>
+                                      )
+                                    ))}
                                     {!card.imageUrl && (
                                       <span className="inline-flex px-1.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700">No img</span>
                                     )}
