@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { API_BASE_URL } from '../api/client';
+import * as XLSX from 'xlsx';
 
 type ActiveTab = 'category' | 'price-inventory';
 
@@ -855,23 +856,35 @@ const AdminTikTokDebugPage: React.FC = () => {
       return;
     }
 
-    const csvHeader = 'productId,skuId,productName,price,stock,error\n';
-    const csvRows = failedRows.map(row => {
-      const price = row.price || '';
-      const stock = row.stock || '';
-      const productName = row.productName || '';
-      const error = (row.error || '').replace(/"/g, '""'); // Escape quotes in error message
-      return `${row.productId},${row.skuId},${productName},${price},${stock},"${error}"`;
-    }).join('\n');
-    
-    const csvContent = csvHeader + csvRows;
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `failed-rows-${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-    window.URL.revokeObjectURL(url);
+    // Build rows — productId and skuId are forced to text so Excel never converts them to scientific notation
+    const wsData: XLSX.WorkSheet = {};
+    const headers = ['productId', 'skuId', 'sellerSku', 'productName', 'price', 'stock', 'error'];
+    headers.forEach((h, c) => {
+      wsData[XLSX.utils.encode_cell({ r: 0, c })] = { v: h, t: 's' };
+    });
+
+    failedRows.forEach((row, r) => {
+      const rowData: any[] = [
+        { v: row.productId, t: 's' },  // force text — prevents 1.73E+18
+        { v: row.skuId, t: 's' },      // force text — prevents 1.73E+18
+        { v: (row as any).sellerSku || '', t: 's' },
+        { v: row.productName || '', t: 's' },
+        { v: row.price || '', t: 's' },
+        { v: row.stock || '', t: 's' },
+        { v: row.error || '', t: 's' },
+      ];
+      rowData.forEach((cell, c) => {
+        wsData[XLSX.utils.encode_cell({ r: r + 1, c })] = cell;
+      });
+    });
+
+    wsData['!ref'] = XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: failedRows.length, c: headers.length - 1 } });
+    // Widen productId and skuId columns so the full number is visible
+    wsData['!cols'] = [{ wch: 22 }, { wch: 22 }, { wch: 24 }, { wch: 36 }, { wch: 10 }, { wch: 8 }, { wch: 50 }];
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, wsData, 'Failed Rows');
+    XLSX.writeFile(wb, `failed-rows-${new Date().toISOString().slice(0, 10)}.xlsx`);
   };
 
   const [autoFillLoading, setAutoFillLoading] = useState(false);
@@ -1456,7 +1469,7 @@ productId,skuId,price,stock{'\n'}
                         className="py-4 rounded-lg font-bold text-lg transition-all hover:scale-[1.01]"
                         style={{ backgroundColor: '#3b82f6', color: 'white' }}
                       >
-                        📥 Download Failed CSV
+                        📥 Download Failed XLSX
                       </button>
                     </div>
                     {autoFillMessage && (
