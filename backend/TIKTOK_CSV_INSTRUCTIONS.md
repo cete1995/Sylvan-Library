@@ -1,51 +1,103 @@
-# TikTok Shop Bulk Update - CSV Instructions
+﻿# TikTok Shop Bulk Update - CSV Instructions
 
-## CSV Format
+## Overview
 
-The CSV file must contain the following columns:
-- `productId` - TikTok product ID (required)
-- `skuId` - TikTok SKU ID (required)
-- `productName` - Product name for display (optional, helps identify products in results)
-- `price` - Price in smallest currency unit, e.g., cents for USD, rupiah for IDR (optional)
-- `stock` - Stock quantity (optional)
+Use the CSV bulk update to update product prices and stock across your TikTok Shop listings in one upload. The Admin Panel processes the file row-by-row and streams live progress back to the browser.
 
-## Important: Preventing Scientific Notation in Excel
+After a successful sync, the system writes the TikTok productId and skuId back to the matching inventory item in the database using sellerSku as the lookup key.
 
-TikTok product IDs and SKU IDs are very long numbers (18+ digits). When you open the CSV in Excel or Google Sheets, they will be converted to scientific notation (e.g., 1.73E+18) which breaks the upload.
+Failed rows can be downloaded as an **XLSX file**  long IDs are preserved as text and card names with special characters or commas are handled correctly.
 
-### Solution 1: Use Apostrophe Prefix (Recommended)
-Add a single quote `'` before each productId and skuId:
+---
 
-```csv
-productId,skuId,productName,price,stock
-'1734282158070260000,'1734282158070335348,Sample Product 1,15000,10
-'1734282148160700000,'1734282148160767860,Sample Product 2,18000,5
-```
+## CSV Columns
 
-The apostrophe forces Excel to treat the value as text. The backend automatically removes the apostrophe during processing.
+| Column | Required | Description |
+|---|---|---|
+| productId | Yes | TikTok product ID (18+ digit number) |
+| skuId | Yes | TikTok SKU ID (18+ digit number) |
+| sellerSku | No | Your internal SKU  used to match the inventory slot in the database and write back the TikTok IDs after sync |
+| productName | No | Human-readable label, shown in progress/result output |
+| price | No | Price in smallest currency unit (IDR = rupiah, e.g. 15000 = Rp 15.000) |
+| stock | No | Stock quantity to set |
 
-### Solution 2: Format as Text First
+At least one of price or stock must be provided per row, otherwise the row has nothing to update.
+
+---
+
+## Preventing Scientific Notation in Excel
+
+TikTok product IDs and SKU IDs are 18-19 digit numbers. Excel and Google Sheets will convert them to scientific notation (e.g. 1.73E+18) unless you force them to be treated as text. This breaks the upload.
+
+### Solution 1: Use the Apostrophe Prefix (Recommended)
+
+Add a single quote ' before each productId and skuId value:
+
+`csv
+productId,skuId,sellerSku,productName,price,stock
+'1734282158070260000,'1734282158070335348,MTG-BLB-001-NM-NF,Bloomburrow Card,15000,10
+`
+
+The apostrophe tells Excel to store the cell as text. The upload backend strips it automatically before sending to TikTok.
+
+### Solution 2: Format Columns as Text First
+
 1. Open a blank Excel file
-2. Select columns A and B (productId and skuId)
-3. Right-click → Format Cells → Text
-4. Then paste or enter your product IDs
+2. Select columns A and B
+3. Right-click -> Format Cells -> Text
+4. Paste your IDs into those columns
 
-### Solution 3: Use Text Editor
-Edit the CSV in a text editor (Notepad, VS Code, etc.) instead of Excel to avoid any automatic formatting.
+### Solution 3: Use a Text Editor
 
-## Example CSV
+Edit the CSV in Notepad, VS Code, or any plain-text editor. No automatic format conversion will happen.
 
-```csv
-productId,skuId,productName,price,stock
-'1734282158070260000,'1734282158070335348,Magic Card Alpha,15000,10
-'1734282158070260000,'1734282158070335349,Magic Card Beta,18000,5
-'1734282148160700000,'1734282148160767860,Pokemon Card Set,25000,8
-```
+---
 
 ## Template File
 
-Use `tiktok-bulk-update-template.csv` as a starting point. It already includes the apostrophe prefix format.
+Use 	iktok-bulk-update-template.csv as your starting point. It already includes:
+- The correct column names and order
+- Apostrophe-prefixed example IDs
+- Example sellerSku values
 
-## Upload Location
+---
 
-Upload your CSV file in the Admin Panel → TikTok Shop Debug page.
+## Example CSV
+
+`csv
+productId,skuId,sellerSku,productName,price,stock
+'1734282158070260000,'1734282158070335348,MTG-BLB-001-NM-NF,Bloomburrow NF,15000,10
+'1734282158070260000,'1734282158070335349,MTG-BLB-001-NM-F,Bloomburrow Foil,18000,5
+'1734282148160700000,'1734282148160767860,MTG-DFT-001-NM-NF,Other Card,25000,8
+`
+
+---
+
+## Upload Steps
+
+1. Go to **Admin Panel -> TikTok Shop Debug**
+2. Enter your TikTok App Key, App Secret, and Access Token (and Shop Cipher if needed)
+3. Click **Choose File** and select your CSV
+4. Click **Upload and Update**
+5. Watch the live progress bar  each product is processed and shown as success or failure
+6. If any rows failed, download the **XLSX** file, fix the issues, and re-upload
+
+---
+
+## How sellerSku Links to the Database
+
+When you set up a card's inventory slot in the system, you assign a sellerSku value (e.g. MTG-BLB-001-NM-NF). This same value goes in the sellerSku column of your CSV.
+
+After the TikTok price/stock update succeeds, the system looks up the inventory slot where inventory.sellerSku matches the CSV value and saves:
+- inventory.$.tiktokProductId = the productId from the CSV
+- inventory.$.tiktokSkuId = the skuId from the CSV
+
+This makes future TikTok order matching automatic.
+
+---
+
+## Failed Rows XLSX Download
+
+The downloaded XLSX file contains the same columns as the upload CSV plus an error column with the TikTok API error message.
+
+Important: productId and skuId are stored as **text** in the XLSX so they never display as scientific notation  you can edit and re-upload without needing to reformat.

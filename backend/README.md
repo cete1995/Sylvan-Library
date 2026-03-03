@@ -1,166 +1,238 @@
-# MTG Inventory Backend
+﻿# Sylvan Library - Backend
 
-This is the backend API for the MTG Card Inventory & Store system.
+Express + TypeScript API server for the Sylvan Library MTG Inventory system.
 
-## Features
+---
 
-- RESTful API with Express & TypeScript
-- MongoDB database with Mongoose ODM
-- JWT-based authentication
-- Card CRUD operations with search and filtering
-- Bulk CSV upload for cards
-- Admin dashboard statistics
+## Quick Start
 
-## Prerequisites
+### Prerequisites
+- Node.js 18+
+- MongoDB running locally or a remote connection string
 
-- Node.js 18+ and npm
-- MongoDB (running locally or connection string)
+### Install and run
 
-## Installation
-
-1. Install dependencies:
-```bash
+`ash
+cd backend
 npm install
-```
+`
 
-2. Configure environment variables:
-```bash
-cp .env.example .env
-```
+Create ackend/.env (see Environment Variables below), then:
 
-Edit `.env` and update:
-- `MONGODB_URI`: Your MongoDB connection string
-- `JWT_SECRET`: A secure random string for JWT signing
-- `FRONTEND_URL`: Your frontend URL (for CORS)
+`ash
+npm run dev     # development with auto-reload
+npm run build   # compile TypeScript
+npm start       # run compiled output
+`
 
-3. Start MongoDB (if running locally):
-```bash
-# Windows (if installed as service)
-net start MongoDB
+API runs at http://localhost:5000.
 
-# Or using mongod directly
-mongod --dbpath C:\data\db
-```
+---
 
-## Running the Server
+## Environment Variables
 
-### Development mode (with auto-reload):
-```bash
-npm run dev
-```
+Create a .env file in the ackend/ directory:
 
-### Production build:
-```bash
-npm run build
-npm start
-```
+`env
+PORT=5000
+NODE_ENV=development
+MONGODB_URI=mongodb://localhost:27017/sylvan-library
+JWT_SECRET=change_this_to_a_long_random_string
+JWT_EXPIRES_IN=7d
+FRONTEND_URL=http://localhost:5173
+`
 
-## API Endpoints
+| Variable | Required | Default | Description |
+|---|---|---|---|
+| PORT | No | 5000 | Server port |
+| NODE_ENV | No | development | development or production |
+| MONGODB_URI | Yes | - | MongoDB connection string |
+| JWT_SECRET | Yes | - | Secret for JWT signing |
+| JWT_EXPIRES_IN | No | 7d | Token lifetime |
+| FRONTEND_URL | Yes | - | CORS origin |
 
-### Health Check
-- `GET /health` - Server health status
+---
 
-### Authentication
-- `POST /api/auth/register` - Register new admin user
-- `POST /api/auth/login` - Login and get JWT token
-- `GET /api/auth/me` - Get current user info (requires auth)
+## Creating an Admin Account
 
-### Public Card Endpoints
-- `GET /api/cards` - Search and browse cards
-  - Query params: `q`, `set`, `color`, `rarity`, `minPrice`, `maxPrice`, `page`, `limit`, `sort`
-- `GET /api/cards/:id` - Get single card details
-- `GET /api/cards/sets/list` - Get list of available sets
+`ash
+node create-admin.js
+`
 
-### Admin Endpoints (Require JWT Token)
-- `GET /api/admin/stats` - Get dashboard statistics
-- `GET /api/admin/cards` - Get all cards (admin view)
-- `POST /api/admin/cards` - Create new card
-- `PUT /api/admin/cards/:id` - Update card
-- `DELETE /api/admin/cards/:id` - Soft delete card
-- `POST /api/admin/cards/bulk-upload` - Upload CSV file with cards
+Follow the prompts. To reset a password later:
 
-## Creating Your First Admin User
+`ash
+node reset-admin-password.js
+`
 
-1. Start the server: `npm run dev`
-2. Use a tool like Postman or curl to register:
-
-```bash
-curl -X POST http://localhost:5000/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d "{\"email\":\"admin@example.com\",\"password\":\"SecurePass123\"}"
-```
-
-3. Login to get your JWT token:
-
-```bash
-curl -X POST http://localhost:5000/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d "{\"email\":\"admin@example.com\",\"password\":\"SecurePass123\"}"
-```
-
-## Bulk Upload CSV Format
-
-See `bulk-upload-template.csv` for an example. Required columns:
-- name, setCode, setName, collectorNumber, language, condition, finish
-- quantityOwned, quantityForSale, buyPrice, sellPrice, rarity
-
-Optional columns:
-- colorIdentity (comma-separated: W,U,B,R,G)
-- imageUrl, scryfallId, typeLine, oracleText, manaCost, notes
-
-## Data Models
-
-### Card Fields:
-- **name**: Card name
-- **setCode**: 3-letter set code (e.g., "MOM")
-- **setName**: Full set name
-- **collectorNumber**: Card number in set
-- **language**: Language code (default: "EN")
-- **condition**: NM | SP | MP | HP | DMG
-- **finish**: nonfoil | foil | etched
-- **quantityOwned**: Total cards owned
-- **quantityForSale**: How many are listed
-- **buyPrice**: Purchase price per card
-- **sellPrice**: Listing price per card
-- **rarity**: common | uncommon | rare | mythic | special | bonus
-- **colorIdentity**: Array of color letters
-- **isActive**: Soft delete flag
+---
 
 ## Project Structure
 
-```
+`
 backend/
-├── src/
-│   ├── config/         # Database and environment config
-│   ├── controllers/    # Request handlers
-│   ├── middleware/     # Auth, error handling, etc.
-│   ├── models/         # Mongoose schemas
-│   ├── routes/         # API route definitions
-│   ├── types/          # TypeScript type definitions
-│   ├── utils/          # Helper functions
-│   ├── validators/     # Zod validation schemas
-│   └── server.ts       # Entry point
-├── .env                # Environment variables
-├── package.json
-└── tsconfig.json
-```
+src/
+  config/
+    database.ts          # Mongoose connection
+    env.ts               # Environment loader
+  controllers/           # Business logic (one file per resource)
+  middleware/
+    auth.middleware.ts   # JWT verify, requireAdmin, requireSeller
+    asyncHandler.ts
+    errorHandler.ts
+  models/
+    Card.model.ts           # Cards + inventory[] sub-documents
+    User.model.ts           # Admin / seller / customer accounts
+    Order.model.ts          # Online orders
+    TikTokOrder.model.ts    # Imported TikTok orders
+    TikTokCredentials.model.ts
+    OfflineSale.model.ts    # Walk-in sale records
+    OfflineBuy.model.ts     # Walk-in buy-back records
+    Cart.model.ts
+    Carousel.model.ts
+    FeaturedBanner.model.ts
+    FeaturedProduct.model.ts
+    UBSettings.model.ts     # UB set pricing settings
+    RegularSettings.model.ts
+  routes/                # One route file per resource
+  utils/
+    regularPricing.ts    # Regular set price calculation
+    ubPricing.ts         # UB set price calculation
+    auth.utils.ts
+  validators/
+    auth.validator.ts
+    card.validator.ts
+  server.ts              # Entry point
+uploads/images/          # Uploaded card images
+create-admin.js
+reset-admin-password.js
+check-sets.js
+check-recent-sets.js
+bulkup.csv               # TikTok bulk-update CSV example
+tiktok-bulk-update-template.csv
+TIKTOK_CSV_INSTRUCTIONS.md
+`
 
-## Testing the API
+---
 
-Use the server at `http://localhost:5000`
+## Data Models
 
-Example: Get all cards
-```bash
-curl http://localhost:5000/api/cards?q=lightning&page=1&limit=10
-```
+### Card
+Core document with an inventory[] array of slots (one per seller + condition + finish combo).
 
-Example: Add a card (requires JWT)
-```bash
-curl -X POST http://localhost:5000/api/admin/cards \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d @card-data.json
-```
+`	ypescript
+// Card top-level fields
+{
+  name: string
+  setCode: string               // e.g. "BLB"
+  setName: string
+  collectorNumber: string
+  language: string              // default "EN"
+  rarity: "common" | "uncommon" | "rare" | "mythic" | "special" | "bonus"
+  colorIdentity: string[]       // ["W","U","B","R","G"]
+  imageUrl?: string
+  scryfallId?: string
+  typeLine?: string
+  oracleText?: string
+  manaCost?: string
+  isActive: boolean             // soft delete flag
+}
+
+// InventoryItem (sub-document inside card.inventory[])
+{
+  condition: "NM" | "LP" | "P"
+  finish: "nonfoil" | "foil" | "etched"
+  quantityOwned: number
+  quantityForSale: number
+  buyPrice: number
+  sellPrice: number
+  marketplacePrice?: number     // TikTok/Tokopedia price (incl. platform fee)
+  sellerId?: string
+  sellerName?: string
+  tiktokProductId?: string      // written back from bulkup CSV sync
+  tiktokSkuId?: string          // written back from bulkup CSV sync
+  sellerSku?: string            // used to match CSV rows to inventory slots
+}
+`
+
+### User
+`	ypescript
+{
+  email: string
+  passwordHash: string
+  role: "admin" | "seller" | "customer"
+  displayName?: string
+}
+`
+
+---
+
+## API Routes
+
+### Auth
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | /api/auth/login | Login, returns JWT |
+| POST | /api/auth/register | Register customer account |
+| GET | /api/auth/me | Get current user |
+
+### Public (no auth)
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | /api/cards | Search/filter cards |
+| GET | /api/cards/:id | Card details |
+| GET | /api/public/carousel | Active carousel items |
+| GET | /api/public/featured | Featured banners and products |
+
+### Admin (JWT + admin role)
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | /api/admin/stats | Dashboard stats |
+| GET/POST/PUT/DELETE | /api/admin/cards | Card management |
+| POST | /api/admin/cards/bulk-upload | CSV card import |
+| GET/POST/DELETE | /api/admin/sellers | Seller accounts |
+| GET/POST | /api/admin/offline-sales | Walk-in sales |
+| POST | /api/admin/offline-sales/:id/void | Void a sale |
+| GET/POST | /api/admin/offline-buys | Walk-in buy-backs |
+| GET/PUT | /api/admin/ub-pricing | UB pricing settings |
+| GET/PUT | /api/admin/ub-settings | UB set list |
+| GET/PUT | /api/admin/regular-pricing | Regular pricing settings |
+| POST | /api/admin/sync-prices | Recalculate all prices from CK |
+| GET/POST/PUT/DELETE | /api/admin/carousel | Carousel management |
+| GET/POST/PUT/DELETE | /api/admin/featured | Featured content |
+| POST | /api/tiktok/bulk-update-csv-stream | Bulk price+stock update (SSE stream) |
+| POST | /api/tiktok/bulk-update-csv | Bulk price+stock update (legacy) |
+
+### Seller (JWT + seller role)
+| Method | Endpoint | Description |
+|---|---|---|
+| GET/POST/PUT | /api/seller/inventory | Own inventory |
+| GET | /api/seller/orders | Own assigned orders |
+| POST | /api/manabox/upload | Manabox CSV import |
+
+---
+
+## Bulk CSV Upload (Card Import)
+
+Use ulk-upload-template.csv for the card import format. Required columns:
+
+ame, setCode, setName, collectorNumber, language, condition, finish, quantityOwned, quantityForSale, buyPrice, sellPrice, rarity
+
+Optional: colorIdentity, imageUrl, scryfallId, typeLine, oracleText, manaCost, notes
+
+---
+
+## TikTok Shop Bulk Update CSV
+
+See TIKTOK_CSV_INSTRUCTIONS.md and 	iktok-bulk-update-template.csv for full details.
+
+Columns: productId, skuId, sellerSku, productName, price, stock
+
+- productId and skuId use a ' prefix to prevent Excel scientific notation
+- sellerSku matches the CSV row to the correct inventory slot in the database
+- After a successful sync, 	iktokProductId and 	iktokSkuId are written back to the matched inventory item
+
+---
 
 ## License
 

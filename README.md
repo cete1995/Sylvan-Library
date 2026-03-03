@@ -1,6 +1,6 @@
-# Sylvan Library — MTG Inventory & Store
+﻿# Sylvan Library — MTG Inventory & Store
 
-A full-stack web application for managing Magic: The Gathering card inventory across multiple sellers, with a public storefront, TikTok order management, offline sales recording, and automated pricing.
+A full-stack web application for managing Magic: The Gathering card inventory across multiple sellers, with a public storefront, TikTok Shop integration, offline sales recording, and automated CK-based pricing.
 
 ---
 
@@ -11,58 +11,67 @@ A full-stack web application for managing Magic: The Gathering card inventory ac
 - [Project Structure](#project-structure)
 - [Quick Start](#quick-start)
 - [Environment Variables](#environment-variables)
-- [API Overview](#api-overview)
 - [Roles](#roles)
 - [Pricing System](#pricing-system)
+- [API Overview](#api-overview)
+- [Frontend Routes](#frontend-routes)
 - [Deployment](#deployment)
 
 ---
 
 ## Features
 
-### 🛍️ Public Storefront
+### Storefront (Public)
 - Browse & search all cards across all sellers
 - Filter by name, set, condition, finish, price range
-- Mobile-friendly catalog with bottom navigation
-- Card detail pages with images and inventory breakdown
-- Shopping cart with checkout flow
-- Order tracking
+- Mobile-friendly catalog with bottom navigation (desktop: table view, mobile: feed view)
+- Card detail pages with images and per-seller inventory breakdown
+- Shopping cart, checkout, order history, customer profile
+- Customer registration & login
 
-### 🔐 Admin Panel
-- Full card & inventory management (add, edit, delete, bulk CSV upload)
-- Seller account management (create, edit, reset password, delete stock)
-- Dashboard stats (inventory value, order counts, seller breakdown)
-- Price sync from CK data — calculates sell prices via pricing tiers
-- Bulk price update across all cards
-- Featured banners & carousel management
-- Set management (upload set JSON for new sets)
-- Maintenance tools (fix seller names, regenerate SKUs, fix inventory quantities)
+### Admin Panel
+- **Card Inventory**  add, edit, soft-delete, bulk CSV import
+- **Browse Cards**  sortable table with finish badges (Normal/Foil/Etched), per-finish Web Price & Marketplace price columns
+- **Seller management**  create/edit/delete seller accounts, reset passwords
+- **Dashboard**  inventory value, order counts, active sellers, recent activity
+- **CK price sync**  fetch latest Card Kingdom prices and recalculate all sell prices
+- **Bulk price update**  apply multiplier changes across all cards at once
+- **Featured banners & carousel**  manage homepage promotional content
+- **Set management**  upload set JSON to register new sets
+- **Maintenance tools**  fix seller names, regenerate SKUs, fix inventory quantities
+- **Missing images**  filter and bulk-assign images to cards without one
+- **Membership**  manage customer membership tiers
 
-### 👤 Seller Panel
-- Each seller manages their own inventory slots per card
-- View their own orders and sales history
+### Seller Panel
+- Manage own inventory slots per card (condition, finish, qty, price)
+- Manabox CSV import for bulk inventory upload
+- View own assigned orders and sales history
 - Profile management
 
-### 📦 Order Management
-- Customer orders (cart → checkout → order history)
-- Admin can view/manage all orders
-- TikTok order import & assignment to sellers
-- Saved TikTok orders with seller assignment, stock deduction, undo support
-- Edit stock quantities directly from the TikTok order panel
+### Order Management
+- Customer orders  cart  checkout  order history
+- Admin: view/manage all online orders
+- **TikTok Shop**  fetch orders via API, assign to sellers, deduct stock
+- Saved TikTok orders with seller assignment, undo support, inline stock editing
 
-### 🏬 Offline Sales (Walk-in)
+### Offline Sales (Walk-in)
 - Record walk-in sales without an online order
-- **Card-first search** — search any card name across all sellers in stock
-- Each result shows which sellers have it, condition, finish, stock, and live price
+- Card-first search across all sellers currently in stock
 - Build a sale cart mixing cards from multiple sellers
 - Payment method tracking (Cash / Transfer / Other)
-- Sale history with per-item seller breakdown and void support
+- Sale history with void support
 
-### 🏷️ Pricing System
-- Two pricing tiers: **UB Sets** and **Regular Sets**
-- Prices calculated as: `CK Price × multiplier` (configured per tier)
-- Buy price tracked separately per inventory slot
-- Marketplace price (TikTok/external platform) tracked separately
+### Offline Buys (Buy-back)
+- Record cards purchased from walk-in customers
+- Per-item: card name, condition, finish, buy price
+- Buy history with void support
+
+### TikTok Shop Integration
+- Fetch and manage TikTok Shop orders
+- Bulk update product prices & stock via CSV upload (SSE stream with live progress)
+- `productId` and `skuId` use `'` prefix to prevent Excel scientific notation; stripped automatically on upload
+- `sellerSku` column links CSV rows to the matching inventory slot; after a successful sync the `tiktokProductId` and `tiktokSkuId` are written back to the database
+- Failed rows downloadable as **XLSX**  long IDs stay as text, card name special characters are safe
 
 ---
 
@@ -77,7 +86,9 @@ A full-stack web application for managing Magic: The Gathering card inventory ac
 | JWT | Authentication |
 | Zod | Request validation |
 | Multer | File uploads (images, CSV) |
-| Axios | CK price fetching |
+| csv-parse | CSV parsing |
+| Axios | CK price fetching, TikTok API calls |
+| crypto | TikTok API signature generation, credential encryption |
 
 ### Frontend
 | Technology | Purpose |
@@ -87,8 +98,8 @@ A full-stack web application for managing Magic: The Gathering card inventory ac
 | Tailwind CSS | Styling |
 | React Router v6 | Client-side routing |
 | Axios | API calls |
-| Recharts | Analytics charts |
-| TanStack Query | Server state management |
+| Keyrune (ss-icons) | MTG set symbol icons |
+| SheetJS (xlsx) | XLSX export for failed-rows download |
 
 ---
 
@@ -96,45 +107,54 @@ A full-stack web application for managing Magic: The Gathering card inventory ac
 
 ```
 Sylvan Library/
-├── backend/
-│   ├── src/
-│   │   ├── config/          # DB connection, env vars
-│   │   ├── controllers/     # Business logic per resource
-│   │   ├── middleware/       # Auth, error handling, async wrapper
-│   │   ├── models/          # Mongoose schemas
-│   │   │   ├── Card.model.ts
-│   │   │   ├── User.model.ts
-│   │   │   ├── Order.model.ts
-│   │   │   ├── TikTokOrder.model.ts
-│   │   │   ├── OfflineSale.model.ts
-│   │   │   ├── Cart.model.ts
-│   │   │   ├── Carousel.model.ts
-│   │   │   ├── FeaturedBanner.model.ts
-│   │   │   ├── FeaturedProduct.model.ts
-│   │   │   ├── UBSettings.model.ts
-│   │   │   └── RegularSettings.model.ts
-│   │   ├── routes/          # Route definitions
-│   │   ├── utils/           # Pricing calculators, auth helpers
-│   │   └── server.ts        # Entry point
-│   ├── uploads/images/      # Uploaded card images
-│   ├── create-admin.js      # Script to bootstrap first admin
-│   ├── reset-admin-password.js
-│   └── package.json
-│
-└── frontend/
-    ├── src/
-    │   ├── api/             # Axios API wrappers per resource
-    │   ├── components/      # Shared UI components
-    │   ├── contexts/        # Auth context, cart context
-    │   ├── pages/           # One file per page/route
-    │   │   ├── AdminDashboardPage.tsx
-    │   │   ├── AdminCardListPage.tsx
-    │   │   ├── AdminOfflineSalePage.tsx
-    │   │   ├── AdminTikTokSavedOrdersPage.tsx
-    │   │   └── ...
-    │   ├── types/           # Shared TypeScript interfaces
-    │   └── App.tsx          # Routes
-    └── package.json
+ backend/
+    src/
+       config/
+          database.ts        # MongoDB connection
+          env.ts             # Environment variable loader
+       controllers/           # Business logic per resource
+       middleware/
+          auth.middleware.ts # JWT verify, requireAdmin, requireSeller
+          asyncHandler.ts
+          errorHandler.ts
+       models/
+          Card.model.ts           # Cards with inventory[] sub-documents
+          User.model.ts           # Admin, seller, customer accounts
+          Order.model.ts          # Online orders
+          TikTokOrder.model.ts    # Imported TikTok orders
+          TikTokCredentials.model.ts
+          OfflineSale.model.ts    # Walk-in sales
+          OfflineBuy.model.ts     # Walk-in buy-backs
+          Cart.model.ts
+          Carousel.model.ts
+          FeaturedBanner.model.ts
+          FeaturedProduct.model.ts
+          UBSettings.model.ts     # UB pricing settings
+          RegularSettings.model.ts
+       routes/                # One file per resource
+       utils/
+          regularPricing.ts
+          ubPricing.ts
+       server.ts
+    uploads/images/
+    create-admin.js            # Bootstrap first admin
+    reset-admin-password.js
+    check-sets.js
+    check-recent-sets.js
+    bulkup.csv                 # TikTok bulk-update CSV example
+    tiktok-bulk-update-template.csv
+    TIKTOK_CSV_INSTRUCTIONS.md
+    package.json
+
+ frontend/
+     src/
+        api/          # Axios API wrappers per resource
+        components/   # Shared UI components
+        contexts/     # AuthContext, CartContext, ThemeContext
+        pages/        # One file per page/route
+        types/        # Shared TypeScript interfaces (Card, InventoryItem, etc.)
+        App.tsx       # Route definitions
+     package.json
 ```
 
 ---
@@ -143,17 +163,17 @@ Sylvan Library/
 
 ### Prerequisites
 - Node.js 18+
-- MongoDB running locally (or a connection string)
+- MongoDB (local or connection string)
 - npm
 
-### 1. Clone the repo
+### 1. Clone
 
 ```bash
 git clone https://github.com/cete1995/Sylvan-Library.git
 cd "Sylvan Library"
 ```
 
-### 2. Backend setup
+### 2. Backend
 
 ```bash
 cd backend
@@ -170,33 +190,28 @@ JWT_EXPIRES_IN=7d
 FRONTEND_URL=http://localhost:5173
 ```
 
-Start the dev server:
 ```bash
-npm run dev
+npm run dev   # runs on http://localhost:5000
 ```
-→ API runs at `http://localhost:5000`
 
-### 3. Frontend setup
+### 3. Frontend
 
 ```bash
 cd frontend
 npm install
-npm run dev
+npm run dev   # runs on http://localhost:5173
 ```
-→ App runs at `http://localhost:5173`
 
-### 4. Create the first admin account
+### 4. Create first admin
 
 ```bash
 cd backend
 node create-admin.js
 ```
 
-Follow the prompts to set email and password.
-
 ### 5. Login
 
-Go to `http://localhost:5173/admin/login` and sign in.
+Go to `http://localhost:5173/login` and sign in.
 
 ---
 
@@ -204,20 +219,45 @@ Go to `http://localhost:5173/admin/login` and sign in.
 
 ### `backend/.env`
 
-| Variable | Required | Description |
-|---|---|---|
-| `PORT` | No | Server port (default: `5000`) |
-| `NODE_ENV` | No | `development` or `production` |
-| `MONGODB_URI` | ✅ | MongoDB connection string |
-| `JWT_SECRET` | ✅ | Secret key for signing tokens |
-| `JWT_EXPIRES_IN` | No | Token lifetime (default: `7d`) |
-| `FRONTEND_URL` | ✅ | Used for CORS (e.g. `http://localhost:5173`) |
+| Variable | Required | Default | Description |
+|---|---|---|---|
+| `PORT` | No | `5000` | Server port |
+| `NODE_ENV` | No | `development` | `development` or `production` |
+| `MONGODB_URI` | Yes |  | MongoDB connection string |
+| `JWT_SECRET` | Yes |  | Secret key for signing JWTs |
+| `JWT_EXPIRES_IN` | No | `7d` | Token lifetime |
+| `FRONTEND_URL` | Yes |  | CORS origin (e.g. `http://localhost:5173`) |
 
 ### `frontend/.env` (optional)
 
-| Variable | Description |
+| Variable | Default | Description |
+|---|---|---|
+| `VITE_API_URL` | `http://localhost:5000/api` | Override API base URL |
+
+---
+
+## Roles
+
+| Role | Access |
 |---|---|
-| `VITE_API_URL` | Override API base URL (default: `http://localhost:5000/api`) |
+| **Admin** | Full access  all pages, all sellers' data, pricing, TikTok, offline sales |
+| **Seller** | Own inventory, Manabox import, own orders, profile |
+| **Customer** | Storefront, cart, checkout, order history, profile |
+| **Public** | Storefront browsing only |
+
+---
+
+## Pricing System
+
+```
+Sell Price = CK Price  Multiplier
+```
+
+- **UB Sets**  Universes Beyond / special treatment; Admin  UB Pricing / UB Settings
+- **Regular Sets**  all other sets; Admin  Regular Settings
+- Prices recomputed on "Sync All Prices" (Admin  Prices) or per-card edit
+- **Buy price**  set manually per inventory slot
+- **Marketplace price**  TikTok/Tokopedia price (with platform fee); tracked per inventory slot alongside `tiktokProductId`, `tiktokSkuId`, and `sellerSku`
 
 ---
 
@@ -227,6 +267,7 @@ Go to `http://localhost:5173/admin/login` and sign in.
 | Method | Endpoint | Description |
 |---|---|---|
 | POST | `/api/auth/login` | Login, returns JWT |
+| POST | `/api/auth/register` | Register customer account |
 | GET | `/api/auth/me` | Get current user |
 
 ### Public
@@ -235,340 +276,116 @@ Go to `http://localhost:5173/admin/login` and sign in.
 | GET | `/api/cards` | Search/filter cards |
 | GET | `/api/cards/:id` | Card details |
 | GET | `/api/cart` | Get cart |
+| POST | `/api/cart/items` | Add to cart |
 | POST | `/api/orders` | Place order |
+| GET | `/api/orders/history` | Customer order history |
+| GET | `/api/public/carousel` | Active carousel items |
+| GET | `/api/public/featured` | Featured banners & products |
 
-### Admin (JWT required)
+### Admin (JWT + admin role)
 | Method | Endpoint | Description |
 |---|---|---|
 | GET | `/api/admin/stats` | Dashboard stats |
 | GET/POST/PUT/DELETE | `/api/admin/cards` | Card management |
-| POST | `/api/admin/cards/bulk-upload` | CSV import |
+| POST | `/api/admin/cards/bulk-upload` | CSV card import |
 | GET/POST/DELETE | `/api/admin/sellers` | Seller accounts |
-| GET/POST | `/api/admin/offline-sales` | Walk-in sales |
-| GET/POST | `/api/admin/tiktok/*` | TikTok order management |
-| GET/PUT | `/api/admin/ub-pricing` | UB set pricing settings |
-| GET/PUT | `/api/admin/regular-pricing` | Regular set pricing settings |
-| POST | `/api/admin/sync-prices` | Recalculate all sell prices from CK |
+| GET/POST | `/api/admin/offline-sales` | Walk-in sale records |
+| POST | `/api/admin/offline-sales/:id/void` | Void a walk-in sale |
+| GET/POST | `/api/admin/offline-buys` | Walk-in buy records |
+| GET/PUT | `/api/admin/ub-pricing` | UB pricing settings |
+| GET/PUT | `/api/admin/ub-settings` | UB set list |
+| GET/PUT | `/api/admin/regular-pricing` | Regular pricing settings |
+| POST | `/api/admin/sync-prices` | Recalculate all prices from CK |
+| GET/POST/PUT/DELETE | `/api/admin/carousel` | Carousel management |
+| GET/POST/PUT/DELETE | `/api/admin/featured` | Featured content |
+| POST | `/api/tiktok/bulk-update-csv-stream` | Bulk price+stock update (SSE) |
+| POST | `/api/tiktok/bulk-update-csv` | Bulk price+stock update (legacy) |
 
-### Seller (JWT required)
+### Seller (JWT + seller role)
 | Method | Endpoint | Description |
 |---|---|---|
-| GET/POST/PUT | `/api/seller/inventory` | Manage own inventory |
-| GET | `/api/seller/orders` | View own orders |
+| GET/POST/PUT | `/api/seller/inventory` | Own inventory |
+| GET | `/api/seller/orders` | Own assigned orders |
+| POST | `/api/manabox/upload` | Manabox CSV import |
 
 ---
 
-## Roles
+## Frontend Routes
 
-| Role | Access |
+### Public
+| Path | Description |
 |---|---|
-| **Admin** | Full access — all pages, all sellers' data, pricing, settings |
-| **Seller** | Own inventory management, own orders view |
-| **Public** | Storefront browsing, cart, checkout |
+| `/` | Home |
+| `/catalog` | Card catalog |
+| `/cards/:id` | Card detail |
+| `/login` | Login (admin / seller / customer) |
+| `/register` | Customer registration |
+| `/cart` | Shopping cart |
+| `/orders` | Order history (requires login) |
+| `/profile` | Profile (requires login) |
 
----
+### Admin
+| Path | Description |
+|---|---|
+| `/admin/dashboard` | Dashboard overview |
+| `/admin/cards` | Browse & manage card inventory |
+| `/admin/cards/new` | Add new card |
+| `/admin/cards/edit/:id` | Edit card |
+| `/admin/bulk-upload` | Bulk CSV import |
+| `/admin/set-upload` | Upload set JSON |
+| `/admin/missing-images` | Cards without images |
+| `/admin/sellers` | Seller management |
+| `/admin/prices` | Price management & CK sync |
+| `/admin/ub-pricing` | UB pricing multiplier |
+| `/admin/ub-settings` | UB set list |
+| `/admin/regular-settings` | Regular pricing settings |
+| `/admin/carousel` | Carousel management |
+| `/admin/featured` | Featured banners & products |
+| `/admin/offline-sales` | Walk-in sales |
+| `/admin/offline-buys` | Walk-in buy-backs |
+| `/admin/tiktok-debug` | TikTok bulk update & debug |
+| `/admin/tiktok-get-orders` | Fetch TikTok orders |
+| `/admin/tiktok-orders` | TikTok order list |
+| `/admin/tiktok-saved-orders` | Saved/assigned TikTok orders |
+| `/admin/tiktok-orders/:orderId` | TikTok order detail |
+| `/admin/membership` | Customer membership |
+| `/admin/debug` | System maintenance tools |
 
-## Pricing System
-
-Sell prices are calculated automatically:
-
-```
-Sell Price = CK Price × Multiplier
-```
-
-- **UB Sets** — sets with the UB (Universes Beyond) or non-Standard treatment; configured via Admin → UB Pricing
-- **Regular Sets** — all other sets; configured via Admin → Regular Pricing
-- Prices are recomputed on **"Sync All Prices"** or per-card edit
-- Buy prices are set manually per inventory slot
+### Seller
+| Path | Description |
+|---|---|
+| `/seller/dashboard` | Seller dashboard & inventory |
+| `/seller/cards/:id/inventory` | Edit inventory for a card |
+| `/seller/manabox-upload` | Manabox CSV import |
 
 ---
 
 ## Deployment
 
-See the full guide in [`backend/README.md`](backend/README.md) or deploy to:
-
 | Platform | Notes |
 |---|---|
-| **DigitalOcean Droplet** | Recommended — $4/mo, Singapore region, low latency for ID |
-| **Railway.app** | Free tier, zero-config Node.js deploy |
-| **VPS (any provider)** | Requires Node.js 20, MongoDB, Nginx, PM2 |
-
-### Production build
+| **DigitalOcean Droplet** | Recommended  $4/mo, Singapore region |
+| **Railway.app** | Free tier, zero-config Node.js |
+| **Any VPS** | Node.js 20, MongoDB, Nginx, PM2 |
 
 ```bash
 # Backend
 cd backend && npm run build && npm start
 
-# Frontend
+# Frontend (output in frontend/dist/)
 cd frontend && npm run build
-# Serve frontend/dist/ via Nginx or any static host (Vercel, Netlify)
+# Serve dist/ via Nginx, Vercel, or Netlify
 ```
 
 ---
 
 ## Acknowledgments
 
-- Card data & images — [Scryfall](https://scryfall.com)
-- Pricing reference — Card Kingdom (CK)
-- Inspired by [BinderPOS](https://www.binderpos.com)
+- Card data & images  [Scryfall](https://scryfall.com)
+- Pricing reference  [Card Kingdom](https://www.cardkingdom.com)
+- Set symbol icons  [Keyrune](https://keyrune.andrewgioia.com/)
 - Magic: The Gathering is a trademark of Wizards of the Coast LLC
 
 ---
 
-*Made with ❤️ for the MTG community*
-
-
-## Features
-
-### Public Storefront
-- **Card Catalog**: Browse and search MTG cards with powerful filters
-- **Advanced Search**: Filter by name, set, rarity, color identity, price range
-- **Card Details**: View complete card information with images
-- **Responsive Design**: Works on desktop, tablet, and mobile
-
-### Admin Dashboard
-- **Inventory Management**: Add, edit, and delete cards
-- **Bulk Upload**: Import cards via CSV file
-- **Price Management**: Set buy and sell prices
-- **Statistics**: Track inventory value and sales metrics
-- **Quantity Tracking**: Manage owned vs. for-sale quantities
-- **Soft Delete**: Archive cards without losing data
-
-## Tech Stack
-
-### Backend
-- Node.js + Express + TypeScript
-- MongoDB with Mongoose ODM
-- JWT authentication
-- Zod validation
-- RESTful API
-
-### Frontend
-- React 18 + TypeScript
-- Vite build tool
-- Tailwind CSS
-- React Router
-- Axios
-
-## Project Structure
-
-```
-Sylvan Library/
-├── backend/              # Node.js API server
-│   ├── src/
-│   │   ├── config/      # Database and environment config
-│   │   ├── controllers/ # Request handlers
-│   │   ├── middleware/  # Auth, validation, error handling
-│   │   ├── models/      # Mongoose schemas
-│   │   ├── routes/      # API routes
-│   │   ├── utils/       # Helper functions
-│   │   ├── validators/  # Zod schemas
-│   │   └── server.ts    # Entry point
-│   ├── package.json
-│   └── README.md
-│
-└── frontend/             # React application
-    ├── src/
-    │   ├── api/         # API client
-    │   ├── components/  # Reusable components
-    │   ├── contexts/    # React contexts
-    │   ├── pages/       # Page components
-    │   ├── types/       # TypeScript types
-    │   └── App.tsx      # Main component
-    ├── package.json
-    └── README.md
-```
-
-## Quick Start
-
-### Prerequisites
-- Node.js 18+
-- MongoDB (local or connection string)
-- npm
-
-### 1. Clone Repository
-```bash
-git clone <your-repo-url>
-cd "Sylvan Library"
-```
-
-### 2. Setup Backend
-
-```bash
-cd backend
-npm install
-cp .env.example .env
-# Edit .env with your MongoDB URI and JWT secret
-npm run dev
-```
-
-Backend will run on `http://localhost:5000`
-
-### 3. Setup Frontend
-
-```bash
-cd ../frontend
-npm install
-npm run dev
-```
-
-Frontend will run on `http://localhost:5173`
-
-### 4. Create Admin User
-
-Use a tool like Postman or curl:
-
-```bash
-curl -X POST http://localhost:5000/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d "{\"email\":\"admin@example.com\",\"password\":\"SecurePass123\"}"
-```
-
-### 5. Login
-
-- Go to `http://localhost:5173/admin/login`
-- Login with your credentials
-- Start adding cards!
-
-## API Endpoints
-
-### Authentication
-- `POST /api/auth/register` - Register admin user
-- `POST /api/auth/login` - Login and get JWT
-- `GET /api/auth/me` - Get current user
-
-### Public Cards
-- `GET /api/cards` - Search and filter cards
-- `GET /api/cards/:id` - Get card details
-- `GET /api/cards/sets/list` - Get available sets
-
-### Admin (Requires JWT)
-- `GET /api/admin/stats` - Dashboard statistics
-- `GET /api/admin/cards` - List all cards (admin view)
-- `POST /api/admin/cards` - Create card
-- `PUT /api/admin/cards/:id` - Update card
-- `DELETE /api/admin/cards/:id` - Delete card (soft)
-- `POST /api/admin/cards/bulk-upload` - Bulk CSV upload
-
-## Data Models
-
-### Card
-```typescript
-{
-  name: string
-  setCode: string
-  setName: string
-  collectorNumber: string
-  language: string (default: "EN")
-  condition: "NM" | "SP" | "MP" | "HP" | "DMG"
-  finish: "nonfoil" | "foil" | "etched"
-  quantityOwned: number
-  quantityForSale: number
-  buyPrice: number
-  sellPrice: number
-  rarity: "common" | "uncommon" | "rare" | "mythic"
-  colorIdentity: string[] // ["W", "U", "B", "R", "G"]
-  imageUrl?: string
-  scryfallId?: string
-  typeLine?: string
-  oracleText?: string
-  manaCost?: string
-  notes?: string
-  isActive: boolean
-}
-```
-
-### User
-```typescript
-{
-  email: string
-  passwordHash: string
-  role: "admin"
-}
-```
-
-## Bulk Upload CSV Format
-
-Download template from admin panel or use this format:
-
-```csv
-name,setCode,setName,collectorNumber,language,condition,finish,quantityOwned,quantityForSale,buyPrice,sellPrice,rarity,colorIdentity
-"Lightning Bolt",LEA,"Limited Edition Alpha",161,EN,NM,nonfoil,4,2,150.00,200.00,common,R
-```
-
-## Development
-
-### Backend Development
-```bash
-cd backend
-npm run dev  # Auto-reload with nodemon
-```
-
-### Frontend Development
-```bash
-cd frontend
-npm run dev  # Hot module reload with Vite
-```
-
-### Build for Production
-
-**Backend:**
-```bash
-cd backend
-npm run build
-npm start
-```
-
-**Frontend:**
-```bash
-cd frontend
-npm run build
-npm run preview
-```
-
-## Environment Variables
-
-### Backend (.env)
-```
-PORT=5000
-NODE_ENV=development
-MONGODB_URI=mongodb://localhost:27017/mtg-inventory
-JWT_SECRET=your-secret-key-here
-JWT_EXPIRES_IN=7d
-FRONTEND_URL=http://localhost:5173
-```
-
-### Frontend (.env) - Optional
-```
-VITE_API_URL=http://localhost:5000/api
-```
-
-## Features Roadmap
-
-- [ ] Shopping cart and checkout
-- [ ] Customer accounts
-- [ ] Order history
-- [ ] Scryfall API integration for auto-fill
-- [ ] Card price tracking
-- [ ] Sales analytics
-- [ ] Export reports
-- [ ] Multi-language support
-- [ ] Dark mode
-
-## Contributing
-
-This is a personal project, but suggestions and contributions are welcome!
-
-## License
-
-ISC
-
-## Acknowledgments
-
-- Inspired by BinderPOS
-- Magic: The Gathering is a trademark of Wizards of the Coast LLC
-- Card data and images courtesy of Scryfall
-
----
-
-**Made with ❤️ for the MTG community**
+*Made with love for the MTG community*
