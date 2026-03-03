@@ -90,7 +90,7 @@ app.use('/api/prices', priceRoutes);
 app.use('/api/admin/ub-pricing', ubPricingRoutes);
 app.use('/api/admin/regular-pricing', regularPricingRoutes);
 app.use('/api/admin/pricing', pricingRoutes)
-app.use('/api/admin/tiktok', tiktokRoutes);;
+app.use('/api/admin/tiktok', tiktokRoutes);
 app.use('/api/admin/sellers', sellerRoutes);
 app.use('/api/admin/offline-sales', offlineSaleRoutes);
 app.use('/api/admin/offline-buys', offlineBuyRoutes);

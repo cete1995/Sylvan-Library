@@ -227,7 +227,7 @@ const cardSchema = new Schema<ICard>(
 
 // Compound indexes for common queries
 cardSchema.index({ name: 1, setCode: 1, collectorNumber: 1 });
-cardSchema.index({ isActive: 1 });
+// Note: isActive uses field-level index: true — no separate schema.index() needed
 cardSchema.index({ rarity: 1 });
 
 // Text index for search

@@ -1,10 +1,15 @@
 import { Request, Response } from 'express';
-import { Card, User } from '../models';
+import { Card, User, Cart, Carousel, Order, FeaturedProduct, FeaturedBanner } from '../models';
 import { AppError } from '../middleware/errorHandler';
 import { asyncHandler } from '../middleware/asyncHandler';
 import { createCardSchema, updateCardSchema } from '../validators/card.validator';
 import { parse } from 'csv-parse/sync';
 import { hashPassword } from '../utils/auth.utils';
+
+/** Escape special regex characters to prevent ReDoS from user-supplied strings */
+function escapeRegex(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
 
 /**
  * Create a new card
@@ -165,9 +170,10 @@ export const getAdminCards = asyncHandler(async (req: Request, res: Response) =>
 
   // Search by name (combine with existing $or if missingImages filter exists)
   if (q) {
+    const safeQ = escapeRegex(String(q));
     const nameFilter = [
-      { name: { $regex: q, $options: 'i' } },
-      { setName: { $regex: q, $options: 'i' } },
+      { name: { $regex: safeQ, $options: 'i' } },
+      { setName: { $regex: safeQ, $options: 'i' } },
     ];
     
     if (filter.$or) {
@@ -212,33 +218,29 @@ export const getAdminCards = asyncHandler(async (req: Request, res: Response) =>
  * GET /api/admin/stats
  */
 export const getStats = asyncHandler(async (req: Request, res: Response) => {
-  // Get all active cards
-  const cards = await Card.find({ isActive: true }).lean();
-  
-  // Calculate stats manually to avoid aggregation issues
-  const uniqueCards = new Set<string>();
-  let totalQuantity = 0;
-  let totalInventoryValue = 0;
-  let totalListingValue = 0;
-  
-  for (const card of cards) {
-    uniqueCards.add(card._id.toString());
-    
-    if (card.inventory && Array.isArray(card.inventory)) {
-      for (const item of card.inventory) {
-        // Add to totals
-        totalQuantity += item.quantityOwned || 0;
-        totalInventoryValue += (item.quantityOwned || 0) * (item.buyPrice || 0);
-        totalListingValue += (item.quantityForSale || 0) * (item.sellPrice || 0);
-      }
-    }
-  }
+  const [result, totalCards] = await Promise.all([
+    Card.aggregate([
+      { $match: { isActive: true } },
+      { $unwind: { path: '$inventory', preserveNullAndEmptyArrays: false } },
+      {
+        $group: {
+          _id: null,
+          totalQuantity:      { $sum: '$inventory.quantityOwned' },
+          totalInventoryValue: { $sum: { $multiply: ['$inventory.quantityOwned', '$inventory.buyPrice'] } },
+          totalListingValue:   { $sum: { $multiply: ['$inventory.quantityForSale', '$inventory.sellPrice'] } },
+        },
+      },
+    ]),
+    Card.countDocuments({ isActive: true }),
+  ]);
+
+  const stats = result[0] ?? { totalQuantity: 0, totalInventoryValue: 0, totalListingValue: 0 };
 
   res.json({
-    totalCards: uniqueCards.size,
-    totalQuantity: totalQuantity,
-    totalInventoryValue: totalInventoryValue.toFixed(2),
-    totalListingValue: totalListingValue.toFixed(2),
+    totalCards,
+    totalQuantity: stats.totalQuantity,
+    totalInventoryValue: (stats.totalInventoryValue as number).toFixed(2),
+    totalListingValue:   (stats.totalListingValue as number).toFixed(2),
   });
 });
 
@@ -266,15 +268,14 @@ export const bulkUploadCards = asyncHandler(async (req: Request, res: Response) 
   }
 
   const errors: string[] = [];
-  const imported: any[] = [];
+  const validRecords: any[] = [];
 
-  // Process each record
+  // Validate each record; collect valid ones for batch insert
   for (let i = 0; i < records.length; i++) {
     const record = records[i];
     const rowNum = i + 2; // +2 because: 1-indexed and header row
 
     try {
-      // Map CSV columns to card data
       const cardData = {
         name: record.name,
         setCode: record.setCode,
@@ -299,20 +300,23 @@ export const bulkUploadCards = asyncHandler(async (req: Request, res: Response) 
         notes: record.notes || undefined,
       };
 
-      // Validate using schema
       const validatedData = createCardSchema.parse(cardData);
-
-      // Create card
-      const card = await Card.create(validatedData);
-      imported.push(card);
+      validRecords.push(validatedData);
     } catch (error: any) {
       errors.push(`Row ${rowNum}: ${error.message}`);
     }
   }
 
+  // Batch insert all valid records at once
+  let imported = 0;
+  if (validRecords.length > 0) {
+    const inserted = await Card.insertMany(validRecords, { ordered: false });
+    imported = inserted.length;
+  }
+
   res.json({
     message: `Bulk upload completed`,
-    imported: imported.length,
+    imported,
     failed: errors.length,
     errors: errors.slice(0, 10), // Return first 10 errors
     totalRows: records.length,
@@ -324,15 +328,6 @@ export const bulkUploadCards = asyncHandler(async (req: Request, res: Response) 
  * POST /api/admin/clear-database
  */
 export const clearDatabase = asyncHandler(async (req: Request, res: Response) => {
-  // Import models
-  const { User, Cart, Carousel } = require('../models');
-  const { default: CardPrice } = require('../models/CardPrice');
-  const { default: Order } = require('../models/Order.model');
-  const { default: FeaturedProduct } = require('../models/FeaturedProduct.model');
-  const { default: FeaturedBanner } = require('../models/FeaturedBanner.model');
-  const { default: UBSettings } = require('../models/UBSettings.model');
-  const { default: RegularSettings } = require('../models/RegularSettings.model');
-
   // Delete all cards
   const deletedCards = await Card.deleteMany({});
   
@@ -377,9 +372,6 @@ export const clearDatabase = asyncHandler(async (req: Request, res: Response) =>
  * POST /api/admin/fix-seller-names
  */
 export const fixSellerNames = asyncHandler(async (req: Request, res: Response) => {
-  let updatedCards = 0;
-  let updatedItems = 0;
-
   // Get all sellers
   const sellers = await User.find({ role: 'seller' }).lean();
   const sellerMap = new Map<string, string>(
@@ -387,33 +379,43 @@ export const fixSellerNames = asyncHandler(async (req: Request, res: Response) =
   );
 
   // Get all cards with inventory
-  const cards = await Card.find({ 'inventory.0': { $exists: true } });
+  const cards = await Card.find({ 'inventory.0': { $exists: true } }).lean();
+
+  const bulkOps: any[] = [];
 
   for (const card of cards) {
-    let cardUpdated = false;
-
-    for (const item of card.inventory) {
+    let needsUpdate = false;
+    const updatedInventory = card.inventory.map((item: any) => {
       if (item.sellerId) {
         const correctName = sellerMap.get(item.sellerId.toString());
         if (correctName && item.sellerName !== correctName) {
-          item.sellerName = correctName;
-          cardUpdated = true;
-          updatedItems++;
+          needsUpdate = true;
+          return { ...item, sellerName: correctName };
         }
       }
-    }
+      return item;
+    });
 
-    if (cardUpdated) {
-      await card.save();
-      updatedCards++;
+    if (needsUpdate) {
+      bulkOps.push({
+        updateOne: {
+          filter: { _id: card._id },
+          update: { $set: { inventory: updatedInventory } },
+        },
+      });
     }
+  }
+
+  let updatedCards = 0;
+  if (bulkOps.length > 0) {
+    const result = await Card.bulkWrite(bulkOps, { ordered: false });
+    updatedCards = result.modifiedCount;
   }
 
   res.json({
     success: true,
     message: 'Seller names updated successfully',
     updatedCards,
-    updatedItems,
     sellers: sellers.map(s => ({ id: s._id.toString(), name: s.name, email: s.email }))
   });
 });
@@ -424,42 +426,46 @@ export const fixSellerNames = asyncHandler(async (req: Request, res: Response) =
  * Example: OTJ-0142-N-EN-Uncommon
  */
 export const regenerateSellerSKUs = asyncHandler(async (req: Request, res: Response) => {
-  let updatedCards = 0;
-  let updatedItems = 0;
+  const foilTypeMap: Record<string, string> = { 'nonfoil': 'N', 'foil': 'F', 'etched': 'E' };
 
   // Get all cards with inventory
-  const cards = await Card.find({ 'inventory.0': { $exists: true } });
+  const cards = await Card.find({ 'inventory.0': { $exists: true } }).lean();
+
+  const bulkOps: any[] = [];
+  let updatedItems = 0;
 
   for (const card of cards) {
-    let cardUpdated = false;
+    let needsUpdate = false;
 
-    for (const item of card.inventory) {
-      // Generate SKU for each inventory item
+    const updatedInventory = (card.inventory as any[]).map((item: any) => {
       const formattedNumber = card.collectorNumber.padStart(4, '0');
-      
-      const foilTypeMap: Record<string, string> = {
-        'nonfoil': 'N',
-        'foil': 'F',
-        'etched': 'E'
-      };
       const foilType = foilTypeMap[item.finish] || 'N';
-      
-      const langCode = card.language?.toUpperCase() || 'EN';
+      const langCode = (card.language?.toUpperCase()) || 'EN';
       const formattedRarity = card.rarity.charAt(0).toUpperCase() + card.rarity.slice(1);
-      
       const newSKU = `${card.setCode}-${formattedNumber}-${foilType}-${langCode}-${formattedRarity}`;
-      
-      if (item.sellerSku !== newSKU) {
-        item.sellerSku = newSKU;
-        cardUpdated = true;
-        updatedItems++;
-      }
-    }
 
-    if (cardUpdated) {
-      await card.save();
-      updatedCards++;
+      if (item.sellerSku !== newSKU) {
+        needsUpdate = true;
+        updatedItems++;
+        return { ...item, sellerSku: newSKU };
+      }
+      return item;
+    });
+
+    if (needsUpdate) {
+      bulkOps.push({
+        updateOne: {
+          filter: { _id: card._id },
+          update: { $set: { inventory: updatedInventory } },
+        },
+      });
     }
+  }
+
+  let updatedCards = 0;
+  if (bulkOps.length > 0) {
+    const result = await Card.bulkWrite(bulkOps, { ordered: false });
+    updatedCards = result.modifiedCount;
   }
 
   res.json({
@@ -471,85 +477,80 @@ export const regenerateSellerSKUs = asyncHandler(async (req: Request, res: Respo
 });
 
 export const fixInventoryQuantities = asyncHandler(async (req: Request, res: Response) => {
-  let updatedCards = 0;
   let updatedItems = 0;
-  let errors: any[] = [];
-  let totalInventoryItems = 0;
 
   // Get all cards with inventory
-  const cards = await Card.find({ 'inventory.0': { $exists: true } });
+  const cards = await Card.find({ 'inventory.0': { $exists: true } }).lean();
   console.log(`Scanning ${cards.length} cards for inventory quantity issues...`);
 
-  for (const card of cards) {
-    let cardUpdated = false;
+  const bulkOps: any[] = [];
+  let totalInventoryItems = 0;
 
-    for (const item of card.inventory) {
+  for (const card of cards) {
+    let needsUpdate = false;
+    const updatedInventory = (card.inventory as any[]).map((item: any, idx: number) => {
       totalInventoryItems++;
-      
-      const qtyForSale = item.quantityForSale;
-      const qtyOwned = item.quantityOwned;
-      
-      // Debug logging to see actual values
-      const qtyForSaleType = typeof qtyForSale;
-      const qtyForSaleIsNaN = isNaN(qtyForSale as any);
-      
-      if (totalInventoryItems <= 5) { // Log first 5 items for debugging
+
+      if (idx < 5) {
         console.log(`Item ${totalInventoryItems}: ${card.name}`, {
-          quantityForSale: qtyForSale,
-          type: qtyForSaleType,
-          isNaN: qtyForSaleIsNaN,
-          quantityOwned: qtyOwned,
-          sellerId: item.sellerId ? 'exists' : 'none'
+          quantityForSale: item.quantityForSale,
+          type: typeof item.quantityForSale,
+          isNaN: isNaN(item.quantityForSale),
+          quantityOwned: item.quantityOwned,
+          sellerId: item.sellerId ? 'exists' : 'none',
         });
       }
-      
-      // Check if quantityForSale is NaN, null, undefined, or invalid
+
+      let updatedItem = { ...item };
+
       if (
         item.quantityForSale === null ||
         item.quantityForSale === undefined ||
-        isNaN(item.quantityForSale as any) ||
+        isNaN(item.quantityForSale) ||
         typeof item.quantityForSale !== 'number'
       ) {
-        // For sellers, all stock is for sale
-        if (item.sellerId) {
-          item.quantityForSale = item.quantityOwned || 0;
-          console.log(`Fixed ${card.name} - Set quantityForSale to ${item.quantityForSale}`);
-        } else {
-          // For non-seller items, set to 0
-          item.quantityForSale = 0;
-        }
-        cardUpdated = true;
+        updatedItem.quantityForSale = item.sellerId ? (item.quantityOwned || 0) : 0;
+        console.log(`Fixed ${card.name} - Set quantityForSale to ${updatedItem.quantityForSale}`);
+        needsUpdate = true;
         updatedItems++;
       }
 
-      // Also ensure quantityOwned is valid
       if (
         item.quantityOwned === null ||
         item.quantityOwned === undefined ||
-        isNaN(item.quantityOwned as any) ||
+        isNaN(item.quantityOwned) ||
         typeof item.quantityOwned !== 'number'
       ) {
-        item.quantityOwned = 0;
-        cardUpdated = true;
+        updatedItem.quantityOwned = 0;
+        needsUpdate = true;
         updatedItems++;
       }
-    }
 
-    if (cardUpdated) {
-      try {
-        await card.save();
-        updatedCards++;
-      } catch (error: any) {
-        errors.push({
-          cardId: card._id,
-          cardName: card.name,
-          error: error.message
-        });
-      }
+      return updatedItem;
+    });
+
+    if (needsUpdate) {
+      bulkOps.push({
+        updateOne: {
+          filter: { _id: card._id },
+          update: { $set: { inventory: updatedInventory } },
+        },
+      });
     }
   }
 
   console.log(`Scan complete: ${totalInventoryItems} total inventory items checked`);
+
+  let updatedCards = 0;
+  const errors: any[] = [];
+  if (bulkOps.length > 0) {
+    try {
+      const result = await Card.bulkWrite(bulkOps, { ordered: false });
+      updatedCards = result.modifiedCount;
+    } catch (err: any) {
+      errors.push(err.message);
+    }
+  }
 
   res.json({
     success: true,
@@ -557,7 +558,7 @@ export const fixInventoryQuantities = asyncHandler(async (req: Request, res: Res
     totalInventoryItems,
     updatedCards,
     updatedItems,
-    errors: errors.length > 0 ? errors : undefined
+    errors: errors.length > 0 ? errors : undefined,
   });
 });
 

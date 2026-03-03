@@ -6,8 +6,8 @@ import { asyncHandler } from '../middleware/asyncHandler';
 import { searchCardsSchema } from '../validators/card.validator';
 import { FilterQuery } from 'mongoose';
 import { ICard } from '../models/Card.model';
-import { calculateRegularPrice } from '../utils/regularPricing';
-import { calculateUBPrice, isUBSet } from '../utils/ubPricing';
+import { getRegularSettingsForBatch, applyRegularPrice } from '../utils/regularPricing';
+import { getUBSettingsForBatch, applyUBPrice, isUBSet } from '../utils/ubPricing';
 
 /**
  * Get all cards with search, filter, and pagination
@@ -226,42 +226,42 @@ export const getCards = asyncHandler(async (req: Request, res: Response) => {
     return { code, isUB: await isUBSet(code) };
   }));
   const ubSetMap = new Map(ubSetResults.map(r => [r.code, r.isUB]));
-  
-  // Add calculated prices to each card
-  const cardsWithPrices = await Promise.all(cards.map(async (card: any) => {
+
+  // Pre-fetch pricing settings once — both getters use in-memory cache after first call
+  const [ubSettings, regularSettings] = await Promise.all([
+    getUBSettingsForBatch(),
+    getRegularSettingsForBatch(),
+  ]);
+
+  // Add calculated prices to each card (synchronous — no per-card DB round-trips)
+  const cardsWithPrices = cards.map((card: any) => {
     let calculatedPrices = null;
-    
+
     if (card.uuid && priceMap.has(card.uuid)) {
       const prices = priceMap.get(card.uuid);
       const ckRetail = prices?.cardkingdom?.retail;
-      
+
       if (ckRetail) {
         const isUB = ubSetMap.get(card.setCode) || false;
-        
-        calculatedPrices = {
-          nonfoil: 0,
-          foil: 0
-        };
-        
+
+        calculatedPrices = { nonfoil: 0, foil: 0 };
+
         if (ckRetail.normal) {
-          calculatedPrices.nonfoil = isUB 
-            ? await calculateUBPrice(ckRetail.normal)
-            : await calculateRegularPrice(ckRetail.normal);
+          calculatedPrices.nonfoil = isUB
+            ? applyUBPrice(ckRetail.normal, ubSettings)
+            : applyRegularPrice(ckRetail.normal, regularSettings);
         }
-        
+
         if (ckRetail.foil) {
-          calculatedPrices.foil = isUB 
-            ? await calculateUBPrice(ckRetail.foil)
-            : await calculateRegularPrice(ckRetail.foil);
+          calculatedPrices.foil = isUB
+            ? applyUBPrice(ckRetail.foil, ubSettings)
+            : applyRegularPrice(ckRetail.foil, regularSettings);
         }
       }
     }
-    
-    return {
-      ...card,
-      calculatedPrices
-    };
-  }));
+
+    return { ...card, calculatedPrices };
+  });
 
   const totalPages = Math.ceil(total / limit);
 
@@ -295,29 +295,28 @@ export const getCardById = asyncHandler(async (req: Request, res: Response) => {
   let calculatedPrices = null;
   if (card.uuid) {
     const latestPrice = await CardPrice.findOne({ uuid: card.uuid }).sort({ date: -1 });
-    
+
     if (latestPrice?.prices?.cardkingdom?.retail) {
       const ckRetail = latestPrice.prices.cardkingdom.retail;
-      
-      // Determine if this is a UB set
-      const isUB = await isUBSet(card.setCode);
-      
-      // Calculate prices for both normal and foil
-      calculatedPrices = {
-        nonfoil: 0,
-        foil: 0
-      };
-      
+
+      const [isUB, ubSettings, regularSettings] = await Promise.all([
+        isUBSet(card.setCode),
+        getUBSettingsForBatch(),
+        getRegularSettingsForBatch(),
+      ]);
+
+      calculatedPrices = { nonfoil: 0, foil: 0 };
+
       if (ckRetail.normal) {
-        calculatedPrices.nonfoil = isUB 
-          ? await calculateUBPrice(ckRetail.normal)
-          : await calculateRegularPrice(ckRetail.normal);
+        calculatedPrices.nonfoil = isUB
+          ? applyUBPrice(ckRetail.normal, ubSettings)
+          : applyRegularPrice(ckRetail.normal, regularSettings);
       }
-      
+
       if (ckRetail.foil) {
-        calculatedPrices.foil = isUB 
-          ? await calculateUBPrice(ckRetail.foil)
-          : await calculateRegularPrice(ckRetail.foil);
+        calculatedPrices.foil = isUB
+          ? applyUBPrice(ckRetail.foil, ubSettings)
+          : applyRegularPrice(ckRetail.foil, regularSettings);
       }
     }
   }

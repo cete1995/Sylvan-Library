@@ -47,6 +47,32 @@ export const clearUBSettingsCache = () => {
 };
 
 /**
+ * Pre-fetch and return the current UB settings (for batch operations).
+ * Subsequent calls return the in-memory cache immediately.
+ */
+export const getUBSettingsForBatch = async () => getUBSettings();
+
+/**
+ * Synchronous price calculation once settings are already in hand.
+ * Use this when you pre-fetch settings once and compute for many cards.
+ */
+export const applyUBPrice = (
+  ckPriceUSD: number,
+  settings: { priceTiers: IPriceTier[] }
+): number => {
+  let multiplier = settings.priceTiers[settings.priceTiers.length - 1]?.multiplier ?? 15000;
+  for (const tier of settings.priceTiers) {
+    if (ckPriceUSD <= tier.maxPrice) {
+      multiplier = tier.multiplier;
+      break;
+    }
+  }
+  const rawPrice = ckPriceUSD * multiplier;
+  const remainder = rawPrice % 500;
+  return remainder === 0 ? rawPrice : Math.ceil(rawPrice / 500) * 500;
+};
+
+/**
  * Universe Beyond (UB) Sets
  * Cards from these sets have special pricing rules
  * @deprecated Use getUBSettings() instead for dynamic settings

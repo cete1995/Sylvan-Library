@@ -41,6 +41,30 @@ export const clearRegularSettingsCache = () => {
 };
 
 /**
+ * Pre-fetch and return the current Regular settings (for batch operations).
+ * Subsequent calls return the in-memory cache immediately.
+ */
+export const getRegularSettingsForBatch = async () => getRegularSettings();
+
+/**
+ * Synchronous price calculation once settings are already in hand.
+ * Use this when you pre-fetch settings once and compute for many cards.
+ */
+export const applyRegularPrice = (
+  ckPriceUSD: number,
+  settings: { priceTiers: IPriceTier[] }
+): number => {
+  let multiplier = settings.priceTiers[settings.priceTiers.length - 1]?.multiplier ?? 15000;
+  for (const tier of settings.priceTiers) {
+    if (ckPriceUSD <= tier.maxPrice) {
+      multiplier = tier.multiplier;
+      break;
+    }
+  }
+  return roundToNearest500(ckPriceUSD * multiplier);
+};
+
+/**
  * Round price up to nearest 500
  * Always rounds UP unless already at a multiple of 500
  * Example: 7595 -> 8000, 7500 -> 7500
