@@ -43,6 +43,7 @@ import SellerDashboardPage from './pages/SellerDashboardPage';
 import SellerInventoryFormPage from './pages/SellerInventoryFormPage';
 import ProfilePage from './pages/ProfilePage';
 import OrderHistoryPage from './pages/OrderHistoryPage';
+import OrderDetailPage from './pages/OrderDetailPage';
 
 const App: React.FC = () => {
   const [isMobile, setIsMobile] = useState(false);
@@ -92,6 +93,14 @@ const App: React.FC = () => {
                 element={
                   <ProtectedRoute adminOnly={false}>
                     <OrderHistoryPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/orders/:id"
+                element={
+                  <ProtectedRoute adminOnly={false}>
+                    <OrderDetailPage />
                   </ProtectedRoute>
                 }
               />
@@ -327,7 +336,7 @@ const App: React.FC = () => {
           {!isMobile && (
             <footer className="py-8 mt-12" style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)' }}>
               <div className="container mx-auto px-4 text-center">
-                <p>© 2025 MTG Inventory. All rights reserved.</p>
+                <p>© 2026 Sylvan Library. All rights reserved.</p>
                 <p className="text-sm mt-2" style={{ color: 'var(--color-text-secondary)' }}>
                   Magic: The Gathering is trademark of Wizards of the Coast LLC.
                 </p>

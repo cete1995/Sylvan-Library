@@ -27,6 +27,20 @@ const ProfilePage: React.FC = () => {
     loadProfile();
   }, []);
 
+  useEffect(() => {
+    if (success) {
+      const t = setTimeout(() => setSuccess(''), 4000);
+      return () => clearTimeout(t);
+    }
+  }, [success]);
+
+  useEffect(() => {
+    if (error) {
+      const t = setTimeout(() => setError(''), 6000);
+      return () => clearTimeout(t);
+    }
+  }, [error]);
+
   const loadProfile = async () => {
     try {
       setLoading(true);
@@ -110,8 +124,14 @@ const ProfilePage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center">Loading profile...</div>
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--color-background)' }}>
+        <div className="text-center">
+          <div
+            className="inline-block animate-spin rounded-full h-12 w-12 border-4 mb-4"
+            style={{ borderColor: 'var(--color-accent)', borderTopColor: 'transparent' }}
+          />
+          <div className="text-xl" style={{ color: 'var(--color-text-secondary)' }}>Loading profile...</div>
+        </div>
       </div>
     );
   }

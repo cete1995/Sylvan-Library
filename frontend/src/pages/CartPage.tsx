@@ -13,6 +13,8 @@ const CartPage: React.FC = () => {
   const [cart, setCart] = useState<Cart | null>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
+  const [confirmRemoveId, setConfirmRemoveId] = useState<string | null>(null);
+  const [confirmClear, setConfirmClear] = useState(false);
 
   // Format price with thousands separator
   const formatPrice = (price: number): string => {
@@ -56,8 +58,7 @@ const CartPage: React.FC = () => {
   };
 
   const handleRemoveItem = async (itemId: string) => {
-    if (!confirm('Remove this item from cart?')) return;
-
+    setConfirmRemoveId(null);
     setUpdating(itemId);
     try {
       const data = await cartApi.removeFromCart(itemId);
@@ -72,8 +73,7 @@ const CartPage: React.FC = () => {
   };
 
   const handleClearCart = async () => {
-    if (!confirm('Clear entire cart?')) return;
-
+    setConfirmClear(false);
     try {
       const data = await cartApi.clearCart();
       setCart(data.cart);
@@ -149,16 +149,36 @@ const CartPage: React.FC = () => {
               {cart.items.length} {cart.items.length === 1 ? 'item' : 'items'} in your cart
             </p>
           </div>
-          <button 
-            onClick={handleClearCart} 
-            className="px-4 py-2 rounded-lg text-sm font-semibold border-2 hover:opacity-80 transition-all self-start sm:self-auto"
-            style={{ borderColor: 'var(--color-text-secondary)', color: 'var(--color-text)' }}
-          >
-            <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-            Clear Cart
-          </button>
+          {confirmClear ? (
+            <div className="flex gap-2 items-center self-start sm:self-auto">
+              <span className="text-sm font-medium" style={{ color: 'var(--color-text)' }}>Clear all items?</span>
+              <button
+                onClick={handleClearCart}
+                className="px-3 py-1.5 rounded-lg text-sm font-semibold transition-all hover:opacity-80"
+                style={{ backgroundColor: '#EF4444', color: 'white' }}
+              >
+                Yes
+              </button>
+              <button
+                onClick={() => setConfirmClear(false)}
+                className="px-3 py-1.5 rounded-lg text-sm font-semibold transition-all hover:opacity-80 border"
+                style={{ borderColor: 'var(--color-border)', color: 'var(--color-text)', backgroundColor: 'var(--color-background)' }}
+              >
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setConfirmClear(true)}
+              className="px-4 py-2 rounded-lg text-sm font-semibold border-2 hover:opacity-80 transition-all self-start sm:self-auto"
+              style={{ borderColor: 'var(--color-text-secondary)', color: 'var(--color-text)' }}
+            >
+              <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              Clear Cart
+            </button>
+          )}
         </div>
 
         <div className="grid lg:grid-cols-3 gap-6 md:gap-8">
@@ -238,7 +258,7 @@ const CartPage: React.FC = () => {
                           <span className="w-12 text-center text-lg font-bold" style={{ color: 'var(--color-text)' }}>{item.quantity}</span>
                           <button
                             onClick={() => handleUpdateQuantity(item._id, item.quantity + 1)}
-                            disabled={updating === item._id}
+                            disabled={updating === item._id || item.quantity >= (item.card.inventory[item.inventoryIndex]?.quantityForSale ?? 0)}
                             className="w-9 h-9 rounded-lg font-bold shadow hover:shadow-md disabled:opacity-40 transition-all"
                             style={{ backgroundColor: 'var(--color-background)', color: 'var(--color-text)' }}
                           >
@@ -253,17 +273,38 @@ const CartPage: React.FC = () => {
                         </div>
 
                         {/* Remove Button */}
-                        <button
-                          onClick={() => handleRemoveItem(item._id)}
-                          disabled={updating === item._id}
-                          className="px-4 py-2 rounded-lg text-sm font-semibold hover:opacity-80 disabled:opacity-40 transition-all flex items-center justify-center gap-2 sm:ml-auto"
-                          style={{ backgroundColor: '#EF4444', color: 'white' }}
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                          Remove
-                        </button>
+                        {confirmRemoveId === item._id ? (
+                          <div className="flex gap-2 items-center sm:ml-auto">
+                            <span className="text-sm font-medium" style={{ color: 'var(--color-text)' }}>Remove?</span>
+                            <button
+                              onClick={() => handleRemoveItem(item._id)}
+                              disabled={updating === item._id}
+                              className="px-3 py-1.5 rounded-lg text-sm font-semibold hover:opacity-80 disabled:opacity-40 transition-all"
+                              style={{ backgroundColor: '#EF4444', color: 'white' }}
+                            >
+                              Yes
+                            </button>
+                            <button
+                              onClick={() => setConfirmRemoveId(null)}
+                              className="px-3 py-1.5 rounded-lg text-sm font-semibold hover:opacity-80 transition-all border"
+                              style={{ borderColor: 'var(--color-border)', color: 'var(--color-text)', backgroundColor: 'var(--color-background)' }}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setConfirmRemoveId(item._id)}
+                            disabled={updating === item._id}
+                            className="px-4 py-2 rounded-lg text-sm font-semibold hover:opacity-80 disabled:opacity-40 transition-all flex items-center justify-center gap-2 sm:ml-auto"
+                            style={{ backgroundColor: '#EF4444', color: 'white' }}
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                            Remove
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -284,7 +325,7 @@ const CartPage: React.FC = () => {
                 </div>
                 <div className="flex justify-between items-center pb-3 border-b" style={{ borderColor: 'var(--color-text-secondary)' }}>
                   <span className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>Shipping</span>
-                  <span className="text-sm font-medium" style={{ color: 'var(--color-text-secondary)' }}>Calculated at checkout</span>
+                  <span className="text-sm font-medium" style={{ color: 'var(--color-text-secondary)' }}>Arranged with seller</span>
                 </div>
                 <div className="flex justify-between items-center pb-3 border-b" style={{ borderColor: 'var(--color-text-secondary)' }}>
                   <span className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>Tax</span>

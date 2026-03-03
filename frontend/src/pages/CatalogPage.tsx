@@ -32,7 +32,7 @@ const CatalogPage: React.FC = () => {
   const [maxPrice, setMaxPrice] = useState('');
   const [sortBy, setSortBy] = useState('name_asc');
   const [onlyInStock, setOnlyInStock] = useState(false);
-  const [isFilterOpen, setIsFilterOpen] = useState(true);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   // On mount, restore from sessionStorage if URL has no params
   useEffect(() => {
@@ -42,19 +42,15 @@ const CatalogPage: React.FC = () => {
       const currentParams = Object.fromEntries(searchParams.entries());
       const hasParams = Object.keys(currentParams).length > 0;
       
-      console.log('Init - has params?', hasParams, currentParams);
-      
       // If no params in URL, try to restore from sessionStorage
       if (!hasParams) {
         const savedUrl = sessionStorage.getItem('catalogLastUrl');
-        console.log('Saved URL:', savedUrl);
         
         if (savedUrl) {
           const url = new URL(savedUrl, window.location.origin);
           const savedParams = Object.fromEntries(url.searchParams.entries());
           
           if (Object.keys(savedParams).length > 0) {
-            console.log('Restoring params:', savedParams);
             isRestoring.current = true;
             setSearchParams(savedParams, { replace: true });
             return; // Exit early, loadCards will run after params are set
@@ -69,7 +65,6 @@ const CatalogPage: React.FC = () => {
     if (Object.keys(Object.fromEntries(searchParams.entries())).length > 0) {
       const fullUrl = `${location.pathname}${location.search}`;
       sessionStorage.setItem('catalogLastUrl', fullUrl);
-      console.log('Saved URL:', fullUrl);
     }
   }, [searchParams, location]);
 
@@ -114,12 +109,10 @@ const CatalogPage: React.FC = () => {
   useEffect(() => {
     // Don't load if we're in the middle of restoring params
     if (isRestoring.current) {
-      console.log('Skipping load - still restoring');
       isRestoring.current = false;
       return;
     }
     
-    console.log('loadCards effect - searchParams:', Object.fromEntries(searchParams.entries()));
     loadCards();
   }, [searchParams]);
 
@@ -148,11 +141,9 @@ const CatalogPage: React.FC = () => {
         sort: (searchParams.get('sort') as any) || 'name_asc',
       };
 
-      console.log('Loading cards with params:', params);
       const data = await cardApi.getCards(params);
       setCards(data.cards);
       setPagination(data.pagination);
-      console.log('Loaded page:', data.pagination.page);
     } catch (error) {
       console.error('Failed to load cards:', error);
     } finally {

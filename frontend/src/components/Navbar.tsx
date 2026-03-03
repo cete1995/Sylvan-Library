@@ -37,7 +37,7 @@ const Navbar: React.FC = () => {
             {/* Logo and Icons Row (Mobile) */}
             <div className="flex justify-between items-center">
               <Link to="/" className="text-2xl md:text-3xl font-bold" style={{ color: 'var(--color-text)' }}>
-                MTG Store
+                Sylvan Library
               </Link>
               
               {/* Mobile Icons */}
