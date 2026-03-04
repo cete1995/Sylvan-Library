@@ -15,6 +15,7 @@ import {
   regenerateSellerSKUs,
   fixInventoryQuantities,
   fixDfcImageUrls,
+  fixDfcLayouts,
   cleanupCombinedNames,
   listMembers,
   createMember,
@@ -143,6 +144,7 @@ router.post('/regenerate-seller-skus', regenerateSellerSKUs);
  */
 router.post('/fix-inventory-quantities', fixInventoryQuantities);
 router.post('/fix-dfc-image-urls', fixDfcImageUrls);
+router.post('/fix-dfc-layouts', fixDfcLayouts);
 router.post('/cleanup-combined-names', cleanupCombinedNames);
 
 // Member management

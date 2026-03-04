@@ -13,6 +13,7 @@ const AdminDashboardPage: React.FC = () => {
   const [regeneratingSKUs, setRegeneratingSKUs] = useState(false);
   const [fixingInventory, setFixingInventory] = useState(false);
   const [fixingDfcImages, setFixingDfcImages] = useState(false);
+  const [fixingDfcLayouts, setFixingDfcLayouts] = useState(false);
   const [forceSyncing, setForceSyncing] = useState(false);
   const [sets, setSets] = useState<Array<{setCode: string; setName: string; cardCount: number}>>([]); 
   const [setsLoading, setSetsLoading] = useState(false);
@@ -194,6 +195,19 @@ const AdminDashboardPage: React.FC = () => {
       alert('Failed to fix DFC image URLs: ' + (error.response?.data?.error || error.message));
     } finally {
       setFixingDfcImages(false);
+    }
+  };
+
+  const handleFixDfcLayouts = async () => {
+    if (!confirm('This scans the database for double-faced cards (transform / MDFC) by detecting their back-face image URLs, then marks both faces with layout=transform so the flip button shows correctly.\n\nRun now?')) return;
+    setFixingDfcLayouts(true);
+    try {
+      const result = await adminApi.fixDfcLayouts();
+      alert(`DFC layout fix complete!\n\n${result.dfcPairs} DFC pair(s) found\n${result.updatedCount} card(s) updated to layout=transform`);
+    } catch (error: any) {
+      alert('Failed to fix DFC layouts: ' + (error.response?.data?.error || error.message));
+    } finally {
+      setFixingDfcLayouts(false);
     }
   };
 
@@ -483,6 +497,7 @@ const AdminDashboardPage: React.FC = () => {
               { label: 'Regenerate SKUs', desc: 'Rebuild seller inventory SKUs', loading: regeneratingSKUs, onClick: handleRegenerateSKUs, color: '#10B981' },
               { label: 'Fix Inventory Qty', desc: 'Repair NaN stock values', loading: fixingInventory, onClick: handleFixInventoryQuantities, color: '#8B5CF6' },
               { label: 'Fix DFC Image URLs', desc: 'Replace /back/ → /front/ URLs', loading: fixingDfcImages, onClick: handleFixDfcImages, color: '#3B82F6' },
+              { label: 'Fix DFC Layouts', desc: 'Mark transform/MDFC cards so flip button shows', loading: fixingDfcLayouts, onClick: handleFixDfcLayouts, color: '#EC4899' },
             ].map(m => (
               <button key={m.label} onClick={m.onClick} disabled={m.loading}
                 className="flex items-center gap-3 p-4 rounded-xl border text-left hover:shadow-md transition-all disabled:opacity-50"

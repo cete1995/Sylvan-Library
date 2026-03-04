@@ -692,6 +692,36 @@ export const fixDfcImageUrls = asyncHandler(async (req: Request, res: Response) 
   });
 });
 
+export const fixDfcLayouts = asyncHandler(async (req: Request, res: Response) => {
+  // Step 1: find all back-face cards (imageUrl contains /back/)
+  const backFaceCards = await Card.find({ imageUrl: /\/back\// }).select('_id setCode collectorNumber').lean();
+
+  // Step 2: collect unique setCode+collectorNumber pairs from back-face cards
+  const pairKeys = [...new Set(backFaceCards.map(c => `${c.setCode}::${c.collectorNumber}`))];
+
+  // Step 3: set layout='transform' on ALL cards in those pairs (front and back faces)
+  let updatedCount = 0;
+  if (pairKeys.length > 0) {
+    const orConditions = pairKeys.map(key => {
+      const [setCode, collectorNumber] = key.split('::');
+      return { setCode, collectorNumber };
+    });
+    const result = await Card.updateMany(
+      { $or: orConditions, layout: { $in: ['normal', null, ''] } },
+      { $set: { layout: 'transform' } }
+    );
+    updatedCount = result.modifiedCount;
+  }
+
+  res.json({
+    success: true,
+    message: `DFC layout fix complete: ${backFaceCards.length} back-face card(s) found across ${pairKeys.length} DFC pair(s), ${updatedCount} card(s) updated to layout=transform`,
+    backFaceCount: backFaceCards.length,
+    dfcPairs: pairKeys.length,
+    updatedCount,
+  });
+});
+
 export const cleanupCombinedNames = asyncHandler(async (req: Request, res: Response) => {
   const combinedCards = await Card.find({ name: / \/\/ / });
 
