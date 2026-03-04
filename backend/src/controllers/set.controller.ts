@@ -24,6 +24,7 @@ interface MTGJsonCard {
   frameEffects?: string[];
   uuid?: string;
   availability?: string[];
+  layout?: string; // e.g. 'normal', 'transform', 'modal_dfc', 'flip', 'meld', etc.
   side?: string; // 'a' = front face, 'b' = back face (DFC/meld cards)
   faceName?: string; // Per-face name for DFC/meld (e.g. "Mishra, Claimed by Gix" vs full "A // B")
   identifiers?: {
