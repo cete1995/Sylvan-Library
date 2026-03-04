@@ -37,6 +37,7 @@ export interface Card {
   imageUrl?: string;
   scryfallId?: string;
   uuid?: string;
+  layout?: string;
   typeLine?: string;
   oracleText?: string;
   colorIdentity: string[];

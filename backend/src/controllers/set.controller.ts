@@ -147,6 +147,7 @@ async function processSetData(setData: SetJsonData) {
         existing.rarity = rarity;
         existing.colorIdentity = cardData.colorIdentity || [];
         existing.manaCost = cardData.manaCost || '';
+        existing.layout = cardData.layout || 'normal';
         existing.typeLine = typeLine;
         existing.oracleText = cardData.text || '';
         existing.scryfallId = cardData.identifiers?.scryfallId || '';
@@ -171,6 +172,7 @@ async function processSetData(setData: SetJsonData) {
           rarity: rarity,
           colorIdentity: cardData.colorIdentity || [],
           manaCost: cardData.manaCost || '',
+          layout: cardData.layout || 'normal',
           typeLine: typeLine,
           oracleText: cardData.text || '',
           scryfallId: cardData.identifiers?.scryfallId || '',

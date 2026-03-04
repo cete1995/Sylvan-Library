@@ -149,11 +149,13 @@ const CardDetailPage: React.FC = () => {
   const currentItem = getCurrentInventoryItem();
   const currentIndex = getCurrentInventoryIndex();
 
-  // DFC / back-face detection via Scryfall URL
+  // DFC detection via layout field (transform, modal_dfc, reversible_card, flip).
+  // Falls back to name ' // ' check for cards imported before layout was stored.
   const rawUrl = card?.imageUrl || '';
-  const isDfc = rawUrl.includes('scryfall.io') && (rawUrl.includes('/back/') || rawUrl.includes('/front/'));
-  const frontUrl = rawUrl.replace('/back/', '/front/');
-  const backUrl  = rawUrl.replace('/front/', '/back/');
+  const DFC_LAYOUTS = ['transform', 'modal_dfc', 'reversible_card', 'flip'];
+  const isDfc = !!card && (DFC_LAYOUTS.includes(card.layout || '') || card.name.includes(' // '));
+  const frontUrl = rawUrl.includes('/back/') ? rawUrl.replace('/back/', '/front/') : rawUrl;
+  const backUrl  = frontUrl.replace('/front/', '/back/');
   const displayUrl = isDfc ? (showFront ? frontUrl : backUrl) : rawUrl;
 
   if (loading) {
