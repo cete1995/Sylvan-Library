@@ -710,12 +710,13 @@ export const fixDfcLayouts = asyncHandler(async (req: Request, res: Response) =>
   const dfcPairs = groups.length;
 
   if (dfcPairs === 0) {
-    return res.json({
+    res.json({
       success: true,
       message: 'No DFC pairs found (no collector-number slots with more than 1 card).',
       dfcPairs: 0,
       updatedCount: 0,
     });
+    return;
   }
 
   // Collect all card _ids from those groups
