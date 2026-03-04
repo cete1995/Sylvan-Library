@@ -693,32 +693,44 @@ export const fixDfcImageUrls = asyncHandler(async (req: Request, res: Response) 
 });
 
 export const fixDfcLayouts = asyncHandler(async (req: Request, res: Response) => {
-  // Step 1: find all back-face cards (imageUrl contains /back/)
-  const backFaceCards = await Card.find({ imageUrl: /\/back\// }).select('_id setCode collectorNumber').lean();
+  // DFC pairs share the same setCode + collectorNumber (front face = side 'a', back face = side 'b').
+  // Since fixDfcImageUrls may have already normalised all imageUrls to /front/, we can't use URL
+  // detection. Instead, aggregate all cards and find collector-number slots occupied by >1 card.
+  const groups = await Card.aggregate([
+    {
+      $group: {
+        _id: { setCode: '$setCode', collectorNumber: '$collectorNumber' },
+        count: { $sum: 1 },
+        ids: { $push: '$_id' },
+      },
+    },
+    { $match: { count: { $gt: 1 } } },
+  ]);
 
-  // Step 2: collect unique setCode+collectorNumber pairs from back-face cards
-  const pairKeys = [...new Set(backFaceCards.map(c => `${c.setCode}::${c.collectorNumber}`))];
+  const dfcPairs = groups.length;
 
-  // Step 3: set layout='transform' on ALL cards in those pairs (front and back faces)
-  let updatedCount = 0;
-  if (pairKeys.length > 0) {
-    const orConditions = pairKeys.map(key => {
-      const [setCode, collectorNumber] = key.split('::');
-      return { setCode, collectorNumber };
+  if (dfcPairs === 0) {
+    return res.json({
+      success: true,
+      message: 'No DFC pairs found (no collector-number slots with more than 1 card).',
+      dfcPairs: 0,
+      updatedCount: 0,
     });
-    const result = await Card.updateMany(
-      { $or: orConditions, layout: { $in: ['normal', null, ''] } },
-      { $set: { layout: 'transform' } }
-    );
-    updatedCount = result.modifiedCount;
   }
+
+  // Collect all card _ids from those groups
+  const allIds = groups.flatMap((g: any) => g.ids);
+
+  const result = await Card.updateMany(
+    { _id: { $in: allIds }, layout: { $in: ['normal', null, '', undefined] } },
+    { $set: { layout: 'transform' } }
+  );
 
   res.json({
     success: true,
-    message: `DFC layout fix complete: ${backFaceCards.length} back-face card(s) found across ${pairKeys.length} DFC pair(s), ${updatedCount} card(s) updated to layout=transform`,
-    backFaceCount: backFaceCards.length,
-    dfcPairs: pairKeys.length,
-    updatedCount,
+    message: `DFC layout fix complete: ${dfcPairs} DFC pair(s) found, ${result.modifiedCount} card(s) updated to layout=transform`,
+    dfcPairs,
+    updatedCount: result.modifiedCount,
   });
 });
 
