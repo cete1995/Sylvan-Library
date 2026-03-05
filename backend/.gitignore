@@ -12,6 +12,9 @@ logs/
 *.log
 npm-debug.log*
 
+# Large example/data files (GitHub 50MB limit)
+newsetExample/AllPricesToday.json
+
 # IDE
 .vscode/
 .idea/
