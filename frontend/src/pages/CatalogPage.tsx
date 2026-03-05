@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
+import { useSearchParams, useLocation } from 'react-router-dom';
 import { cardApi } from '../api/cards';
 import { Card, SetInfo } from '../types';
 import CardCard from '../components/CardCard';
@@ -7,7 +7,6 @@ import Pagination from '../components/Pagination';
 
 const CatalogPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const navigate = useNavigate();
   const location = useLocation();
   const [cards, setCards] = useState<Card[]>([]);
   const [sets, setSets] = useState<SetInfo[]>([]);
@@ -317,7 +316,7 @@ const CatalogPage: React.FC = () => {
                       />
                       <span className="text-sm font-medium" style={{ color: 'var(--color-text)' }}>Borderless</span>
                     </label>
-                    <label className="flex items-center cursor-pointer p-2 rounded transition-colors" style={{ '&:hover': { backgroundColor: 'var(--color-background)' } }}>
+                    <label className="flex items-center cursor-pointer p-2 rounded transition-colors" style={{}}>
                       <input
                         type="checkbox"
                         checked={selectedTags.includes('Extended Art')}

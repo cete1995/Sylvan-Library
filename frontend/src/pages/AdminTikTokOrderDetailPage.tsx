@@ -55,10 +55,10 @@ const AdminTikTokOrderDetailPage: React.FC = () => {
   const [debugLogs, setDebugLogs] = useState<string[]>([]);
   
   // Credentials
-  const [appKey, setAppKey] = useState(localStorage.getItem('tiktok_app_key') || '');
-  const [appSecret, setAppSecret] = useState(localStorage.getItem('tiktok_app_secret') || '');
-  const [accessToken, setAccessToken] = useState(localStorage.getItem('tiktok_access_token') || '');
-  const [shopCipher, setShopCipher] = useState(localStorage.getItem('tiktok_shop_cipher') || '');
+  const [appKey] = useState(localStorage.getItem('tiktok_app_key') || '');
+  const [appSecret] = useState(localStorage.getItem('tiktok_app_secret') || '');
+  const [accessToken] = useState(localStorage.getItem('tiktok_access_token') || '');
+  const [shopCipher] = useState(localStorage.getItem('tiktok_shop_cipher') || '');
 
   useEffect(() => {
     loadOrder();

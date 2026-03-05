@@ -7,7 +7,7 @@ export const cardApi = {
     return response.data;
   },
 
-  getCardById: async (id: string): Promise<{ card: Card }> => {
+  getCardById: async (id: string): Promise<{ card: Card; calculatedPrices?: any }> => {
     const response = await api.get<{ card: Card }>(`/cards/${id}`);
     return response.data;
   },

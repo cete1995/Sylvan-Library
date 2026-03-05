@@ -4,7 +4,7 @@ import { priceApi } from '../api/price';
 import { useAuth } from '../contexts/AuthContext';
 
 const AdminPriceManagementPage: React.FC = () => {
-  const { token, user, isLoading } = useAuth();
+  const { token, isLoading } = useAuth();
   const [importing, setImporting] = useState(false);
   const [status, setStatus] = useState<any>(null);
   const [result, setResult] = useState<any>(null);

@@ -108,8 +108,8 @@ export const adminApi = {
     return response.data;
   },
 
-  clearDatabase: async (): Promise<{ message: string; deletedCounts: { cards: number; users: number; carts: number; carousel: number; prices: number } }> => {
-    const response = await api.post<{ message: string; deletedCounts: { cards: number; users: number; carts: number; carousel: number; prices: number } }>(
+  clearDatabase: async (): Promise<{ message: string; deletedCounts: { cards: number; users: number; carts: number; orders: number; carousel: number; prices: number; featuredProducts: number; featuredBanners: number } }> => {
+    const response = await api.post<{ message: string; deletedCounts: { cards: number; users: number; carts: number; orders: number; carousel: number; prices: number; featuredProducts: number; featuredBanners: number } }>(
       '/admin/clear-database'
     );
     return response.data;

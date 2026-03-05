@@ -23,7 +23,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     // Load user and token from localStorage on mount
     const storedToken = localStorage.getItem('token');
     const storedUser = localStorage.getItem('user');
-    const storedRefreshToken = localStorage.getItem('refreshToken');
 
     if (storedToken && storedUser) {
       setToken(storedToken);
