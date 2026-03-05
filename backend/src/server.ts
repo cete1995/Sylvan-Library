@@ -2,6 +2,7 @@ import express, { Application } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
+import fs from 'fs';
 import { connectDatabase } from './config/database';
 import config from './config/env';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
@@ -12,9 +13,18 @@ dotenv.config();
 // Initialize Express app
 const app: Application = express();
 
-// Middleware
+// CORS — supports comma-separated FRONTEND_URL for multiple origins
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5174',
+  ...config.frontendUrl.split(',').map((o) => o.trim()).filter(Boolean),
+];
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:5174', config.frontendUrl],
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, curl, Postman)
+    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+    callback(new Error(`CORS: origin ${origin} not allowed`));
+  },
   credentials: true,
 }));
 app.use(express.json({ limit: '10mb' })); // Increase limit for large set JSON uploads
@@ -106,6 +116,10 @@ app.use(errorHandler);
 // Start server
 const startServer = async () => {
   try {
+    // Ensure uploads directory exists (Railway ephemeral disk needs this on first boot)
+    const uploadsDir = path.join(__dirname, '../uploads/images');
+    fs.mkdirSync(uploadsDir, { recursive: true });
+
     // Connect to database
     await connectDatabase();
 
