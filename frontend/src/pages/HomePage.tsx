@@ -5,38 +5,50 @@ import FeaturedSection from '../components/FeaturedSection';
 import { carouselApi } from '../api/carousel';
 import { useAuth } from '../contexts/AuthContext';
 
-const features = [
+const cafeFeatures = [
   {
-    gradient: 'from-emerald-400 to-teal-600',
-    icon: (
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-    ),
-    title: 'Graded & Authentic',
-    desc: 'Every single is manually inspected and accurately graded — NM, LP, or Played — before listing. 100% authentic guaranteed.',
+    gradient: 'from-emerald-400 to-green-600',
+    emoji: '🎲',
+    title: '100+ Board Games',
+    desc: 'From quick party games to deep strategy titles — there\'s something for every group and every mood.',
   },
   {
-    gradient: 'from-blue-400 to-indigo-600',
-    icon: (
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
-    ),
-    title: 'Powerful Search',
-    desc: 'Filter by set, rarity, condition, finish, and price. Find exactly what your deck needs in seconds.',
+    gradient: 'from-yellow-400 to-amber-500',
+    emoji: '🀄',
+    title: 'Mahjong Tables',
+    desc: 'Dedicated Mahjong tables always ready. Bring your friends and enjoy a proper session in a comfortable space.',
   },
   {
-    gradient: 'from-purple-400 to-pink-600',
-    icon: (
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-    ),
-    title: 'Fair Pricing',
-    desc: 'Transparent, competitive prices based on real market data. Great value from commons to mythic rares.',
+    gradient: 'from-sky-400 to-blue-600',
+    emoji: '🙌',
+    title: 'Flat Entry Fee',
+    desc: 'No hourly charges, no surprises. Pay once and play all day — games, tables, and community included.',
+  },
+  {
+    gradient: 'from-purple-400 to-violet-600',
+    emoji: '🃏',
+    title: 'MTG-Friendly Space',
+    desc: 'Drafts, Commander nights, or just sleeving up your new singles. MTG players are always welcome here.',
+  },
+  {
+    gradient: 'from-rose-400 to-pink-600',
+    emoji: '👥',
+    title: 'Community Hub',
+    desc: 'Meet fellow hobbyists, join game nights, and be part of a growing local community that shares your passion.',
+  },
+  {
+    gradient: 'from-teal-400 to-cyan-600',
+    emoji: '📦',
+    title: 'MTG Singles On-Site',
+    desc: 'Browse and buy thousands of Magic: The Gathering singles right here at the café. Build your deck the same day.',
   },
 ];
 
-const trustBadges = [
-  { icon: '🃏', value: '10,000+', label: 'Singles In Stock' },
-  { icon: '✅', value: '100%', label: 'Authentic Cards' },
-  { icon: '📦', value: 'Secure', label: 'Safe Packaging' },
-  { icon: '💬', value: 'Friendly', label: 'Customer Service' },
+const statsBar = [
+  { emoji: '🎲', value: '100+', label: 'Board Games' },
+  { emoji: '🀄', value: '4+', label: 'Mahjong Tables' },
+  { emoji: '🃏', value: '10,000+', label: 'MTG Singles' },
+  { emoji: '💸', value: 'Flat Fee', label: 'No Hourly Charge' },
 ];
 
 const HomePage: React.FC = () => {
@@ -55,17 +67,15 @@ const HomePage: React.FC = () => {
         <Carousel images={carouselImages} autoPlay={true} interval={5000} />
       )}
 
-      {/* Featured */}
-      <FeaturedSection />
-
-      {/* ── Hero ── */}
+      {/* ── Hero — Café First ── */}
       <section
         className="relative overflow-hidden"
-        style={{ background: 'linear-gradient(135deg, #0f2744 0%, #1a3a2a 50%, #0d1b4b 100%)' }}
+        style={{ background: 'linear-gradient(135deg, #0d2818 0%, #1a3d1a 40%, #14391f 100%)' }}
       >
         {/* Decorative blobs */}
-        <div className="absolute -top-32 -right-32 w-[28rem] h-[28rem] rounded-full opacity-[0.08]" style={{ backgroundColor: '#7c3aed' }} />
-        <div className="absolute -bottom-32 -left-32 w-[28rem] h-[28rem] rounded-full opacity-[0.08]" style={{ backgroundColor: '#0891b2' }} />
+        <div className="absolute -top-32 -right-32 w-[30rem] h-[30rem] rounded-full opacity-[0.08]" style={{ backgroundColor: '#86efac' }} />
+        <div className="absolute -bottom-32 -left-32 w-[30rem] h-[30rem] rounded-full opacity-[0.08]" style={{ backgroundColor: '#fbbf24' }} />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[50rem] h-[50rem] rounded-full opacity-[0.03]" style={{ backgroundColor: '#fff' }} />
 
         <div className="relative container mx-auto px-4 py-20 md:py-32">
           <div className="max-w-3xl mx-auto text-center text-white">
@@ -73,74 +83,69 @@ const HomePage: React.FC = () => {
             {/* Pill badge */}
             <div
               className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-semibold mb-6"
-              style={{ backgroundColor: 'rgba(255,255,255,0.10)', border: '1px solid rgba(255,255,255,0.18)' }}
+              style={{ backgroundColor: 'rgba(255,255,255,0.10)', border: '1px solid rgba(255,255,255,0.22)' }}
             >
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              MTG Singles · Boardgame Café · Mahjong
+              <span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: '#86efac' }} />
+              Boardgame Café  ·  Mahjong  ·  MTG Singles
             </div>
 
             <h1 className="text-4xl md:text-6xl font-extrabold mb-6 leading-tight tracking-tight">
-              Welcome to{' '}
+              Your Local{' '}
               <span
                 className="text-transparent bg-clip-text"
-                style={{ backgroundImage: 'linear-gradient(to right, #34d399, #60a5fa)' }}
+                style={{ backgroundImage: 'linear-gradient(to right, #86efac, #fbbf24)' }}
               >
-                Sylvan Library
+                Hobby Hub
               </span>
             </h1>
 
-            <p className="text-lg md:text-xl mb-10 leading-relaxed max-w-2xl mx-auto" style={{ color: '#bfdbfe' }}>
-              Your local hobby hub — thousands of MTG singles, 100+ board games to play, and Mahjong tables ready for your next session.
+            <p className="text-lg md:text-xl mb-10 leading-relaxed max-w-2xl mx-auto" style={{ color: '#bbf7d0' }}>
+              A cozy boardgame café with 100+ games and Mahjong tables — plus thousands of MTG singles available on-site.
+              One flat entry fee. No hourly charge. Just good games and great company.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center flex-wrap">
-              <Link
-                to="/catalog"
-                className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
-                style={{ backgroundColor: '#34d399', color: '#064e3b' }}
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-                Browse Cards
-              </Link>
-
+              {/* Primary: Café */}
               <Link
                 to="/cafe"
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
-                style={{ backgroundColor: '#fbbf24', color: '#78350f' }}
+                style={{ backgroundColor: '#16a34a', color: '#fff' }}
               >
                 <span className="text-xl">🎲</span>
                 Visit the Café
+              </Link>
+
+              {/* Secondary: Cards */}
+              <Link
+                to="/catalog"
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-bold text-lg transition-all hover:scale-105"
+                style={{ backgroundColor: 'rgba(255,255,255,0.12)', color: '#fff', border: '1px solid rgba(255,255,255,0.28)' }}
+              >
+                <span className="text-xl">🃏</span>
+                Browse MTG Singles
               </Link>
 
               {isAuthenticated ? (
                 <Link
                   to="/orders"
                   className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-bold text-lg transition-all hover:bg-white/10"
-                  style={{ border: '2px solid rgba(255,255,255,0.35)', color: 'white' }}
+                  style={{ border: '2px solid rgba(255,255,255,0.25)', color: 'rgba(255,255,255,0.75)' }}
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                  </svg>
                   My Orders
                 </Link>
               ) : (
                 <Link
                   to="/register"
                   className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-bold text-lg transition-all hover:bg-white/10"
-                  style={{ border: '2px solid rgba(255,255,255,0.35)', color: 'white' }}
+                  style={{ border: '2px solid rgba(255,255,255,0.25)', color: 'rgba(255,255,255,0.75)' }}
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                  </svg>
                   Create Account
                 </Link>
               )}
             </div>
 
             {isAuthenticated && (
-              <p className="mt-5 text-sm" style={{ color: '#bfdbfe' }}>
+              <p className="mt-5 text-sm" style={{ color: '#bbf7d0' }}>
                 Welcome back,{' '}
                 <span className="font-semibold text-white">{user?.name || user?.email}</span>! 👋
               </p>
@@ -149,102 +154,148 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* ── Two Pillars ── */}
-      <section className="container mx-auto px-4 py-14">
-        <div className="grid md:grid-cols-2 gap-6">
-          {/* MTG Shop pillar */}
-          <Link to="/catalog" className="group rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 block" style={{ background: 'linear-gradient(135deg, #0f2744 0%, #1e3a5f 100%)' }}>
-            <div className="p-8 flex flex-col h-full min-h-[200px]">
-              <div className="text-5xl mb-4">🃏</div>
-              <h3 className="text-2xl font-extrabold text-white mb-2">MTG Singles Store</h3>
-              <p className="text-sm mb-6 flex-1" style={{ color: '#bfdbfe' }}>Thousands of graded Magic: The Gathering singles — from commons to mythic rares, always accurately priced.</p>
-              <span className="inline-flex items-center gap-1.5 text-sm font-bold" style={{ color: '#34d399' }}>
-                Browse the catalog
-                <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
-              </span>
-            </div>
-          </Link>
-
-          {/* Café pillar */}
-          <Link to="/cafe" className="group rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 block" style={{ background: 'linear-gradient(135deg, #1a2e1a 0%, #2d4a1e 100%)' }}>
-            <div className="p-8 flex flex-col h-full min-h-[200px]">
-              <div className="text-5xl mb-4">🎲</div>
-              <h3 className="text-2xl font-extrabold text-white mb-2">Boardgame Café & Mahjong</h3>
-              <p className="text-sm mb-6 flex-1" style={{ color: '#bbf7d0' }}>100+ board games, dedicated Mahjong tables, and a cozy space to hang out. Flat entry fee, no hourly charge.</p>
-              <span className="inline-flex items-center gap-1.5 text-sm font-bold" style={{ color: '#fbbf24' }}>
-                See café info
-                <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
-              </span>
-            </div>
-          </Link>
-        </div>
-      </section>
-
-      {/* ── Trust Badges ── */}
-      <section className="border-y" style={{ backgroundColor: 'var(--color-panel)', borderColor: 'var(--color-border)' }}>
-        <div className="container mx-auto px-4 py-10">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-            {trustBadges.map(({ icon, value, label }) => (
-              <div key={label} className="flex flex-col items-center gap-2">
-                <span className="text-3xl">{icon}</span>
-                <span className="text-2xl md:text-3xl font-bold" style={{ color: 'var(--color-accent)' }}>{value}</span>
-                <span className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>{label}</span>
+      {/* ── Stats Bar ── */}
+      <div style={{ backgroundColor: '#14532d', color: '#fff' }}>
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-white/20">
+            {statsBar.map(({ emoji, value, label }) => (
+              <div key={label} className="flex flex-col items-center justify-center py-4 px-2 gap-0.5">
+                <span className="text-xl">{emoji}</span>
+                <span className="font-extrabold text-lg leading-tight">{value}</span>
+                <span className="text-xs font-medium opacity-75">{label}</span>
               </div>
             ))}
           </div>
         </div>
-      </section>
+      </div>
 
-      {/* ── Why Sylvan Library ── */}
+      {/* Featured */}
+      <FeaturedSection />
+
+      {/* ── Café Showcase ── */}
       <section className="container mx-auto px-4 py-16 md:py-20">
-        <div className="text-center mb-10">
-          <h2 className="text-3xl md:text-4xl font-bold mb-3" style={{ color: 'var(--color-text)' }}>
-            Why Sylvan Library?
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest mb-4" style={{ backgroundColor: 'var(--color-panel)', color: '#16a34a', border: '1px solid #16a34a40' }}>
+            ★ Our Main Attraction
+          </div>
+          <h2 className="text-3xl md:text-4xl font-extrabold mb-3" style={{ color: 'var(--color-text)' }}>
+            The Boardgame Café Experience
           </h2>
           <p className="text-base max-w-xl mx-auto" style={{ color: 'var(--color-text-secondary)' }}>
-            Everything you need to grow your collection with confidence.
+            Everything that makes Sylvan Library the go-to spot for hobby lovers in our community.
           </p>
         </div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {features.map(({ gradient, icon, title, desc }) => (
+          {cafeFeatures.map(({ gradient, emoji, title, desc }) => (
             <div
               key={title}
-              className="rounded-2xl shadow-lg p-7 flex flex-col items-center text-center hover:shadow-xl transition-all hover:-translate-y-1"
+              className="rounded-2xl shadow-md p-7 flex flex-col hover:shadow-xl transition-all hover:-translate-y-1"
               style={{ backgroundColor: 'var(--color-panel)' }}
             >
-              <div className={`bg-gradient-to-br ${gradient} w-16 h-16 rounded-2xl flex items-center justify-center mb-5 shadow-md`}>
-                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">{icon}</svg>
+              <div className={`bg-gradient-to-br ${gradient} w-14 h-14 rounded-2xl flex items-center justify-center mb-4 shadow-md text-2xl`}>
+                {emoji}
               </div>
-              <h3 className="text-xl font-bold mb-2" style={{ color: 'var(--color-text)' }}>{title}</h3>
-              <p className="text-sm leading-relaxed" style={{ color: 'var(--color-text-secondary)' }}>{desc}</p>
+              <h3 className="text-lg font-bold mb-2" style={{ color: 'var(--color-text)' }}>{title}</h3>
+              <p className="text-sm leading-relaxed flex-1" style={{ color: 'var(--color-text-secondary)' }}>{desc}</p>
             </div>
           ))}
         </div>
+
+        <div className="text-center mt-10">
+          <Link
+            to="/cafe"
+            className="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all hover:scale-105"
+            style={{ backgroundColor: '#16a34a', color: '#fff' }}
+          >
+            <span className="text-xl">🎲</span>
+            See Full Café Info & Hours
+          </Link>
+        </div>
       </section>
 
-      {/* ── Bottom CTA ── */}
+      {/* ── Two Pillars ── */}
+      <section className="border-t" style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-panel)' }}>
+        <div className="container mx-auto px-4 py-12">
+          <div className="grid md:grid-cols-2 gap-6">
+
+            {/* Café pillar — primary */}
+            <Link
+              to="/cafe"
+              className="group rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all hover:-translate-y-1 block"
+              style={{ background: 'linear-gradient(135deg, #0d2818 0%, #1a3d1a 60%, #1e4d20 100%)' }}
+            >
+              <div className="p-8 flex flex-col h-full min-h-[220px]">
+                <div className="flex items-start gap-3 mb-3">
+                  <span className="text-5xl">🎲</span>
+                  <span className="mt-2 inline-flex px-2 py-0.5 rounded text-xs font-bold" style={{ backgroundColor: '#16a34a', color: '#fff' }}>Main</span>
+                </div>
+                <h3 className="text-2xl font-extrabold text-white mb-2">Boardgame Café & Mahjong</h3>
+                <p className="text-sm mb-6 flex-1" style={{ color: '#bbf7d0' }}>
+                  100+ board games, dedicated Mahjong tables, and a welcoming space to hang out.
+                  Flat entry fee — no hourly charges.
+                </p>
+                <span className="inline-flex items-center gap-1.5 text-sm font-bold" style={{ color: '#fbbf24' }}>
+                  View café details
+                  <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
+                </span>
+              </div>
+            </Link>
+
+            {/* MTG shop pillar — secondary */}
+            <Link
+              to="/catalog"
+              className="group rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 block"
+              style={{ background: 'linear-gradient(135deg, #0f2744 0%, #1e3a5f 100%)' }}
+            >
+              <div className="p-8 flex flex-col h-full min-h-[220px]">
+                <div className="text-5xl mb-4">🃏</div>
+                <h3 className="text-2xl font-extrabold text-white mb-2">MTG Singles Store</h3>
+                <p className="text-sm mb-6 flex-1" style={{ color: '#bfdbfe' }}>
+                  Thousands of graded Magic: The Gathering singles — from commons to mythic rares,
+                  always accurately priced and available on-site.
+                </p>
+                <span className="inline-flex items-center gap-1.5 text-sm font-bold" style={{ color: '#34d399' }}>
+                  Browse the catalog
+                  <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
+                </span>
+              </div>
+            </Link>
+
+          </div>
+        </div>
+      </section>
+
+      {/* ── Bottom CTA — Café ── */}
       <section
         className="py-16 md:py-20"
-        style={{ background: 'linear-gradient(to right, var(--color-accent), var(--color-highlight))' }}
+        style={{ background: 'linear-gradient(135deg, #14532d 0%, #166534 50%, #15803d 100%)' }}
       >
         <div className="container mx-auto px-4 text-center max-w-2xl">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{ color: 'var(--color-panel)' }}>
-            Ready to Build Your Perfect Deck?
+          {/* Decorative */}
+          <div className="text-6xl mb-4">🎲</div>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white">
+            Come Hang Out at Sylvan Library
           </h2>
-          <p className="text-base mb-8" style={{ color: 'var(--color-panel)', opacity: 0.85 }}>
-            Browse our full collection and add your favourite singles to cart today.
+          <p className="text-base mb-8" style={{ color: '#bbf7d0' }}>
+            Grab a seat, pick a game, and enjoy the company. Board games, Mahjong, and MTG — all under one roof.
           </p>
-          <Link
-            to="/catalog"
-            className="inline-flex items-center gap-2 px-10 py-4 rounded-xl font-bold text-lg shadow-xl hover:shadow-2xl transition-all transform hover:scale-105"
-            style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-accent)' }}
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-            </svg>
-            View All Cards
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link
+              to="/cafe"
+              className="inline-flex items-center justify-center gap-2 px-10 py-4 rounded-xl font-bold text-lg shadow-xl hover:shadow-2xl transition-all transform hover:scale-105 bg-white"
+              style={{ color: '#15803d' }}
+            >
+              See Café Info & Hours
+            </Link>
+            <Link
+              to="/catalog"
+              className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-bold text-lg transition-all hover:scale-105"
+              style={{ backgroundColor: 'rgba(255,255,255,0.12)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)' }}
+            >
+              🃏 Browse MTG Singles
+            </Link>
+          </div>
         </div>
       </section>
 
