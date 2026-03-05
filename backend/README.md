@@ -93,8 +93,7 @@ src/
     FeaturedBanner.model.ts
     FeaturedProduct.model.ts
     UBSettings.model.ts     # UB set pricing settings
-    RegularSettings.model.ts
-  routes/                # One route file per resource
+    RegularSettings.model.ts    CafeSettings.model.ts   # Boardgame café content (single-document)  routes/                # One route file per resource
   utils/
     regularPricing.ts    # Regular set price calculation
     ubPricing.ts         # UB set price calculation
@@ -183,6 +182,7 @@ Core document with an inventory[] array of slots (one per seller + condition + f
 | GET | /api/cards/:id | Card details |
 | GET | /api/public/carousel | Active carousel items |
 | GET | /api/public/featured | Featured banners and products |
+| GET | /api/cafe/settings | Boardgame café content |
 
 ### Admin (JWT + admin role)
 | Method | Endpoint | Description |
@@ -200,6 +200,11 @@ Core document with an inventory[] array of slots (one per seller + condition + f
 | POST | /api/admin/sync-prices | Recalculate all prices from CK |
 | GET/POST/PUT/DELETE | /api/admin/carousel | Carousel management |
 | GET/POST/PUT/DELETE | /api/admin/featured | Featured content |
+| PUT | /api/admin/cafe/settings | Update boardgame café content |
+| POST | /api/admin/clear-users | Delete customer accounts & carts |
+| POST | /api/admin/clear-cards | Delete all cards and featured content |
+| POST | /api/admin/clear-orders | Delete all orders and carts |
+| POST | /api/admin/fix-dfc-layouts | Mark DFC/transform cards with layout=transform |
 | POST | /api/tiktok/bulk-update-csv-stream | Bulk price+stock update (SSE stream) |
 | POST | /api/tiktok/bulk-update-csv | Bulk price+stock update (legacy) |
 

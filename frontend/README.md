@@ -49,6 +49,7 @@ frontend/src/
     order.ts
     seller.ts
     pricing.ts
+    cafe.ts           # Boardgame café settings (getSettings / updateSettings)
     tiktok (via admin.ts / debug page)
     ...
   components/       # Shared UI components
@@ -71,7 +72,9 @@ frontend/src/
     RegisterPage.tsx
     CartPage.tsx
     OrderHistoryPage.tsx
+    OrderDetailPage.tsx
     ProfilePage.tsx
+    CafePage.tsx             # Boardgame Café & Mahjong info (live from API)
     --- Admin ---
     AdminDashboardPage.tsx
     AdminCardListPage.tsx         # Browse cards, sortable, finish badges, per-finish prices
@@ -95,6 +98,7 @@ frontend/src/
     AdminTikTokOrderDetailPage.tsx
     AdminMembershipPage.tsx
     AdminDebugPage.tsx            # System maintenance tools
+    AdminCafePage.tsx             # Boardgame Café content editor
     --- Seller ---
     SellerDashboardPage.tsx
     SellerInventoryFormPage.tsx
@@ -117,10 +121,12 @@ frontend/src/
 | / | Home |
 | /catalog | Card catalog (desktop table, mobile feed) |
 | /cards/:id | Card detail |
+| /cafe | Boardgame Café & Mahjong info |
 | /login | Login (admin / seller / customer) |
 | /register | Customer registration |
 | /cart | Shopping cart |
 | /orders | Order history (requires login) |
+| /orders/:id | Order detail (requires login) |
 | /profile | Profile (requires login) |
 
 ### Admin (requires admin login)
@@ -149,6 +155,7 @@ frontend/src/
 | /admin/tiktok-orders/:orderId | TikTok order detail |
 | /admin/membership | Customer membership |
 | /admin/debug | System maintenance tools |
+| /admin/cafe | Boardgame Café content editor |
 
 ### Seller (requires seller login)
 | Path | Page |

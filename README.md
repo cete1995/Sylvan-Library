@@ -26,8 +26,14 @@ A full-stack web application for managing Magic: The Gathering card inventory ac
 - Filter by name, set, condition, finish, price range
 - Mobile-friendly catalog with bottom navigation (desktop: table view, mobile: feed view)
 - Card detail pages with images and per-seller inventory breakdown
-- Shopping cart, checkout, order history, customer profile
+- Shopping cart, checkout, order history & order detail page, customer profile
 - Customer registration & login
+
+### Boardgame Café Page
+- Public `/cafe` page showing live content managed from the admin panel
+- Operating hours (per-day open/closed toggle), entry fee, Mahjong table info
+- Game library (name, players, duration, icon), contact links (WhatsApp, Instagram, Google Maps)
+- All content stored in MongoDB and editable by admins with no code changes required
 
 ### Admin Panel
 - **Card Inventory**  add, edit, soft-delete, bulk CSV import
@@ -38,9 +44,11 @@ A full-stack web application for managing Magic: The Gathering card inventory ac
 - **Bulk price update**  apply multiplier changes across all cards at once
 - **Featured banners & carousel**  manage homepage promotional content
 - **Set management**  upload set JSON to register new sets
-- **Maintenance tools**  fix seller names, regenerate SKUs, fix inventory quantities
+- **Maintenance tools**  fix seller names, regenerate SKUs, fix inventory quantities, fix DFC layouts
 - **Missing images**  filter and bulk-assign images to cards without one
 - **Membership**  manage customer membership tiers
+- **Boardgame Café CMS**  edit hours, game library, Mahjong info, entry fee, and contact links via `/admin/cafe`
+- **Danger zone**  separate targeted clear buttons for users, cards, and orders (API keys always preserved)
 
 ### Seller Panel
 - Manage own inventory slots per card (condition, finish, qty, price)
@@ -131,6 +139,7 @@ Sylvan Library/
           FeaturedProduct.model.ts
           UBSettings.model.ts     # UB pricing settings
           RegularSettings.model.ts
+          CafeSettings.model.ts   # Boardgame café content (single-document)
        routes/                # One file per resource
        utils/
           regularPricing.ts
@@ -281,6 +290,7 @@ Sell Price = CK Price  Multiplier
 | GET | `/api/orders/history` | Customer order history |
 | GET | `/api/public/carousel` | Active carousel items |
 | GET | `/api/public/featured` | Featured banners & products |
+| GET | `/api/cafe/settings` | Boardgame café content |
 
 ### Admin (JWT + admin role)
 | Method | Endpoint | Description |
@@ -298,6 +308,10 @@ Sell Price = CK Price  Multiplier
 | POST | `/api/admin/sync-prices` | Recalculate all prices from CK |
 | GET/POST/PUT/DELETE | `/api/admin/carousel` | Carousel management |
 | GET/POST/PUT/DELETE | `/api/admin/featured` | Featured content |
+| PUT | `/api/admin/cafe/settings` | Update boardgame café content |
+| POST | `/api/admin/clear-users` | Delete customer accounts & carts |
+| POST | `/api/admin/clear-cards` | Delete all cards and featured content |
+| POST | `/api/admin/clear-orders` | Delete all orders and carts |
 | POST | `/api/tiktok/bulk-update-csv-stream` | Bulk price+stock update (SSE) |
 | POST | `/api/tiktok/bulk-update-csv` | Bulk price+stock update (legacy) |
 
@@ -318,10 +332,12 @@ Sell Price = CK Price  Multiplier
 | `/` | Home |
 | `/catalog` | Card catalog |
 | `/cards/:id` | Card detail |
+| `/cafe` | Boardgame Café & Mahjong info |
 | `/login` | Login (admin / seller / customer) |
 | `/register` | Customer registration |
 | `/cart` | Shopping cart |
 | `/orders` | Order history (requires login) |
+| `/orders/:id` | Order detail (requires login) |
 | `/profile` | Profile (requires login) |
 
 ### Admin
@@ -350,6 +366,7 @@ Sell Price = CK Price  Multiplier
 | `/admin/tiktok-orders/:orderId` | TikTok order detail |
 | `/admin/membership` | Customer membership |
 | `/admin/debug` | System maintenance tools |
+| `/admin/cafe` | Boardgame Café content editor |
 
 ### Seller
 | Path | Description |
