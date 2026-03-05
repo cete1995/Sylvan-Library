@@ -1,12 +1,17 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
+import { useAuth } from '../contexts/AuthContext';
 
 const BottomNav: React.FC = () => {
   const location = useLocation();
   const { cartCount } = useCart();
+  const { user } = useAuth();
+  const isSeller = user?.role === 'seller';
 
-  const navItems = [
+  type NavItem = { path: string; icon: string; label: string; badge?: number; sellerAccent?: boolean };
+
+  const baseItems: NavItem[] = [
     { path: '/', icon: 'home', label: 'Home' },
     { path: '/catalog', icon: 'search', label: 'Browse' },
     { path: '/cafe', icon: 'cafe', label: 'Café' },
@@ -14,10 +19,23 @@ const BottomNav: React.FC = () => {
     { path: '/profile', icon: 'user', label: 'Profile' },
   ];
 
+  // For sellers, insert a Seller tab between Browse and Café
+  const navItems: NavItem[] = isSeller
+    ? [
+        baseItems[0],
+        baseItems[1],
+        { path: '/seller/dashboard', icon: 'seller', label: 'Seller', sellerAccent: true },
+        baseItems[2],
+        baseItems[4], // drop cart from bottom nav for sellers to keep 5 items; cart still accessible elsewhere
+      ]
+    : baseItems;
+
   const isActive = (path: string) => {
     if (path === '/') return location.pathname === '/';
     // Treat /consoles as part of /cafe section
     if (path === '/cafe') return location.pathname.startsWith('/cafe') || location.pathname.startsWith('/consoles');
+    // Treat all /seller/* as part of seller tab
+    if (path === '/seller/dashboard') return location.pathname.startsWith('/seller');
     return location.pathname.startsWith(path);
   };
 
@@ -55,15 +73,21 @@ const BottomNav: React.FC = () => {
             <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
           </svg>
         );
+      case 'seller':
+        return (
+          <svg className="w-6 h-6" fill={active ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={strokeWidth} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+          </svg>
+        );
       default:
         return null;
     }
   };
 
   return (
-    <nav 
+    <nav
       className="fixed bottom-0 left-0 right-0 z-50 border-t shadow-lg md:hidden"
-      style={{ 
+      style={{
         backgroundColor: 'var(--color-panel)',
         borderTopColor: 'var(--color-border)'
       }}
@@ -71,17 +95,21 @@ const BottomNav: React.FC = () => {
       <div className="flex justify-around items-center h-16 px-2">
         {navItems.map((item) => {
           const active = isActive(item.path);
+          const accentColor = item.sellerAccent
+            ? (active ? '#a78bfa' : 'var(--color-text-secondary)')
+            : (active ? 'var(--color-accent)' : 'var(--color-text-secondary)');
+          const indicatorColor = item.sellerAccent ? '#a78bfa' : 'var(--color-accent)';
           return (
             <Link
               key={item.path}
               to={item.path}
               className="flex flex-col items-center justify-center flex-1 h-full relative transition-all"
-              style={{ color: active ? 'var(--color-accent)' : 'var(--color-text-secondary)' }}
+              style={{ color: accentColor }}
             >
               <div className="relative">
                 {getIcon(item.icon, active)}
                 {item.badge !== undefined && item.badge > 0 && (
-                  <span 
+                  <span
                     className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center rounded-full text-white text-xs font-bold px-1"
                     style={{ backgroundColor: '#ef4444' }}
                   >
@@ -91,9 +119,9 @@ const BottomNav: React.FC = () => {
               </div>
               <span className="text-xs mt-1 font-medium">{item.label}</span>
               {active && (
-                <div 
+                <div
                   className="absolute top-0 left-1/2 transform -translate-x-1/2 w-12 h-1 rounded-full"
-                  style={{ backgroundColor: 'var(--color-accent)' }}
+                  style={{ backgroundColor: indicatorColor }}
                 />
               )}
             </Link>

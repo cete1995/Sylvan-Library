@@ -89,14 +89,17 @@ const SellerInventoryFormPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: 'var(--color-background)' }}>
+    <div className="min-h-screen pb-28 md:pb-8" style={{ backgroundColor: 'var(--color-background)' }}>
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <button
           onClick={() => navigate('/seller/dashboard')}
-          className="mb-6 px-4 py-2 rounded-lg"
-          style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)' }}
+          className="mb-6 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl font-semibold text-sm hover:opacity-80 transition-all"
+          style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)', border: '1px solid var(--color-border)' }}
         >
-          ← Back to Dashboard
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          Back to Dashboard
         </button>
 
         <div className="grid md:grid-cols-2 gap-8">
