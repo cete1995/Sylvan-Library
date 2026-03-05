@@ -29,7 +29,8 @@ async function createAdmin() {
     } else {
       // Create new admin
       const email = 'admin@sylvan.com';
-      const password = 'Admin123456';
+      // Generate a random password so it is never predictable from the source code
+      const password = 'Adm-' + require('crypto').randomBytes(8).toString('hex');
       const passwordHash = await bcrypt.hash(password, 10);
 
       const admin = await User.create({

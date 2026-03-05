@@ -25,8 +25,8 @@ async function resetAdminPassword() {
       process.exit(1);
     }
 
-    // Set new password
-    const newPassword = 'Admin123456';
+    // Generate a random password so it is never predictable from the source code
+    const newPassword = 'Adm-' + require('crypto').randomBytes(8).toString('hex');
     const passwordHash = await bcrypt.hash(newPassword, 10);
 
     admin.passwordHash = passwordHash;
