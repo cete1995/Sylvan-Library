@@ -4,16 +4,31 @@ import { cafeApi, CafeSettings } from '../api/cafe';
 
 const CafePage: React.FC = () => {
   const [info, setInfo] = useState<CafeSettings | null>(null);
+  const [loadError, setLoadError] = useState(false);
   const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
 
   useEffect(() => {
-    cafeApi.getSettings().then(setInfo).catch(() => {});
+    cafeApi.getSettings()
+      .then(setInfo)
+      .catch(() => setLoadError(true));
   }, []);
 
-  if (!info) {
+  if (!info && !loadError) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--color-background)' }}>
         <div className="animate-spin rounded-full h-10 w-10 border-b-2" style={{ borderColor: 'var(--color-accent)' }} />
+      </div>
+    );
+  }
+
+  if (loadError || !info) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 px-4 text-center" style={{ backgroundColor: 'var(--color-background)' }}>
+        <span className="text-5xl">🎲</span>
+        <h2 className="text-2xl font-bold" style={{ color: 'var(--color-text)' }}>Boardgame Café</h2>
+        <p className="max-w-sm" style={{ color: 'var(--color-text-muted)' }}>
+          Café info is currently unavailable. Please check back soon or contact us on WhatsApp.
+        </p>
       </div>
     );
   }
