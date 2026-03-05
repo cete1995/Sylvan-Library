@@ -93,6 +93,21 @@ export const adminApi = {
     return response.data;
   },
 
+  clearUsers: async (): Promise<{ success: boolean; message: string; deletedCounts: { users: number; carts: number } }> => {
+    const response = await api.post('/admin/clear-users');
+    return response.data;
+  },
+
+  clearCards: async (): Promise<{ success: boolean; message: string; deletedCounts: { cards: number; prices: number; carousel: number; featuredProducts: number; featuredBanners: number } }> => {
+    const response = await api.post('/admin/clear-cards');
+    return response.data;
+  },
+
+  clearOrders: async (): Promise<{ success: boolean; message: string; deletedCounts: { orders: number; carts: number; tikTokOrders: number } }> => {
+    const response = await api.post('/admin/clear-orders');
+    return response.data;
+  },
+
   clearDatabase: async (): Promise<{ message: string; deletedCounts: { cards: number; users: number; carts: number; carousel: number; prices: number } }> => {
     const response = await api.post<{ message: string; deletedCounts: { cards: number; users: number; carts: number; carousel: number; prices: number } }>(
       '/admin/clear-database'

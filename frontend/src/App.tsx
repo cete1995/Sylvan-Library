@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, Link } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -44,6 +44,8 @@ import SellerInventoryFormPage from './pages/SellerInventoryFormPage';
 import ProfilePage from './pages/ProfilePage';
 import OrderHistoryPage from './pages/OrderHistoryPage';
 import OrderDetailPage from './pages/OrderDetailPage';
+import CafePage from './pages/CafePage';
+import AdminCafePage from './pages/AdminCafePage';
 
 const App: React.FC = () => {
   const [isMobile, setIsMobile] = useState(false);
@@ -76,6 +78,7 @@ const App: React.FC = () => {
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/cart" element={<CartPage />} />
+                <Route path="/cafe" element={<CafePage />} />
                 {/* Redirect old admin login to unified login */}
                 <Route path="/admin/login" element={<Navigate to="/login" replace />} />
 
@@ -107,9 +110,17 @@ const App: React.FC = () => {
 
               {/* Protected Admin Routes */}
               <Route
+                path="/admin/cafe"
+                element={
+                  <ProtectedRoute adminOnly={true}>
+                    <AdminCafePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/admin/dashboard"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute adminOnly={true}>
                     <AdminDashboardPage />
                   </ProtectedRoute>
                 }
@@ -117,7 +128,7 @@ const App: React.FC = () => {
               <Route
                 path="/admin/cards"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute adminOnly={true}>
                     <AdminCardListPage />
                   </ProtectedRoute>
                 }
@@ -125,7 +136,7 @@ const App: React.FC = () => {
               <Route
                 path="/admin/cards/new"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute adminOnly={true}>
                     <AdminCardFormPage />
                   </ProtectedRoute>
                 }
@@ -133,7 +144,7 @@ const App: React.FC = () => {
               <Route
                 path="/admin/cards/edit/:id"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute adminOnly={true}>
                     <AdminCardFormPage />
                   </ProtectedRoute>
                 }
@@ -141,7 +152,7 @@ const App: React.FC = () => {
               <Route
                 path="/admin/bulk-upload"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute adminOnly={true}>
                     <AdminBulkUploadPage />
                   </ProtectedRoute>
                 }
@@ -149,7 +160,7 @@ const App: React.FC = () => {
               <Route
                 path="/admin/set-upload"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute adminOnly={true}>
                     <AdminSetUploadPage />
                   </ProtectedRoute>
                 }
@@ -322,10 +333,10 @@ const App: React.FC = () => {
                 path="*"
                 element={
                   <div className="container mx-auto px-4 py-12 text-center">
-                    <h1 className="text-4xl font-bold mb-4">404 - Page Not Found</h1>
-                    <a href="/" className="text-primary-600 hover:underline">
+                    <h1 className="text-4xl font-bold mb-4" style={{ color: 'var(--color-text)' }}>404 - Page Not Found</h1>
+                    <Link to="/" className="hover:underline" style={{ color: 'var(--color-accent)' }}>
                       Go Home
-                    </a>
+                    </Link>
                   </div>
                 }
               />

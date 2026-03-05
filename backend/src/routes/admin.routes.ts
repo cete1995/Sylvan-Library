@@ -17,6 +17,9 @@ import {
   fixDfcImageUrls,
   fixDfcLayouts,
   cleanupCombinedNames,
+  clearUsers,
+  clearCards,
+  clearOrders,
   listMembers,
   createMember,
   updateMember,
@@ -24,6 +27,7 @@ import {
   adjustStoreCredit,
 } from '../controllers/admin.controller';
 import { uploadSetJson, importSetFromMTGJson } from '../controllers/set.controller';
+import { updateCafeSettings } from '../controllers/cafe.controller';
 
 const router = Router();
 
@@ -122,6 +126,9 @@ router.post('/sets/import-from-mtgjson', importSetFromMTGJson);
  * @access  Private (Admin)
  */
 router.post('/clear-database', clearDatabase);
+router.post('/clear-users', clearUsers);
+router.post('/clear-cards', clearCards);
+router.post('/clear-orders', clearOrders);
 
 /**
  * @route   POST /api/admin/fix-seller-names
@@ -153,5 +160,8 @@ router.post('/members', createMember);
 router.put('/members/:id', updateMember);
 router.delete('/members/:id', deleteMember);
 router.post('/members/:id/store-credit', adjustStoreCredit);
+
+// Café CMS
+router.put('/cafe/settings', updateCafeSettings);
 
 export default router;

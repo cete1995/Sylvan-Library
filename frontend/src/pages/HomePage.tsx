@@ -76,7 +76,7 @@ const HomePage: React.FC = () => {
               style={{ backgroundColor: 'rgba(255,255,255,0.10)', border: '1px solid rgba(255,255,255,0.18)' }}
             >
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              Indonesia's Premier MTG Singles Store
+              MTG Singles · Boardgame Café · Mahjong
             </div>
 
             <h1 className="text-4xl md:text-6xl font-extrabold mb-6 leading-tight tracking-tight">
@@ -90,10 +90,10 @@ const HomePage: React.FC = () => {
             </h1>
 
             <p className="text-lg md:text-xl mb-10 leading-relaxed max-w-2xl mx-auto" style={{ color: '#bfdbfe' }}>
-              Thousands of carefully graded Magic: The Gathering singles — from budget staples to top-tier mythics, ready to complete your deck.
+              Your local hobby hub — thousands of MTG singles, 100+ board games to play, and Mahjong tables ready for your next session.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center flex-wrap">
               <Link
                 to="/catalog"
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
@@ -103,6 +103,15 @@ const HomePage: React.FC = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
                 Browse Cards
+              </Link>
+
+              <Link
+                to="/cafe"
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
+                style={{ backgroundColor: '#fbbf24', color: '#78350f' }}
+              >
+                <span className="text-xl">🎲</span>
+                Visit the Café
               </Link>
 
               {isAuthenticated ? (
@@ -137,6 +146,37 @@ const HomePage: React.FC = () => {
               </p>
             )}
           </div>
+        </div>
+      </section>
+
+      {/* ── Two Pillars ── */}
+      <section className="container mx-auto px-4 py-14">
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* MTG Shop pillar */}
+          <Link to="/catalog" className="group rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 block" style={{ background: 'linear-gradient(135deg, #0f2744 0%, #1e3a5f 100%)' }}>
+            <div className="p-8 flex flex-col h-full min-h-[200px]">
+              <div className="text-5xl mb-4">🃏</div>
+              <h3 className="text-2xl font-extrabold text-white mb-2">MTG Singles Store</h3>
+              <p className="text-sm mb-6 flex-1" style={{ color: '#bfdbfe' }}>Thousands of graded Magic: The Gathering singles — from commons to mythic rares, always accurately priced.</p>
+              <span className="inline-flex items-center gap-1.5 text-sm font-bold" style={{ color: '#34d399' }}>
+                Browse the catalog
+                <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
+              </span>
+            </div>
+          </Link>
+
+          {/* Café pillar */}
+          <Link to="/cafe" className="group rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 block" style={{ background: 'linear-gradient(135deg, #1a2e1a 0%, #2d4a1e 100%)' }}>
+            <div className="p-8 flex flex-col h-full min-h-[200px]">
+              <div className="text-5xl mb-4">🎲</div>
+              <h3 className="text-2xl font-extrabold text-white mb-2">Boardgame Café & Mahjong</h3>
+              <p className="text-sm mb-6 flex-1" style={{ color: '#bbf7d0' }}>100+ board games, dedicated Mahjong tables, and a cozy space to hang out. Flat entry fee, no hourly charge.</p>
+              <span className="inline-flex items-center gap-1.5 text-sm font-bold" style={{ color: '#fbbf24' }}>
+                See café info
+                <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
+              </span>
+            </div>
+          </Link>
         </div>
       </section>
 

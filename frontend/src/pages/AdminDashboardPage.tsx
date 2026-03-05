@@ -15,6 +15,9 @@ const AdminDashboardPage: React.FC = () => {
   const [fixingDfcImages, setFixingDfcImages] = useState(false);
   const [fixingDfcLayouts, setFixingDfcLayouts] = useState(false);
   const [forceSyncing, setForceSyncing] = useState(false);
+  const [clearingUsers, setClearingUsers] = useState(false);
+  const [clearingCards, setClearingCards] = useState(false);
+  const [clearingOrders, setClearingOrders] = useState(false);
   const [sets, setSets] = useState<Array<{setCode: string; setName: string; cardCount: number}>>([]); 
   const [setsLoading, setSetsLoading] = useState(false);
   const [showSets, setShowSets] = useState(false);
@@ -107,6 +110,51 @@ const AdminDashboardPage: React.FC = () => {
       alert('Failed to sync prices: ' + (error.response?.data?.error || error.message));
     } finally {
       setSyncing(false);
+    }
+  };
+
+  const handleClearUsers = async () => {
+    const input = window.prompt('This deletes ALL customer accounts and carts.\nAdmin and seller accounts are kept. API keys are preserved.\n\nType DELETE USERS to confirm:');
+    if (input !== 'DELETE USERS') { if (input !== null) alert('Cancelled — confirmation did not match.'); return; }
+    setClearingUsers(true);
+    try {
+      const result = await adminApi.clearUsers();
+      alert(`Users cleared!\n\n${result.deletedCounts.users} customer account(s) deleted\n${result.deletedCounts.carts} cart(s) deleted\n\n✅ Admin/seller accounts and API keys preserved.`);
+      loadStats();
+    } catch (error: any) {
+      alert('Failed to clear users: ' + (error.response?.data?.error || error.message));
+    } finally {
+      setClearingUsers(false);
+    }
+  };
+
+  const handleClearCards = async () => {
+    const input = window.prompt('This deletes ALL cards, prices, carousel images, and featured content.\n\nType DELETE CARDS to confirm:');
+    if (input !== 'DELETE CARDS') { if (input !== null) alert('Cancelled — confirmation did not match.'); return; }
+    setClearingCards(true);
+    try {
+      const result = await adminApi.clearCards();
+      alert(`Cards cleared!\n\n${result.deletedCounts.cards} card(s) deleted\n${result.deletedCounts.prices} price record(s) deleted\n${result.deletedCounts.carousel} carousel image(s) deleted\n${result.deletedCounts.featuredProducts} featured product(s) deleted\n${result.deletedCounts.featuredBanners} featured banner(s) deleted`);
+      loadStats();
+    } catch (error: any) {
+      alert('Failed to clear cards: ' + (error.response?.data?.error || error.message));
+    } finally {
+      setClearingCards(false);
+    }
+  };
+
+  const handleClearOrders = async () => {
+    const input = window.prompt('This deletes ALL orders, carts, and TikTok orders.\n\nType DELETE ORDERS to confirm:');
+    if (input !== 'DELETE ORDERS') { if (input !== null) alert('Cancelled — confirmation did not match.'); return; }
+    setClearingOrders(true);
+    try {
+      const result = await adminApi.clearOrders();
+      alert(`Orders cleared!\n\n${result.deletedCounts.orders} order(s) deleted\n${result.deletedCounts.carts} cart(s) deleted\n${result.deletedCounts.tikTokOrders} TikTok order(s) deleted`);
+      loadStats();
+    } catch (error: any) {
+      alert('Failed to clear orders: ' + (error.response?.data?.error || error.message));
+    } finally {
+      setClearingOrders(false);
     }
   };
 
@@ -402,7 +450,43 @@ const AdminDashboardPage: React.FC = () => {
           </p>
         </div>
 
-        {/* ── 🌐 Storefront ── */}
+        {/* ── � Boardgame Café ── */}
+        <div className="mb-8">
+          <div className="flex items-center gap-2 mb-4 pb-2 border-b" style={{ borderColor: 'var(--color-border)' }}>
+            <div className="w-2 h-5 rounded-full" style={{ backgroundColor: '#16a34a' }}></div>
+            <h2 className="font-bold text-sm uppercase tracking-widest" style={{ color: 'var(--color-text-secondary)' }}>Boardgame Café</h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <Link to="/admin/cafe"
+              className="flex items-center gap-4 p-5 rounded-xl border hover:shadow-md transition-all hover:border-green-400"
+              style={{ backgroundColor: 'var(--color-panel)', borderColor: 'var(--color-border)', background: 'linear-gradient(135deg, rgba(22,163,74,0.07) 0%, rgba(20,83,45,0.04) 100%)' }}>
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl flex-shrink-0" style={{ backgroundColor: 'rgba(22,163,74,0.12)' }}>🎲</div>
+              <div className="flex-1">
+                <div className="font-bold text-base" style={{ color: 'var(--color-text)' }}>Manage Café Content</div>
+                <div className="text-xs mt-0.5" style={{ color: 'var(--color-text-secondary)' }}>Edit hours, game library, Mahjong info, entry fee &amp; contact links</div>
+                <span className="inline-flex items-center gap-1 text-xs font-semibold mt-2" style={{ color: '#16a34a' }}>
+                  Open editor
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
+                </span>
+              </div>
+            </Link>
+            <Link to="/cafe" target="_blank"
+              className="flex items-center gap-4 p-5 rounded-xl border hover:shadow-md transition-all hover:border-green-400"
+              style={{ backgroundColor: 'var(--color-panel)', borderColor: 'var(--color-border)' }}>
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl flex-shrink-0" style={{ backgroundColor: 'rgba(251,191,36,0.15)' }}>🌐</div>
+              <div className="flex-1">
+                <div className="font-bold text-base" style={{ color: 'var(--color-text)' }}>Preview Café Page</div>
+                <div className="text-xs mt-0.5" style={{ color: 'var(--color-text-secondary)' }}>See the live /cafe page as customers see it</div>
+                <span className="inline-flex items-center gap-1 text-xs font-semibold mt-2" style={{ color: '#D97706' }}>
+                  Open in new tab
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                </span>
+              </div>
+            </Link>
+          </div>
+        </div>
+
+        {/* ── �🌐 Storefront ── */}
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-4 pb-2 border-b" style={{ borderColor: 'var(--color-border)' }}>
             <div className="w-2 h-5 rounded-full" style={{ backgroundColor: '#8B5CF6' }}></div>
@@ -534,21 +618,71 @@ const AdminDashboardPage: React.FC = () => {
 
         {/* ── ⚠️ Danger Zone ── */}
         <div className="rounded-2xl border-2 p-6" style={{ borderColor: '#FCA5A5', backgroundColor: 'var(--color-panel)' }}>
-          <div className="flex items-center gap-2 mb-2">
-            <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="flex items-center gap-2 mb-1">
+            <svg className="w-5 h-5" style={{ color: '#DC2626' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
-            <h2 className="font-bold text-base text-red-600">Danger Zone</h2>
+            <h2 className="font-bold text-base" style={{ color: '#DC2626' }}>Danger Zone</h2>
           </div>
-          <p className="text-sm mb-4" style={{ color: 'var(--color-text-secondary)' }}>Irreversible actions — permanently deletes all cards, users, orders, and settings.</p>
-          <button onClick={handleClearDatabase} disabled={clearing}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm text-white hover:opacity-90 disabled:opacity-50 transition-all shadow"
-            style={{ backgroundColor: '#DC2626' }}>
-            {clearing
-              ? <><svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>Clearing Database…</>
-              : <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>Clear All Database</>
-            }
-          </button>
+          <p className="text-xs mb-5" style={{ color: 'var(--color-text-secondary)' }}>Permanently deletes data. Each action requires typed confirmation. API keys are always preserved.</p>
+
+          {/* Targeted clear buttons */}
+          <div className="grid sm:grid-cols-3 gap-3 mb-5">
+            {/* Clear Users */}
+            <div className="rounded-xl border p-4" style={{ borderColor: '#FCA5A5', backgroundColor: 'rgba(220,38,38,0.04)' }}>
+              <div className="flex items-center gap-2 mb-1">
+                <svg className="w-4 h-4" style={{ color: '#DC2626' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                <span className="font-bold text-sm" style={{ color: '#DC2626' }}>Clear Users</span>
+              </div>
+              <p className="text-xs mb-3" style={{ color: 'var(--color-text-secondary)' }}>Deletes all customer accounts and carts. Admin &amp; seller accounts and API keys are kept.</p>
+              <button onClick={handleClearUsers} disabled={clearingUsers}
+                className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg font-bold text-xs text-white hover:opacity-90 disabled:opacity-50 transition-all"
+                style={{ backgroundColor: '#DC2626' }}>
+                {clearingUsers ? <><svg className="animate-spin w-3 h-3" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>Clearing…</> : 'Delete All Users'}
+              </button>
+            </div>
+
+            {/* Clear Cards */}
+            <div className="rounded-xl border p-4" style={{ borderColor: '#FCA5A5', backgroundColor: 'rgba(220,38,38,0.04)' }}>
+              <div className="flex items-center gap-2 mb-1">
+                <svg className="w-4 h-4" style={{ color: '#DC2626' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+                <span className="font-bold text-sm" style={{ color: '#DC2626' }}>Clear Cards</span>
+              </div>
+              <p className="text-xs mb-3" style={{ color: 'var(--color-text-secondary)' }}>Deletes all cards, prices, carousel images, and featured content. Pricing settings kept.</p>
+              <button onClick={handleClearCards} disabled={clearingCards}
+                className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg font-bold text-xs text-white hover:opacity-90 disabled:opacity-50 transition-all"
+                style={{ backgroundColor: '#DC2626' }}>
+                {clearingCards ? <><svg className="animate-spin w-3 h-3" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>Clearing…</> : 'Delete All Cards'}
+              </button>
+            </div>
+
+            {/* Clear Orders */}
+            <div className="rounded-xl border p-4" style={{ borderColor: '#FCA5A5', backgroundColor: 'rgba(220,38,38,0.04)' }}>
+              <div className="flex items-center gap-2 mb-1">
+                <svg className="w-4 h-4" style={{ color: '#DC2626' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                <span className="font-bold text-sm" style={{ color: '#DC2626' }}>Clear Orders</span>
+              </div>
+              <p className="text-xs mb-3" style={{ color: 'var(--color-text-secondary)' }}>Deletes all orders, carts, and TikTok orders. Cards and users are kept.</p>
+              <button onClick={handleClearOrders} disabled={clearingOrders}
+                className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg font-bold text-xs text-white hover:opacity-90 disabled:opacity-50 transition-all"
+                style={{ backgroundColor: '#DC2626' }}>
+                {clearingOrders ? <><svg className="animate-spin w-3 h-3" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>Clearing…</> : 'Delete All Orders'}
+              </button>
+            </div>
+          </div>
+
+          {/* Nuclear option */}
+          <div className="border-t pt-4" style={{ borderColor: '#FCA5A5' }}>
+            <p className="text-xs font-semibold mb-2" style={{ color: '#DC2626' }}>☢️ Nuclear option — deletes everything above at once</p>
+            <button onClick={handleClearDatabase} disabled={clearing}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm text-white hover:opacity-90 disabled:opacity-50 transition-all shadow"
+              style={{ backgroundColor: '#7F1D1D' }}>
+              {clearing
+                ? <><svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>Clearing Everything…</>
+                : <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>Clear Entire Database</>
+              }
+            </button>
+          </div>
         </div>
 
       </div>

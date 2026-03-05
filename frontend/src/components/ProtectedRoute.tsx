@@ -1,5 +1,5 @@
 import React from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 interface ProtectedRouteProps {
@@ -30,7 +30,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, adminOnly = f
         <div className="text-center">
           <h1 className="text-2xl font-bold text-red-600 mb-4">Access Denied</h1>
           <p className="mb-4" style={{ color: 'var(--color-text-secondary)' }}>You do not have permission to access this page.</p>
-          <a href="/" className="hover:underline" style={{ color: 'var(--color-accent)' }}>Go to Home</a>
+          <Link to="/" className="hover:underline" style={{ color: 'var(--color-accent)' }}>Go to Home</Link>
         </div>
       </div>
     );
@@ -43,7 +43,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, adminOnly = f
         <div className="text-center">
           <h1 className="text-2xl font-bold text-red-600 mb-4">Access Denied</h1>
           <p className="mb-4" style={{ color: 'var(--color-text-secondary)' }}>You do not have seller access.</p>
-          <a href="/" className="hover:underline" style={{ color: 'var(--color-accent)' }}>Go to Home</a>
+          <Link to="/" className="hover:underline" style={{ color: 'var(--color-accent)' }}>Go to Home</Link>
         </div>
       </div>
     );

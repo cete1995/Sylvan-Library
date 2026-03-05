@@ -54,6 +54,7 @@ import manaboxRoutes from './routes/manabox.routes';
 import debugRoutes from './routes/debug.routes';
 import offlineSaleRoutes from './routes/offline-sale.routes';
 import offlineBuyRoutes from './routes/offline-buy.routes';
+import cafeRoutes from './routes/cafe.routes';
 
 app.get('/api', (_req, res) => {
   res.json({
@@ -96,6 +97,7 @@ app.use('/api/admin/offline-sales', offlineSaleRoutes);
 app.use('/api/admin/offline-buys', offlineBuyRoutes);
 app.use('/api/manabox', manaboxRoutes);
 app.use('/api/debug', debugRoutes);
+app.use('/api/cafe', cafeRoutes);
 
 // Error handling
 app.use(notFoundHandler);

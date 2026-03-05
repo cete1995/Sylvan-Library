@@ -9,6 +9,7 @@ const BottomNav: React.FC = () => {
   const navItems = [
     { path: '/', icon: 'home', label: 'Home' },
     { path: '/catalog', icon: 'search', label: 'Browse' },
+    { path: '/cafe', icon: 'cafe', label: 'Café' },
     { path: '/cart', icon: 'cart', label: 'Cart', badge: cartCount },
     { path: '/profile', icon: 'user', label: 'Profile' },
   ];
@@ -38,6 +39,12 @@ const BottomNav: React.FC = () => {
         return (
           <svg className="w-6 h-6" fill={active ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={strokeWidth} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+        );
+      case 'cafe':
+        return (
+          <svg className="w-6 h-6" fill={active ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={strokeWidth} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4H7v-4H5a2 2 0 01-2-2v-6a2 2 0 012-2h2V4a1 1 0 011-1h8a1 1 0 011 1v4z" />
           </svg>
         );
       case 'user':

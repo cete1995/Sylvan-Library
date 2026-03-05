@@ -159,10 +159,13 @@ const Navbar: React.FC = () => {
               HOME
             </Link>
             <Link to="/catalog" className="font-medium text-sm md:text-base hover:opacity-80" style={{ color: 'var(--color-text-secondary)' }}>
-              MAGIC: THE GATHERING PRODUCT
+              MTG SINGLES
             </Link>
             <Link to="/catalog?tags=Borderless" className="font-medium text-sm md:text-base hover:opacity-80" style={{ color: 'var(--color-text-secondary)' }}>
               SPECIAL PRODUCT
+            </Link>
+            <Link to="/cafe" className="font-medium text-sm md:text-base hover:opacity-80 flex items-center gap-1.5" style={{ color: 'var(--color-text-secondary)' }}>
+              <span>🎲</span> BOARDGAME CAFÉ
             </Link>
             <Link to="/catalog" className="font-medium text-sm md:text-base hover:opacity-80" style={{ color: 'var(--color-text-secondary)' }}>
               PICK UP IN STORE

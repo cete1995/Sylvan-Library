@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { Card, User, Cart, Carousel, Order, FeaturedProduct, FeaturedBanner } from '../models';
+import { Card, User, Cart, Carousel, Order, FeaturedProduct, FeaturedBanner, CardPrice, TikTokOrder } from '../models';
 import { AppError } from '../middleware/errorHandler';
 import { asyncHandler } from '../middleware/asyncHandler';
 import { createCardSchema, updateCardSchema } from '../validators/card.validator';
@@ -327,6 +327,50 @@ export const bulkUploadCards = asyncHandler(async (req: Request, res: Response) 
  * Clear entire database (cards, non-admin users, carts, orders, featured items, carousel, UB settings, Regular settings, price data)
  * POST /api/admin/clear-database
  */
+export const clearUsers = asyncHandler(async (req: Request, res: Response) => {
+  const deletedUsers = await User.deleteMany({ role: 'customer' });
+  const deletedCarts = await Cart.deleteMany({});
+  res.json({
+    success: true,
+    message: 'All customer accounts and carts deleted. Admin/seller accounts and API keys preserved.',
+    deletedCounts: { users: deletedUsers.deletedCount, carts: deletedCarts.deletedCount },
+  });
+});
+
+export const clearCards = asyncHandler(async (req: Request, res: Response) => {
+  const deletedCards = await Card.deleteMany({});
+  const deletedPrices = await CardPrice.deleteMany({});
+  const deletedCarousel = await Carousel.deleteMany({});
+  const deletedFeaturedProducts = await FeaturedProduct.deleteMany({});
+  const deletedFeaturedBanners = await FeaturedBanner.deleteMany({});
+  res.json({
+    success: true,
+    message: 'All cards, prices, carousel images, and featured content deleted.',
+    deletedCounts: {
+      cards: deletedCards.deletedCount,
+      prices: deletedPrices.deletedCount,
+      carousel: deletedCarousel.deletedCount,
+      featuredProducts: deletedFeaturedProducts.deletedCount,
+      featuredBanners: deletedFeaturedBanners.deletedCount,
+    },
+  });
+});
+
+export const clearOrders = asyncHandler(async (req: Request, res: Response) => {
+  const deletedOrders = await Order.deleteMany({});
+  const deletedCarts = await Cart.deleteMany({});
+  const deletedTikTokOrders = await TikTokOrder.deleteMany({});
+  res.json({
+    success: true,
+    message: 'All orders, carts, and TikTok orders deleted.',
+    deletedCounts: {
+      orders: deletedOrders.deletedCount,
+      carts: deletedCarts.deletedCount,
+      tikTokOrders: deletedTikTokOrders.deletedCount,
+    },
+  });
+});
+
 export const clearDatabase = asyncHandler(async (req: Request, res: Response) => {
   // Delete all cards
   const deletedCards = await Card.deleteMany({});
