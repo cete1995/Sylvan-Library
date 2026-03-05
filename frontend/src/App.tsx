@@ -45,6 +45,7 @@ import ProfilePage from './pages/ProfilePage';
 import OrderHistoryPage from './pages/OrderHistoryPage';
 import OrderDetailPage from './pages/OrderDetailPage';
 import CafePage from './pages/CafePage';
+import ConsolesPage from './pages/ConsolesPage';
 import AdminCafePage from './pages/AdminCafePage';
 
 const App: React.FC = () => {
@@ -79,6 +80,7 @@ const App: React.FC = () => {
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/cart" element={<CartPage />} />
                 <Route path="/cafe" element={<CafePage />} />
+                <Route path="/consoles" element={<ConsolesPage />} />
                 {/* Redirect old admin login to unified login */}
                 <Route path="/admin/login" element={<Navigate to="/login" replace />} />
 

@@ -16,6 +16,8 @@ const BottomNav: React.FC = () => {
 
   const isActive = (path: string) => {
     if (path === '/') return location.pathname === '/';
+    // Treat /consoles as part of /cafe section
+    if (path === '/cafe') return location.pathname.startsWith('/cafe') || location.pathname.startsWith('/consoles');
     return location.pathname.startsWith(path);
   };
 

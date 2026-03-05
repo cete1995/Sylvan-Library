@@ -168,7 +168,8 @@ const ProfilePage: React.FC = () => {
             {[
               { to: '/orders', emoji: '📦', label: 'My MTG Orders' },
               { to: '/catalog', emoji: '🃏', label: 'Browse Cards' },
-              { to: '/cafe', emoji: '🎲', label: 'Café & Consoles' },
+              { to: '/cafe', emoji: '🎲', label: 'Boardgame Café' },
+              { to: '/consoles', emoji: '🎮', label: 'Console Rental' },
               { to: '/cart', emoji: '🛒', label: 'My Cart' },
             ].map(({ to, emoji, label }) => (
               <Link key={to} to={to}

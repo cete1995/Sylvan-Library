@@ -255,7 +255,7 @@ const HomePage: React.FC = () => {
 
             {/* PS5 Rental */}
             <Link
-              to="/cafe"
+              to="/consoles"
               className="group rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 block"
               style={{ background: 'linear-gradient(135deg, #0c1445 0%, #1e2d7d 100%)' }}
             >
@@ -264,7 +264,7 @@ const HomePage: React.FC = () => {
                 <h3 className="text-xl font-extrabold text-white mb-2">PS5 Rental</h3>
                 <p className="text-sm mb-4 flex-1" style={{ color: '#bfdbfe' }}>Latest PlayStation 5 titles on a big screen. Just show up and play.</p>
                 <span className="inline-flex items-center gap-1 text-sm font-bold" style={{ color: '#60a5fa' }}>
-                  See café info
+                  See rental info
                   <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
                 </span>
               </div>
@@ -272,7 +272,7 @@ const HomePage: React.FC = () => {
 
             {/* Nintendo Switch Rental */}
             <Link
-              to="/cafe"
+              to="/consoles"
               className="group rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 block"
               style={{ background: 'linear-gradient(135deg, #4a0505 0%, #b91c1c 100%)' }}
             >
@@ -281,7 +281,7 @@ const HomePage: React.FC = () => {
                 <h3 className="text-xl font-extrabold text-white mb-2">Nintendo Switch Rental</h3>
                 <p className="text-sm mb-4 flex-1" style={{ color: '#fecaca' }}>Mario Kart, Smash, party games and more — rent a Switch by the session.</p>
                 <span className="inline-flex items-center gap-1 text-sm font-bold" style={{ color: '#fca5a5' }}>
-                  See café info
+                  See rental info
                   <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
                 </span>
               </div>

@@ -264,77 +264,68 @@ const CafePage: React.FC = () => {
           </div>
         </section>
 
-        {/* Console Rental */}
+        {/* Console Rental teaser → link to /consoles */}
         {(info.ps5?.enabled || info.nintendoSwitch?.enabled) && (
           <section>
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style={{ backgroundColor: 'rgba(96,165,250,0.15)' }}>🎮</div>
-              <div>
-                <h2 className="text-2xl font-bold" style={{ color: 'var(--color-text)' }}>Console Rental</h2>
-                <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>Hourly rate · Happy hour deals available</p>
+            <div
+              className="rounded-3xl overflow-hidden shadow-lg"
+              style={{ background: 'linear-gradient(135deg, #0c0c2e 0%, #1a1060 40%, #2e0a45 100%)' }}
+            >
+              {/* Decorative blob */}
+              <div className="relative overflow-hidden">
+                <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full opacity-10" style={{ backgroundColor: '#818cf8' }} />
+                <div className="relative px-6 py-8 md:px-10 md:py-10">
+                  <div className="flex flex-col md:flex-row md:items-center gap-6">
+                    {/* Left: text */}
+                    <div className="flex-1 text-white">
+                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold mb-4"
+                        style={{ backgroundColor: 'rgba(99,102,241,0.3)', color: '#a5b4fc' }}>
+                        ⭐ Happy Hour Deals Available
+                      </div>
+                      <h2 className="text-2xl md:text-3xl font-extrabold mb-2">Console Rental</h2>
+                      <p className="text-sm mb-5" style={{ color: 'rgba(255,255,255,0.65)' }}>
+                        Rent a PS5 or Nintendo Switch by the hour. Happy hour pricing every evening.
+                      </p>
+                      {/* Mini price pills */}
+                      <div className="flex flex-wrap gap-2 mb-6">
+                        {info.ps5?.enabled && (
+                          <span className="px-3 py-1.5 rounded-full text-sm font-bold"
+                            style={{ backgroundColor: 'rgba(59,130,246,0.2)', color: '#93c5fd', border: '1px solid rgba(59,130,246,0.35)' }}>
+                            🎮 PS5 — {info.ps5.hourlyRate}/hr
+                          </span>
+                        )}
+                        {info.nintendoSwitch?.enabled && (
+                          <span className="px-3 py-1.5 rounded-full text-sm font-bold"
+                            style={{ backgroundColor: 'rgba(239,68,68,0.2)', color: '#fca5a5', border: '1px solid rgba(239,68,68,0.35)' }}>
+                            🕹️ Switch — {info.nintendoSwitch.hourlyRate}/hr
+                          </span>
+                        )}
+                      </div>
+                      <Link
+                        to="/consoles"
+                        className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all hover:scale-105 active:scale-95"
+                        style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', color: '#fff' }}
+                      >
+                        See Full Console Info
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </Link>
+                    </div>
+                    {/* Right: console emoji badges */}
+                    <div className="hidden md:flex items-center gap-6 shrink-0">
+                      {info.ps5?.enabled && (
+                        <div className="w-20 h-20 rounded-2xl flex items-center justify-center text-4xl shadow-lg"
+                          style={{ background: 'rgba(59,130,246,0.15)', border: '1.5px solid rgba(59,130,246,0.3)' }}>🎮</div>
+                      )}
+                      {info.nintendoSwitch?.enabled && (
+                        <div className="w-20 h-20 rounded-2xl flex items-center justify-center text-4xl shadow-lg"
+                          style={{ background: 'rgba(239,68,68,0.15)', border: '1.5px solid rgba(239,68,68,0.3)' }}>🕹️</div>
+                      )}
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-            <div className="grid md:grid-cols-2 gap-6">
-              {info.ps5?.enabled && (
-                <div className="rounded-2xl overflow-hidden shadow" style={{ backgroundColor: 'var(--color-panel)' }}>
-                  <div className="px-6 py-4" style={{ background: 'linear-gradient(135deg, #0c1445 0%, #1e2d7d 100%)' }}>
-                    <div className="flex items-center gap-3">
-                      <span className="text-3xl">🎮</span>
-                      <div>
-                        <h3 className="text-xl font-extrabold text-white">{info.ps5.name}</h3>
-                        <p className="text-blue-200 text-sm">PlayStation 5</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="p-5 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-semibold" style={{ color: 'var(--color-text-secondary)' }}>Hourly Rate</span>
-                      <span className="text-xl font-extrabold" style={{ color: '#3b82f6' }}>{info.ps5.hourlyRate}</span>
-                    </div>
-                    {info.ps5.happyHourStart && (
-                      <div className="flex items-start gap-3 px-3 py-2.5 rounded-xl" style={{ backgroundColor: 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.3)' }}>
-                        <span className="text-lg">⭐</span>
-                        <div>
-                          <p className="text-xs font-bold">Happy Hour from {info.ps5.happyHourStart}</p>
-                          <p className="text-sm font-extrabold" style={{ color: '#f59e0b' }}>{info.ps5.happyHourRate}</p>
-                          <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>{info.ps5.happyHourNote}</p>
-                        </div>
-                      </div>
-                    )}
-                    {info.ps5.desc && <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>{info.ps5.desc}</p>}
-                  </div>
-                </div>
-              )}
-              {info.nintendoSwitch?.enabled && (
-                <div className="rounded-2xl overflow-hidden shadow" style={{ backgroundColor: 'var(--color-panel)' }}>
-                  <div className="px-6 py-4" style={{ background: 'linear-gradient(135deg, #4a0505 0%, #b91c1c 100%)' }}>
-                    <div className="flex items-center gap-3">
-                      <span className="text-3xl">🕹️</span>
-                      <div>
-                        <h3 className="text-xl font-extrabold text-white">{info.nintendoSwitch.name}</h3>
-                        <p className="text-red-200 text-sm">Nintendo Switch</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="p-5 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-semibold" style={{ color: 'var(--color-text-secondary)' }}>Hourly Rate</span>
-                      <span className="text-xl font-extrabold" style={{ color: '#ef4444' }}>{info.nintendoSwitch.hourlyRate}</span>
-                    </div>
-                    {info.nintendoSwitch.happyHourStart && (
-                      <div className="flex items-start gap-3 px-3 py-2.5 rounded-xl" style={{ backgroundColor: 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.3)' }}>
-                        <span className="text-lg">⭐</span>
-                        <div>
-                          <p className="text-xs font-bold">Happy Hour from {info.nintendoSwitch.happyHourStart}</p>
-                          <p className="text-sm font-extrabold" style={{ color: '#f59e0b' }}>{info.nintendoSwitch.happyHourRate}</p>
-                          <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>{info.nintendoSwitch.happyHourNote}</p>
-                        </div>
-                      </div>
-                    )}
-                    {info.nintendoSwitch.desc && <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>{info.nintendoSwitch.desc}</p>}
-                  </div>
-                </div>
-              )}
             </div>
           </section>
         )}
