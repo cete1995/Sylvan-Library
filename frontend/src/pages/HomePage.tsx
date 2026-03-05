@@ -5,7 +5,7 @@ import FeaturedSection from '../components/FeaturedSection';
 import { carouselApi } from '../api/carousel';
 import { useAuth } from '../contexts/AuthContext';
 
-const cafeFeatures = [
+const offerings = [
   {
     gradient: 'from-emerald-400 to-green-600',
     emoji: '🎲',
@@ -19,10 +19,22 @@ const cafeFeatures = [
     desc: 'Dedicated Mahjong tables always ready. Bring your friends and enjoy a proper session in a comfortable space.',
   },
   {
+    gradient: 'from-blue-500 to-indigo-700',
+    emoji: '🎮',
+    title: 'PS5 Rental',
+    desc: 'Play the latest PlayStation 5 titles with your crew. Big screen, great sound, no console needed — just show up.',
+  },
+  {
+    gradient: 'from-red-400 to-rose-600',
+    emoji: '🕹️',
+    title: 'Nintendo Switch Rental',
+    desc: 'Mario Kart, Smash Bros, party games and more. Rent a Switch by the session and game with everyone.',
+  },
+  {
     gradient: 'from-sky-400 to-blue-600',
-    emoji: '🙌',
+    emoji: '💸',
     title: 'Flat Entry Fee',
-    desc: 'No hourly charges, no surprises. Pay once and play all day — games, tables, and community included.',
+    desc: 'No hourly charges, no surprises. Pay once and enjoy board games, consoles, Mahjong, and more all day.',
   },
   {
     gradient: 'from-purple-400 to-violet-600',
@@ -47,6 +59,8 @@ const cafeFeatures = [
 const statsBar = [
   { emoji: '🎲', value: '100+', label: 'Board Games' },
   { emoji: '🀄', value: '4+', label: 'Mahjong Tables' },
+  { emoji: '🎮', value: 'PS5', label: 'Console Rental' },
+  { emoji: '🕹️', value: 'Switch', label: 'Console Rental' },
   { emoji: '🃏', value: '10,000+', label: 'MTG Singles' },
   { emoji: '💸', value: 'Flat Fee', label: 'No Hourly Charge' },
 ];
@@ -86,7 +100,7 @@ const HomePage: React.FC = () => {
               style={{ backgroundColor: 'rgba(255,255,255,0.10)', border: '1px solid rgba(255,255,255,0.22)' }}
             >
               <span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: '#86efac' }} />
-              Boardgame Café  ·  Mahjong  ·  MTG Singles
+              Boardgame Café  ·  Mahjong  ·  PS5 & Switch Rental  ·  MTG Singles
             </div>
 
             <h1 className="text-4xl md:text-6xl font-extrabold mb-6 leading-tight tracking-tight">
@@ -100,8 +114,8 @@ const HomePage: React.FC = () => {
             </h1>
 
             <p className="text-lg md:text-xl mb-10 leading-relaxed max-w-2xl mx-auto" style={{ color: '#bbf7d0' }}>
-              A cozy boardgame café with 100+ games and Mahjong tables — plus thousands of MTG singles available on-site.
-              One flat entry fee. No hourly charge. Just good games and great company.
+              100+ board games, Mahjong tables, PS5 &amp; Nintendo Switch rentals, and thousands of MTG singles — all under one roof.
+              One flat entry fee. No hourly charge. Just good times.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center flex-wrap">
@@ -157,12 +171,12 @@ const HomePage: React.FC = () => {
       {/* ── Stats Bar ── */}
       <div style={{ backgroundColor: '#14532d', color: '#fff' }}>
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-white/20">
+          <div className="grid grid-cols-3 md:grid-cols-6 divide-x divide-white/20">
             {statsBar.map(({ emoji, value, label }) => (
-              <div key={label} className="flex flex-col items-center justify-center py-4 px-2 gap-0.5">
+              <div key={`${value}-${label}`} className="flex flex-col items-center justify-center py-4 px-2 gap-0.5">
                 <span className="text-xl">{emoji}</span>
-                <span className="font-extrabold text-lg leading-tight">{value}</span>
-                <span className="text-xs font-medium opacity-75">{label}</span>
+                <span className="font-extrabold text-base leading-tight">{value}</span>
+                <span className="text-xs font-medium opacity-75 text-center">{label}</span>
               </div>
             ))}
           </div>
@@ -179,15 +193,15 @@ const HomePage: React.FC = () => {
             ★ Our Main Attraction
           </div>
           <h2 className="text-3xl md:text-4xl font-extrabold mb-3" style={{ color: 'var(--color-text)' }}>
-            The Boardgame Café Experience
+            Everything We Offer
           </h2>
           <p className="text-base max-w-xl mx-auto" style={{ color: 'var(--color-text-secondary)' }}>
-            Everything that makes Sylvan Library the go-to spot for hobby lovers in our community.
+            Board games, consoles, Mahjong, and MTG — Sylvan Library is your all-in-one hobby destination.
           </p>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {cafeFeatures.map(({ gradient, emoji, title, desc }) => (
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          {offerings.map(({ gradient, emoji, title, desc }) => (
             <div
               key={title}
               className="rounded-2xl shadow-md p-7 flex flex-col hover:shadow-xl transition-all hover:-translate-y-1"
@@ -214,49 +228,77 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* ── Two Pillars ── */}
+      {/* ── Four Pillars ── */}
       <section className="border-t" style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-panel)' }}>
         <div className="container mx-auto px-4 py-12">
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-5">
 
-            {/* Café pillar — primary */}
+            {/* Café — primary */}
             <Link
               to="/cafe"
-              className="group rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all hover:-translate-y-1 block"
+              className="group rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all hover:-translate-y-1 block xl:col-span-1"
               style={{ background: 'linear-gradient(135deg, #0d2818 0%, #1a3d1a 60%, #1e4d20 100%)' }}
             >
-              <div className="p-8 flex flex-col h-full min-h-[220px]">
-                <div className="flex items-start gap-3 mb-3">
-                  <span className="text-5xl">🎲</span>
-                  <span className="mt-2 inline-flex px-2 py-0.5 rounded text-xs font-bold" style={{ backgroundColor: '#16a34a', color: '#fff' }}>Main</span>
+              <div className="p-7 flex flex-col h-full min-h-[200px]">
+                <div className="flex items-start gap-2 mb-3">
+                  <span className="text-4xl">🎲</span>
+                  <span className="mt-1.5 inline-flex px-2 py-0.5 rounded text-xs font-bold" style={{ backgroundColor: '#16a34a', color: '#fff' }}>Main</span>
                 </div>
-                <h3 className="text-2xl font-extrabold text-white mb-2">Boardgame Café & Mahjong</h3>
-                <p className="text-sm mb-6 flex-1" style={{ color: '#bbf7d0' }}>
-                  100+ board games, dedicated Mahjong tables, and a welcoming space to hang out.
-                  Flat entry fee — no hourly charges.
-                </p>
-                <span className="inline-flex items-center gap-1.5 text-sm font-bold" style={{ color: '#fbbf24' }}>
-                  View café details
+                <h3 className="text-xl font-extrabold text-white mb-2">Boardgame Café & Mahjong</h3>
+                <p className="text-sm mb-4 flex-1" style={{ color: '#bbf7d0' }}>100+ board games, dedicated Mahjong tables. Flat entry fee.</p>
+                <span className="inline-flex items-center gap-1 text-sm font-bold" style={{ color: '#fbbf24' }}>
+                  View details
                   <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
                 </span>
               </div>
             </Link>
 
-            {/* MTG shop pillar — secondary */}
+            {/* PS5 Rental */}
+            <Link
+              to="/cafe"
+              className="group rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 block"
+              style={{ background: 'linear-gradient(135deg, #0c1445 0%, #1e2d7d 100%)' }}
+            >
+              <div className="p-7 flex flex-col h-full min-h-[200px]">
+                <div className="text-4xl mb-3">🎮</div>
+                <h3 className="text-xl font-extrabold text-white mb-2">PS5 Rental</h3>
+                <p className="text-sm mb-4 flex-1" style={{ color: '#bfdbfe' }}>Latest PlayStation 5 titles on a big screen. Just show up and play.</p>
+                <span className="inline-flex items-center gap-1 text-sm font-bold" style={{ color: '#60a5fa' }}>
+                  See café info
+                  <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
+                </span>
+              </div>
+            </Link>
+
+            {/* Nintendo Switch Rental */}
+            <Link
+              to="/cafe"
+              className="group rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 block"
+              style={{ background: 'linear-gradient(135deg, #4a0505 0%, #b91c1c 100%)' }}
+            >
+              <div className="p-7 flex flex-col h-full min-h-[200px]">
+                <div className="text-4xl mb-3">🕹️</div>
+                <h3 className="text-xl font-extrabold text-white mb-2">Nintendo Switch Rental</h3>
+                <p className="text-sm mb-4 flex-1" style={{ color: '#fecaca' }}>Mario Kart, Smash, party games and more — rent a Switch by the session.</p>
+                <span className="inline-flex items-center gap-1 text-sm font-bold" style={{ color: '#fca5a5' }}>
+                  See café info
+                  <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
+                </span>
+              </div>
+            </Link>
+
+            {/* MTG shop */}
             <Link
               to="/catalog"
               className="group rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 block"
               style={{ background: 'linear-gradient(135deg, #0f2744 0%, #1e3a5f 100%)' }}
             >
-              <div className="p-8 flex flex-col h-full min-h-[220px]">
-                <div className="text-5xl mb-4">🃏</div>
-                <h3 className="text-2xl font-extrabold text-white mb-2">MTG Singles Store</h3>
-                <p className="text-sm mb-6 flex-1" style={{ color: '#bfdbfe' }}>
-                  Thousands of graded Magic: The Gathering singles — from commons to mythic rares,
-                  always accurately priced and available on-site.
-                </p>
-                <span className="inline-flex items-center gap-1.5 text-sm font-bold" style={{ color: '#34d399' }}>
-                  Browse the catalog
+              <div className="p-7 flex flex-col h-full min-h-[200px]">
+                <div className="text-4xl mb-3">🃏</div>
+                <h3 className="text-xl font-extrabold text-white mb-2">MTG Singles Store</h3>
+                <p className="text-sm mb-4 flex-1" style={{ color: '#bfdbfe' }}>Thousands of graded Magic singles — commons to mythic rares, on-site.</p>
+                <span className="inline-flex items-center gap-1 text-sm font-bold" style={{ color: '#34d399' }}>
+                  Browse catalog
                   <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
                 </span>
               </div>
@@ -273,12 +315,12 @@ const HomePage: React.FC = () => {
       >
         <div className="container mx-auto px-4 text-center max-w-2xl">
           {/* Decorative */}
-          <div className="text-6xl mb-4">🎲</div>
+          <div className="flex justify-center gap-3 text-5xl mb-5">🎲 🎮 🕹️ 🀄</div>
           <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white">
             Come Hang Out at Sylvan Library
           </h2>
           <p className="text-base mb-8" style={{ color: '#bbf7d0' }}>
-            Grab a seat, pick a game, and enjoy the company. Board games, Mahjong, and MTG — all under one roof.
+            Board games, PS5 &amp; Switch rentals, Mahjong, and MTG — one flat entry fee, endless fun.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
