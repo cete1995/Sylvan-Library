@@ -52,21 +52,65 @@ const RegisterPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-indigo-50 flex items-center justify-center py-12 px-4">
-      <div className="max-w-md w-full">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="bg-gradient-to-r from-purple-600 to-pink-600 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-            </svg>
+    <div className="min-h-screen flex" style={{ backgroundColor: 'var(--color-background)' }}>
+
+      {/* ── Left brand panel (hidden on mobile) ── */}
+      <div
+        className="hidden lg:flex lg:w-[46%] flex-col justify-between p-12 relative overflow-hidden"
+        style={{ background: 'linear-gradient(160deg, #0d2818 0%, #1a3d1a 50%, #14391f 100%)' }}
+      >
+        <div className="absolute -top-24 -right-24 w-80 h-80 rounded-full opacity-[0.07]" style={{ backgroundColor: '#86efac' }} />
+        <div className="absolute -bottom-24 -left-24 w-80 h-80 rounded-full opacity-[0.07]" style={{ backgroundColor: '#fbbf24' }} />
+
+        <div>
+          <div className="flex items-center gap-3 mb-10">
+            <div className="w-11 h-11 rounded-xl flex items-center justify-center text-2xl" style={{ backgroundColor: 'rgba(255,255,255,0.12)' }}>🍃</div>
+            <span className="text-xl font-extrabold text-white tracking-tight">Sylvan Library</span>
           </div>
-          <h2 className="text-4xl font-bold text-gray-800 mb-2">Create Account</h2>
-          <p className="text-gray-600">Join us and start building your collection</p>
+          <h2 className="text-3xl font-extrabold text-white leading-snug mb-3">
+            Join the<br />community
+          </h2>
+          <p style={{ color: '#86efac' }} className="text-base">
+            One account for all things Sylvan Library
+          </p>
         </div>
 
+        <div className="space-y-4">
+          {[
+            { e: '🎲', t: 'Board Games & Mahjong', d: 'Flat entry, no hourly charge' },
+            { e: '🎮', t: 'PS5 & Switch Rental', d: 'Console sessions with happy hour' },
+            { e: '🃏', t: 'MTG Singles', d: 'Order cards online, pick up in store' },
+            { e: '📦', t: 'Track Your Orders', d: 'Order history & status updates' },
+          ].map(({ e, t, d }) => (
+            <div key={t} className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0" style={{ backgroundColor: 'rgba(255,255,255,0.09)' }}>{e}</div>
+              <div>
+                <p className="text-sm font-bold text-white">{t}</p>
+                <p className="text-xs" style={{ color: '#86efac' }}>{d}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <p className="text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>© 2026 Sylvan Library</p>
+      </div>
+
+      {/* ── Right form panel ── */}
+      <div className="flex-1 flex items-center justify-center py-12 px-6">
+        <div className="w-full max-w-md">
+          {/* Mobile logo */}
+          <div className="flex items-center gap-2 mb-8 lg:hidden">
+            <span className="text-2xl">🍃</span>
+            <span className="text-lg font-extrabold" style={{ color: 'var(--color-text)' }}>Sylvan Library</span>
+          </div>
+
+          <h2 className="text-3xl font-extrabold mb-1" style={{ color: 'var(--color-text)' }}>Create Account</h2>
+          <p className="text-sm mb-8" style={{ color: 'var(--color-text-secondary)' }}>
+            Join the community — board games, consoles, Mahjong & MTG
+          </p>
+
         {/* Form Card */}
-        <div className="rounded-2xl shadow-xl p-8" style={{ backgroundColor: 'var(--color-panel)' }}>
+        <div className="rounded-2xl shadow-lg p-8" style={{ backgroundColor: 'var(--color-panel)', border: '1px solid var(--color-border)' }}>
           {error && (
             <div className="bg-red-50 border-l-4 border-red-500 text-red-700 px-4 py-4 rounded-lg mb-6">
               <div className="flex items-start">
@@ -80,7 +124,7 @@ const RegisterPage: React.FC = () => {
 
           <form className="space-y-4" onSubmit={handleSubmit}>
             <div>
-              <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label htmlFor="name" className="block text-sm font-semibold mb-2" style={{ color: 'var(--color-text)' }}>
                 <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
@@ -107,7 +151,7 @@ const RegisterPage: React.FC = () => {
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label htmlFor="email" className="block text-sm font-semibold mb-2" style={{ color: 'var(--color-text)' }}>
                 <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
                 </svg>
@@ -134,7 +178,7 @@ const RegisterPage: React.FC = () => {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label htmlFor="password" className="block text-sm font-semibold mb-2" style={{ color: 'var(--color-text)' }}>
                 <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
@@ -167,7 +211,7 @@ const RegisterPage: React.FC = () => {
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label htmlFor="confirmPassword" className="block text-sm font-semibold mb-2" style={{ color: 'var(--color-text)' }}>
                 <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -221,10 +265,11 @@ const RegisterPage: React.FC = () => {
 
         {/* Sign in link */}
         <div className="text-center mt-6">
-          <span className="text-gray-600">Already have an account? </span>
-          <Link to="/login" className="text-purple-600 hover:text-purple-700 font-semibold hover:underline">
+          <span style={{ color: 'var(--color-text-secondary)' }}>Already have an account? </span>
+          <Link to="/login" className="font-semibold hover:underline" style={{ color: 'var(--color-accent)' }}>
             Sign in
           </Link>
+        </div>
         </div>
       </div>
     </div>

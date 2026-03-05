@@ -93,21 +93,68 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center py-12 px-4">
-      <div className="max-w-md w-full">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
+    <div className="min-h-screen flex" style={{ backgroundColor: 'var(--color-background)' }}>
+
+      {/* ── Left brand panel (hidden on mobile) ── */}
+      <div
+        className="hidden lg:flex lg:w-[46%] flex-col justify-between p-12 relative overflow-hidden"
+        style={{ background: 'linear-gradient(160deg, #0d2818 0%, #1a3d1a 50%, #14391f 100%)' }}
+      >
+        {/* bg blobs */}
+        <div className="absolute -top-24 -right-24 w-80 h-80 rounded-full opacity-[0.07]" style={{ backgroundColor: '#86efac' }} />
+        <div className="absolute -bottom-24 -left-24 w-80 h-80 rounded-full opacity-[0.07]" style={{ backgroundColor: '#fbbf24' }} />
+
+        {/* Logo */}
+        <div>
+          <div className="flex items-center gap-3 mb-10">
+            <div className="w-11 h-11 rounded-xl flex items-center justify-center text-2xl" style={{ backgroundColor: 'rgba(255,255,255,0.12)' }}>🍃</div>
+            <span className="text-xl font-extrabold text-white tracking-tight">Sylvan Library</span>
           </div>
-          <h2 className="text-4xl font-bold text-gray-800 mb-2">Welcome Back</h2>
-          <p className="text-gray-600">Sign in to access your account</p>
+          <h2 className="text-3xl font-extrabold text-white leading-snug mb-3">
+            Welcome back<br />to the hub
+          </h2>
+          <p style={{ color: '#86efac' }} className="text-base">
+            Board games · PS5 & Switch · Mahjong · MTG Singles
+          </p>
         </div>
 
+        {/* Perks */}
+        <div className="space-y-4">
+          {[
+            { e: '🎲', t: '100+ Board Games', d: 'Flat entry fee, play all day' },
+            { e: '🎮', t: 'PS5 & Switch Rental', d: 'Hourly rate with happy hour deals' },
+            { e: '🀄', t: 'Mahjong Tables', d: 'Dedicated tables, full equipment' },
+            { e: '🃏', t: 'MTG Singles Store', d: 'Thousands of graded cards on-site' },
+          ].map(({ e, t, d }) => (
+            <div key={t} className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0" style={{ backgroundColor: 'rgba(255,255,255,0.09)' }}>{e}</div>
+              <div>
+                <p className="text-sm font-bold text-white">{t}</p>
+                <p className="text-xs" style={{ color: '#86efac' }}>{d}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <p className="text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>© 2026 Sylvan Library</p>
+      </div>
+
+      {/* ── Right form panel ── */}
+      <div className="flex-1 flex items-center justify-center py-12 px-6">
+        <div className="w-full max-w-md">
+          {/* Mobile logo */}
+          <div className="flex items-center gap-2 mb-8 lg:hidden">
+            <span className="text-2xl">🍃</span>
+            <span className="text-lg font-extrabold" style={{ color: 'var(--color-text)' }}>Sylvan Library</span>
+          </div>
+
+          <h2 className="text-3xl font-extrabold mb-1" style={{ color: 'var(--color-text)' }}>Sign in</h2>
+          <p className="text-sm mb-8" style={{ color: 'var(--color-text-secondary)' }}>
+            Access your account and MTG order history
+          </p>
+
         {/* Form Card */}
-        <div className="rounded-2xl shadow-xl p-8" style={{ backgroundColor: 'var(--color-panel)' }}>
+        <div className="rounded-2xl shadow-lg p-8" style={{ backgroundColor: 'var(--color-panel)', border: '1px solid var(--color-border)' }}>
           {error && (
             <div className="bg-red-50 border-l-4 border-red-500 text-red-700 px-4 py-4 rounded-lg relative mb-6">
               <div className="flex items-start">
@@ -133,7 +180,7 @@ const LoginPage: React.FC = () => {
 
           <form className="space-y-5" onSubmit={(e) => { e.preventDefault(); return false; }}>
             <div>
-              <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label htmlFor="email" className="block text-sm font-semibold mb-2" style={{ color: 'var(--color-text)' }}>
                 <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
                 </svg>
@@ -166,7 +213,7 @@ const LoginPage: React.FC = () => {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label htmlFor="password" className="block text-sm font-semibold mb-2" style={{ color: 'var(--color-text)' }}>
                 <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
@@ -227,10 +274,11 @@ const LoginPage: React.FC = () => {
 
         {/* Sign up link */}
         <div className="text-center mt-6">
-          <span className="text-gray-600">Don't have an account? </span>
+          <span style={{ color: 'var(--color-text-secondary)' }}>Don't have an account? </span>
           <Link to="/register" className="font-semibold hover:underline hover:opacity-80" style={{ color: 'var(--color-accent)' }}>
             Sign up here
           </Link>
+        </div>
         </div>
       </div>
     </div>

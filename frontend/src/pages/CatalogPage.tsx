@@ -189,16 +189,32 @@ const CatalogPage: React.FC = () => {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--color-background)' }}>
-      <div className="container mx-auto px-4 py-6 md:py-8 max-w-7xl">
-        <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold mb-3 flex items-center gap-3" style={{ color: 'var(--color-text)' }}>
-            <svg className="w-9 h-9 md:w-10 md:h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--color-accent)' }}>
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-            </svg>
-            Card Catalog
-          </h1>
-          <p className="text-sm md:text-base" style={{ color: 'var(--color-text-secondary)' }}>Browse and search our complete collection of Magic: The Gathering cards</p>
+
+      {/* ── Branded header banner ── */}
+      <div className="relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #0d2818 0%, #1a3d1a 60%, #14391f 100%)' }}>
+        <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full opacity-[0.07]" style={{ backgroundColor: '#86efac' }} />
+        <div className="container mx-auto px-4 py-8 max-w-7xl">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-widest mb-1" style={{ color: '#86efac' }}>MTG Singles</p>
+              <h1 className="text-3xl md:text-4xl font-extrabold text-white flex items-center gap-3">
+                🃏 Card Catalog
+              </h1>
+              <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.6)' }}>Browse our complete collection of Magic: The Gathering singles</p>
+            </div>
+            {/* Mini nav pills */}
+            <div className="flex flex-wrap gap-2 shrink-0">
+              {['🎲 Board Games', '🎮 PS5', '🕹️ Switch', '🀄 Mahjong'].map(label => (
+                <span key={label} className="px-3 py-1 rounded-full text-xs font-semibold" style={{ backgroundColor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.7)' }}>
+                  {label}
+                </span>
+              ))}
+            </div>
+          </div>
         </div>
+      </div>
+
+      <div className="container mx-auto px-4 py-6 md:py-8 max-w-7xl">
 
         <div className="grid lg:grid-cols-4 gap-6">
           {/* Filters Sidebar */}

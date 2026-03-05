@@ -140,15 +140,24 @@ const CartPage: React.FC = () => {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--color-background)' }}>
+
+      {/* ── Branded header banner ── */}
+      <div className="relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #0d2818 0%, #1a3d1a 60%, #14391f 100%)' }}>
+        <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full opacity-[0.07]" style={{ backgroundColor: '#86efac' }} />
+        <div className="container mx-auto px-4 py-8 max-w-7xl">
+          <p className="text-xs font-semibold uppercase tracking-widest mb-1" style={{ color: '#86efac' }}>MTG Singles</p>
+          <h1 className="text-3xl md:text-4xl font-extrabold text-white flex items-center gap-3">
+            🛒 Shopping Cart
+          </h1>
+          <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.6)' }}>
+            {cart.items.length} {cart.items.length === 1 ? 'item' : 'items'} in your cart
+          </p>
+        </div>
+      </div>
+
       <div className="container mx-auto px-4 py-6 md:py-10 max-w-7xl">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 md:mb-8 gap-4">
-          <div>
-            <h1 className="text-3xl md:text-4xl font-bold mb-2" style={{ color: 'var(--color-text)' }}>Shopping Cart</h1>
-            <p className="text-sm md:text-base" style={{ color: 'var(--color-text-secondary)' }}>
-              {cart.items.length} {cart.items.length === 1 ? 'item' : 'items'} in your cart
-            </p>
-          </div>
+        {/* Header actions */}
+        <div className="flex justify-end mb-6 md:mb-8">
           {confirmClear ? (
             <div className="flex gap-2 items-center self-start sm:self-auto">
               <span className="text-sm font-medium" style={{ color: 'var(--color-text)' }}>Clear all items?</span>

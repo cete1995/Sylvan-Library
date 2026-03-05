@@ -137,26 +137,69 @@ const ProfilePage: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-6 md:py-8">
-      <div className="max-w-3xl mx-auto">
-        <div className="mb-4 md:mb-6">
-          <h1 className="text-2xl md:text-3xl font-bold" style={{ color: 'var(--color-text)' }}>My Profile</h1>
-          <p className="text-sm md:text-base mt-1 md:mt-2" style={{ color: 'var(--color-text-secondary)' }}>Manage your account information</p>
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--color-background)' }}>
+
+      {/* ── Branded header banner ── */}
+      <div className="relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #0d2818 0%, #1a3d1a 60%, #14391f 100%)' }}>
+        <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full opacity-[0.07]" style={{ backgroundColor: '#86efac' }} />
+        <div className="container mx-auto px-4 py-10">
+          <div className="flex items-center gap-5">
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-extrabold text-white flex-shrink-0"
+              style={{ backgroundColor: 'rgba(255,255,255,0.15)', border: '2px solid rgba(255,255,255,0.2)' }}>
+              {formData.profilePhoto || previewUrl
+                ? <img src={previewUrl || formData.profilePhoto} alt="Profile" className="w-full h-full rounded-2xl object-cover" />
+                : (profile?.name?.[0] || user?.email?.[0] || '?').toUpperCase()
+              }
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-widest mb-0.5" style={{ color: '#86efac' }}>My Account</p>
+              <h1 className="text-2xl font-extrabold text-white">{profile?.name || user?.email}</h1>
+              <p className="text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>{profile?.email}</p>
+            </div>
+          </div>
         </div>
+      </div>
+
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-5xl mx-auto flex flex-col lg:flex-row gap-6">
+
+          {/* ── Sidebar quick links ── */}
+          <div className="lg:w-56 shrink-0 space-y-2">
+            {[
+              { to: '/orders', emoji: '📦', label: 'My MTG Orders' },
+              { to: '/catalog', emoji: '🃏', label: 'Browse Cards' },
+              { to: '/cafe', emoji: '🎲', label: 'Café & Consoles' },
+              { to: '/cart', emoji: '🛒', label: 'My Cart' },
+            ].map(({ to, emoji, label }) => (
+              <Link key={to} to={to}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all hover:opacity-80"
+                style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)', border: '1px solid var(--color-border)' }}>
+                <span>{emoji}</span>
+                {label}
+                <svg className="w-3.5 h-3.5 ml-auto opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
+              </Link>
+            ))}
+          </div>
+
+          {/* ── Main profile card ── */}
+          <div className="flex-1">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-xl font-bold" style={{ color: 'var(--color-text)' }}>Profile Information</h2>
+              <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>Used for MTG card deliveries</p>
+            </div>
 
         {error && (
-          <div className="alert-error mb-4">
+          <div className="mb-4 px-4 py-3 rounded-xl text-sm font-medium" style={{ backgroundColor: '#FEE2E2', color: '#DC2626', border: '1px solid #FCA5A5' }}>
             {error}
           </div>
         )}
-
         {success && (
-          <div className="alert-success mb-4">
+          <div className="mb-4 px-4 py-3 rounded-xl text-sm font-medium" style={{ backgroundColor: '#D1FAE5', color: '#065F46', border: '1px solid #6EE7B7' }}>
             {success}
           </div>
         )}
 
-        <div className="rounded-lg shadow-md p-4 md:p-6" style={{ backgroundColor: 'var(--color-panel)' }}>
+        <div className="rounded-2xl shadow-sm p-6" style={{ backgroundColor: 'var(--color-panel)', border: '1px solid var(--color-border)' }}>
           {/* Profile Photo Section */}
           <div className="flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-6 mb-4 md:mb-6 pb-4 md:pb-6 border-b">
             <div className="flex-shrink-0">
@@ -360,6 +403,8 @@ const ProfilePage: React.FC = () => {
               </div>
             </div>
           )}
+        </div>
+          </div>
         </div>
       </div>
     </div>
