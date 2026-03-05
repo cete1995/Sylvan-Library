@@ -13,9 +13,28 @@ export interface ICafeGame {
   icon: string;
 }
 
+/** One row in a day-based flat-fee pricing table */
+export interface ICafeDayPrice {
+  label: string;  // e.g. "Weekday (Mon–Thu)"
+  price: string;  // e.g. "Rp 30.000"
+}
+
+/** PS5 / Nintendo Switch rental settings */
+export interface ICafeConsole {
+  enabled: boolean;
+  name: string;
+  icon: string;
+  hourlyRate: string;       // e.g. "Rp 25.000 / jam"
+  happyHourStart: string;   // "17:00" — empty = no happy hour
+  happyHourRate: string;    // e.g. "Rp 15.000 / jam"
+  happyHourNote: string;    // e.g. "Until closing time"
+  desc: string;
+}
+
 export interface ICafeMahjong {
   tables: number;
-  sessionPrice: string;
+  sessionPrice: string;       // fallback single-price string
+  pricing: ICafeDayPrice[];   // day-based pricing rows
   desc: string;
 }
 
@@ -26,11 +45,14 @@ export interface ICafeSettings extends Document {
   mapUrl: string;
   whatsapp: string;
   instagram: string;
-  entranceFee: string;
+  entranceFee: string;           // fallback single-price string
   entranceDesc: string;
   gameCount: string;
+  boardgamePricing: ICafeDayPrice[];  // day-based boardgame pricing rows
   hours: ICafeHour[];
   mahjong: ICafeMahjong;
+  ps5: ICafeConsole;
+  nintendoSwitch: ICafeConsole;
   games: ICafeGame[];
   updatedAt: Date;
 }
@@ -48,9 +70,26 @@ const cafeGameSchema = new Schema<ICafeGame>({
   icon: { type: String, default: '🎲' },
 }, { _id: false });
 
+const cafeDayPriceSchema = new Schema<ICafeDayPrice>({
+  label: { type: String, default: '' },
+  price: { type: String, default: '' },
+}, { _id: false });
+
+const cafeConsoleSchema = new Schema<ICafeConsole>({
+  enabled: { type: Boolean, default: false },
+  name: { type: String, default: '' },
+  icon: { type: String, default: '🎮' },
+  hourlyRate: { type: String, default: '' },
+  happyHourStart: { type: String, default: '' },
+  happyHourRate: { type: String, default: '' },
+  happyHourNote: { type: String, default: 'Until closing time' },
+  desc: { type: String, default: '' },
+}, { _id: false });
+
 const cafeMahjongSchema = new Schema<ICafeMahjong>({
   tables: { type: Number, default: 4 },
   sessionPrice: { type: String, default: '' },
+  pricing: { type: [cafeDayPriceSchema], default: [] },
   desc: { type: String, default: '' },
 }, { _id: false });
 
@@ -79,6 +118,18 @@ const DEFAULT_GAMES: ICafeGame[] = [
   { name: '7 Wonders', players: '2–7', duration: '30 min', icon: '🏛️' },
 ];
 
+const DEFAULT_PS5: ICafeConsole = {
+  enabled: false, name: 'PS5', icon: '🎮',
+  hourlyRate: '', happyHourStart: '', happyHourRate: '',
+  happyHourNote: 'Until closing time', desc: '',
+};
+
+const DEFAULT_SWITCH: ICafeConsole = {
+  enabled: false, name: 'Nintendo Switch', icon: '🕹️',
+  hourlyRate: '', happyHourStart: '', happyHourRate: '',
+  happyHourNote: 'Until closing time', desc: '',
+};
+
 const cafeSettingsSchema = new Schema<ICafeSettings>(
   {
     name: { type: String, default: 'Sylvan Library Boardgame Café' },
@@ -90,15 +141,19 @@ const cafeSettingsSchema = new Schema<ICafeSettings>(
     entranceFee: { type: String, default: 'Rp 30.000' },
     entranceDesc: { type: String, default: 'Flat entry fee includes access to our full game library. No hourly charge.' },
     gameCount: { type: String, default: '100+' },
+    boardgamePricing: { type: [cafeDayPriceSchema], default: [] },
     hours: { type: [cafeHourSchema], default: DEFAULT_HOURS },
     mahjong: {
       type: cafeMahjongSchema,
       default: {
         tables: 4,
         sessionPrice: 'Rp 20.000 / person / session',
+        pricing: [],
         desc: 'Enjoy a classic game of Mahjong at our dedicated mahjong tables. Full sets provided — all tiles, dice, and trays included.',
       },
     },
+    ps5: { type: cafeConsoleSchema, default: () => ({ ...DEFAULT_PS5 }) },
+    nintendoSwitch: { type: cafeConsoleSchema, default: () => ({ ...DEFAULT_SWITCH }) },
     games: { type: [cafeGameSchema], default: DEFAULT_GAMES },
   },
   { timestamps: true }

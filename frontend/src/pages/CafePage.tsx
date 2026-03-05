@@ -166,11 +166,25 @@ const CafePage: React.FC = () => {
             {/* Entry Fee */}
             <div className="rounded-2xl p-6 shadow" style={{ backgroundColor: 'var(--color-panel)' }}>
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style={{ backgroundColor: 'rgba(251,191,36,0.15)' }}></div>
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style={{ backgroundColor: 'rgba(251,191,36,0.15)' }}>💸</div>
                 <h2 className="text-xl font-bold" style={{ color: 'var(--color-text)' }}>Entry Fee</h2>
               </div>
-              <p className="text-3xl font-extrabold mb-1" style={{ color: '#16a34a' }}>{info.entranceFee}</p>
-              <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>{info.entranceDesc}</p>
+              {info.boardgamePricing?.length > 0 ? (
+                <div className="space-y-2">
+                  {info.boardgamePricing.map(({ label, price }) => (
+                    <div key={label} className="flex items-center justify-between px-3 py-2 rounded-lg" style={{ backgroundColor: 'var(--color-background)' }}>
+                      <span className="text-sm font-medium" style={{ color: 'var(--color-text)' }}>{label}</span>
+                      <span className="text-lg font-extrabold" style={{ color: '#16a34a' }}>{price}</span>
+                    </div>
+                  ))}
+                  <p className="text-xs mt-2" style={{ color: 'var(--color-text-secondary)' }}>{info.entranceDesc}</p>
+                </div>
+              ) : (
+                <>
+                  <p className="text-3xl font-extrabold mb-1" style={{ color: '#16a34a' }}>{info.entranceFee}</p>
+                  <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>{info.entranceDesc}</p>
+                </>
+              )}
             </div>
 
             {/* Location */}
@@ -229,7 +243,18 @@ const CafePage: React.FC = () => {
               </div>
               <div>
                 <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{ color: 'var(--color-text-secondary)' }}>Per Session</p>
-                <p className="text-xl font-extrabold" style={{ color: '#dc2626' }}>{info.mahjong.sessionPrice}</p>
+                {info.mahjong.pricing?.length > 0 ? (
+                  <div className="space-y-1.5 mt-1">
+                    {info.mahjong.pricing.map(({ label, price }) => (
+                      <div key={label} className="flex items-center justify-between px-2 py-1.5 rounded-lg" style={{ backgroundColor: 'rgba(220,38,38,0.08)' }}>
+                        <span className="text-xs font-medium" style={{ color: 'var(--color-text)' }}>{label}</span>
+                        <span className="text-sm font-extrabold" style={{ color: '#dc2626' }}>{price}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xl font-extrabold" style={{ color: '#dc2626' }}>{info.mahjong.sessionPrice}</p>
+                )}
               </div>
               <div>
                 <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{ color: 'var(--color-text-secondary)' }}>About</p>
@@ -238,6 +263,81 @@ const CafePage: React.FC = () => {
             </div>
           </div>
         </section>
+
+        {/* Console Rental */}
+        {(info.ps5?.enabled || info.nintendoSwitch?.enabled) && (
+          <section>
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style={{ backgroundColor: 'rgba(96,165,250,0.15)' }}>🎮</div>
+              <div>
+                <h2 className="text-2xl font-bold" style={{ color: 'var(--color-text)' }}>Console Rental</h2>
+                <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>Hourly rate · Happy hour deals available</p>
+              </div>
+            </div>
+            <div className="grid md:grid-cols-2 gap-6">
+              {info.ps5?.enabled && (
+                <div className="rounded-2xl overflow-hidden shadow" style={{ backgroundColor: 'var(--color-panel)' }}>
+                  <div className="px-6 py-4" style={{ background: 'linear-gradient(135deg, #0c1445 0%, #1e2d7d 100%)' }}>
+                    <div className="flex items-center gap-3">
+                      <span className="text-3xl">🎮</span>
+                      <div>
+                        <h3 className="text-xl font-extrabold text-white">{info.ps5.name}</h3>
+                        <p className="text-blue-200 text-sm">PlayStation 5</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="p-5 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-semibold" style={{ color: 'var(--color-text-secondary)' }}>Hourly Rate</span>
+                      <span className="text-xl font-extrabold" style={{ color: '#3b82f6' }}>{info.ps5.hourlyRate}</span>
+                    </div>
+                    {info.ps5.happyHourStart && (
+                      <div className="flex items-start gap-3 px-3 py-2.5 rounded-xl" style={{ backgroundColor: 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.3)' }}>
+                        <span className="text-lg">⭐</span>
+                        <div>
+                          <p className="text-xs font-bold">Happy Hour from {info.ps5.happyHourStart}</p>
+                          <p className="text-sm font-extrabold" style={{ color: '#f59e0b' }}>{info.ps5.happyHourRate}</p>
+                          <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>{info.ps5.happyHourNote}</p>
+                        </div>
+                      </div>
+                    )}
+                    {info.ps5.desc && <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>{info.ps5.desc}</p>}
+                  </div>
+                </div>
+              )}
+              {info.nintendoSwitch?.enabled && (
+                <div className="rounded-2xl overflow-hidden shadow" style={{ backgroundColor: 'var(--color-panel)' }}>
+                  <div className="px-6 py-4" style={{ background: 'linear-gradient(135deg, #4a0505 0%, #b91c1c 100%)' }}>
+                    <div className="flex items-center gap-3">
+                      <span className="text-3xl">🕹️</span>
+                      <div>
+                        <h3 className="text-xl font-extrabold text-white">{info.nintendoSwitch.name}</h3>
+                        <p className="text-red-200 text-sm">Nintendo Switch</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="p-5 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-semibold" style={{ color: 'var(--color-text-secondary)' }}>Hourly Rate</span>
+                      <span className="text-xl font-extrabold" style={{ color: '#ef4444' }}>{info.nintendoSwitch.hourlyRate}</span>
+                    </div>
+                    {info.nintendoSwitch.happyHourStart && (
+                      <div className="flex items-start gap-3 px-3 py-2.5 rounded-xl" style={{ backgroundColor: 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.3)' }}>
+                        <span className="text-lg">⭐</span>
+                        <div>
+                          <p className="text-xs font-bold">Happy Hour from {info.nintendoSwitch.happyHourStart}</p>
+                          <p className="text-sm font-extrabold" style={{ color: '#f59e0b' }}>{info.nintendoSwitch.happyHourRate}</p>
+                          <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>{info.nintendoSwitch.happyHourNote}</p>
+                        </div>
+                      </div>
+                    )}
+                    {info.nintendoSwitch.desc && <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>{info.nintendoSwitch.desc}</p>}
+                  </div>
+                </div>
+              )}
+            </div>
+          </section>
+        )}
 
         {/* Game Library */}
         {info.games.length > 0 && (

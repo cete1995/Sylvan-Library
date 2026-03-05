@@ -13,9 +13,26 @@ export interface CafeGame {
   icon: string;
 }
 
+export interface CafeDayPrice {
+  label: string;  // e.g. "Weekday (Mon–Thu)"
+  price: string;  // e.g. "Rp 30.000"
+}
+
+export interface CafeConsole {
+  enabled: boolean;
+  name: string;
+  icon: string;
+  hourlyRate: string;
+  happyHourStart: string;  // "17:00" — empty = no happy hour
+  happyHourRate: string;
+  happyHourNote: string;
+  desc: string;
+}
+
 export interface CafeMahjong {
   tables: number;
   sessionPrice: string;
+  pricing: CafeDayPrice[];
   desc: string;
 }
 
@@ -30,8 +47,11 @@ export interface CafeSettings {
   entranceFee: string;
   entranceDesc: string;
   gameCount: string;
+  boardgamePricing: CafeDayPrice[];
   hours: CafeHour[];
   mahjong: CafeMahjong;
+  ps5: CafeConsole;
+  nintendoSwitch: CafeConsole;
   games: CafeGame[];
 }
 

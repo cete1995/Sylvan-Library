@@ -1,8 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { cafeApi, CafeSettings, CafeHour, CafeGame } from '../api/cafe';
+import { cafeApi, CafeSettings, CafeHour, CafeGame, CafeDayPrice, CafeConsole } from '../api/cafe';
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+const DEFAULT_CONSOLE: CafeConsole = {
+  enabled: false, name: '', icon: '🎮',
+  hourlyRate: '', happyHourStart: '', happyHourRate: '',
+  happyHourNote: 'Until closing time', desc: '',
+};
 
 const DEFAULT_SETTINGS: CafeSettings = {
   name: 'Sylvan Library Boardgame Café',
@@ -14,8 +20,11 @@ const DEFAULT_SETTINGS: CafeSettings = {
   entranceFee: 'Rp 30.000',
   entranceDesc: 'Flat entry fee includes access to our full game library. No hourly charge.',
   gameCount: '100+',
+  boardgamePricing: [],
   hours: DAYS.map(day => ({ day, time: '10:00 – 22:00', closed: false })),
-  mahjong: { tables: 4, sessionPrice: 'Rp 20.000 / person / session', desc: '' },
+  mahjong: { tables: 4, sessionPrice: 'Rp 20.000 / person / session', pricing: [], desc: '' },
+  ps5: { ...DEFAULT_CONSOLE, name: 'PS5', icon: '🎮' },
+  nintendoSwitch: { ...DEFAULT_CONSOLE, name: 'Nintendo Switch', icon: '🕹️' },
   games: [],
 };
 
@@ -87,6 +96,34 @@ const AdminCafePage: React.FC = () => {
 
   const updateMahjong = (field: string, value: string | number) =>
     setSettings(s => ({ ...s, mahjong: { ...s.mahjong, [field]: value } }));
+
+  const updatePs5 = (field: keyof CafeConsole, value: string | boolean) =>
+    setSettings(s => ({ ...s, ps5: { ...s.ps5, [field]: value } }));
+
+  const updateSwitch = (field: keyof CafeConsole, value: string | boolean) =>
+    setSettings(s => ({ ...s, nintendoSwitch: { ...s.nintendoSwitch, [field]: value } }));
+
+  /* ── Boardgame day pricing ── */
+  const addBoardgamePrice = () =>
+    setSettings(s => ({ ...s, boardgamePricing: [...(s.boardgamePricing || []), { label: '', price: '' }] }));
+  const removeBoardgamePrice = (idx: number) =>
+    setSettings(s => ({ ...s, boardgamePricing: s.boardgamePricing.filter((_, i) => i !== idx) }));
+  const updateBoardgamePrice = (idx: number, field: keyof CafeDayPrice, value: string) =>
+    setSettings(s => {
+      const arr = [...s.boardgamePricing]; arr[idx] = { ...arr[idx], [field]: value };
+      return { ...s, boardgamePricing: arr };
+    });
+
+  /* ── Mahjong day pricing ── */
+  const addMahjongPrice = () =>
+    setSettings(s => ({ ...s, mahjong: { ...s.mahjong, pricing: [...(s.mahjong.pricing || []), { label: '', price: '' }] } }));
+  const removeMahjongPrice = (idx: number) =>
+    setSettings(s => ({ ...s, mahjong: { ...s.mahjong, pricing: s.mahjong.pricing.filter((_, i) => i !== idx) } }));
+  const updateMahjongPrice = (idx: number, field: keyof CafeDayPrice, value: string) =>
+    setSettings(s => {
+      const arr = [...s.mahjong.pricing]; arr[idx] = { ...arr[idx], [field]: value };
+      return { ...s, mahjong: { ...s.mahjong, pricing: arr } };
+    });
 
   const addGame = () => {
     if (!newGame.name.trim()) return;
@@ -199,10 +236,35 @@ const AdminCafePage: React.FC = () => {
           <div className="rounded-2xl p-6 shadow-sm" style={{ backgroundColor: 'var(--color-panel)' }}>
             <SectionHeader color="#10B981">Entry Fee</SectionHeader>
             <div className="grid sm:grid-cols-2 gap-4">
-              <Field label="Entry Fee" value={settings.entranceFee} onChange={v => update('entranceFee', v)} placeholder="Rp 30.000" />
+              <Field label="Entry Fee (fallback)" value={settings.entranceFee} onChange={v => update('entranceFee', v)} placeholder="Rp 30.000" />
               <Field label="Game Count Label" value={settings.gameCount} onChange={v => update('gameCount', v)} placeholder="100+" />
               <div className="sm:col-span-2">
                 <Textarea label="Entry Fee Description" value={settings.entranceDesc} onChange={v => update('entranceDesc', v)} rows={2} />
+              </div>
+              {/* Day-based pricing rows */}
+              <div className="sm:col-span-2 pt-2">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--color-text-secondary)' }}>
+                    Day-Based Pricing <span className="normal-case font-normal opacity-70">(if set, replaces fallback above on the Café page)</span>
+                  </p>
+                  <button onClick={addBoardgamePrice} className="text-xs font-bold px-2 py-1 rounded" style={{ backgroundColor: 'rgba(22,163,74,0.15)', color: '#16a34a' }}>+ Add Row</button>
+                </div>
+                {(settings.boardgamePricing || []).length === 0
+                  ? <p className="text-xs italic py-1" style={{ color: 'var(--color-text-secondary)' }}>No rows — uses fallback above.</p>
+                  : (settings.boardgamePricing || []).map((row, idx) => (
+                    <div key={idx} className="flex gap-2 mb-2">
+                      <input type="text" value={row.label} onChange={e => updateBoardgamePrice(idx, 'label', e.target.value)} placeholder="e.g. Weekday (Mon–Thu)"
+                        className="flex-1 px-3 py-1.5 rounded-lg text-sm focus:outline-none"
+                        style={{ backgroundColor: 'var(--color-background)', color: 'var(--color-text)', border: '1px solid var(--color-border)' }} />
+                      <input type="text" value={row.price} onChange={e => updateBoardgamePrice(idx, 'price', e.target.value)} placeholder="e.g. Rp 30.000"
+                        className="w-36 px-3 py-1.5 rounded-lg text-sm focus:outline-none"
+                        style={{ backgroundColor: 'var(--color-background)', color: 'var(--color-text)', border: '1px solid var(--color-border)' }} />
+                      <button onClick={() => removeBoardgamePrice(idx)} className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#FEE2E2', color: '#DC2626' }}>
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
+                      </button>
+                    </div>
+                  ))
+                }
               </div>
             </div>
           </div>
@@ -254,10 +316,105 @@ const AdminCafePage: React.FC = () => {
                   style={{ backgroundColor: 'var(--color-background)', color: 'var(--color-text)', border: '1px solid var(--color-border)' }}
                 />
               </div>
-              <Field label="Session Price" value={settings.mahjong.sessionPrice} onChange={v => updateMahjong('sessionPrice', v)} placeholder="Rp 20.000 / person" />
+              <Field label="Session Price (fallback)" value={settings.mahjong.sessionPrice} onChange={v => updateMahjong('sessionPrice', v)} placeholder="Rp 20.000 / person" />
               <div className="sm:col-span-2">
                 <Textarea label="Description" value={settings.mahjong.desc} onChange={v => updateMahjong('desc', v)} rows={2} />
               </div>
+              {/* Mahjong day-based pricing */}
+              <div className="sm:col-span-2 pt-2">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--color-text-secondary)' }}>
+                    Day-Based Pricing <span className="normal-case font-normal opacity-70">(if set, replaces fallback above)</span>
+                  </p>
+                  <button onClick={addMahjongPrice} className="text-xs font-bold px-2 py-1 rounded" style={{ backgroundColor: 'rgba(220,38,38,0.12)', color: '#DC2626' }}>+ Add Row</button>
+                </div>
+                {(settings.mahjong.pricing || []).length === 0
+                  ? <p className="text-xs italic py-1" style={{ color: 'var(--color-text-secondary)' }}>No rows — uses fallback above.</p>
+                  : (settings.mahjong.pricing || []).map((row, idx) => (
+                    <div key={idx} className="flex gap-2 mb-2">
+                      <input type="text" value={row.label} onChange={e => updateMahjongPrice(idx, 'label', e.target.value)} placeholder="e.g. Weekday (Mon–Thu)"
+                        className="flex-1 px-3 py-1.5 rounded-lg text-sm focus:outline-none"
+                        style={{ backgroundColor: 'var(--color-background)', color: 'var(--color-text)', border: '1px solid var(--color-border)' }} />
+                      <input type="text" value={row.price} onChange={e => updateMahjongPrice(idx, 'price', e.target.value)} placeholder="e.g. Rp 20.000 / person"
+                        className="w-44 px-3 py-1.5 rounded-lg text-sm focus:outline-none"
+                        style={{ backgroundColor: 'var(--color-background)', color: 'var(--color-text)', border: '1px solid var(--color-border)' }} />
+                      <button onClick={() => removeMahjongPrice(idx)} className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#FEE2E2', color: '#DC2626' }}>
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
+                      </button>
+                    </div>
+                  ))
+                }
+              </div>
+            </div>
+          </div>
+
+          {/* ── Console Rental ── */}
+          <div className="rounded-2xl p-6 shadow-sm" style={{ backgroundColor: 'var(--color-panel)' }}>
+            <SectionHeader color="#3B82F6">🎮 Console Rental (PS5 & Nintendo Switch)</SectionHeader>
+            <div className="space-y-5">
+              {/* PS5 */}
+              {(['ps5', 'nintendoSwitch'] as const).map(key => {
+                const c = settings[key];
+                const update = key === 'ps5' ? updatePs5 : updateSwitch;
+                const defaultName = key === 'ps5' ? 'PS5' : 'Nintendo Switch';
+                const defaultIcon = key === 'ps5' ? '🎮' : '🕹️';
+                const accentColor = key === 'ps5' ? '#3b82f6' : '#ef4444';
+                return c ? (
+                  <div key={key} className="rounded-xl p-4" style={{ backgroundColor: 'var(--color-background)', border: '1px solid var(--color-border)' }}>
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <span className="text-2xl">{defaultIcon}</span>
+                        <span className="font-bold text-sm" style={{ color: 'var(--color-text)' }}>{defaultName}</span>
+                      </div>
+                      <label className="flex items-center gap-2 cursor-pointer select-none">
+                        <span className="text-xs font-semibold" style={{ color: 'var(--color-text-secondary)' }}>{c.enabled ? 'Enabled' : 'Disabled'}</span>
+                        <div onClick={() => update('enabled', !c.enabled)}
+                          className={`relative w-11 h-6 rounded-full transition-colors cursor-pointer ${c.enabled ? 'bg-green-500' : 'bg-gray-400'}`}>
+                          <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${c.enabled ? 'translate-x-5' : ''}`} />
+                        </div>
+                      </label>
+                    </div>
+                    {c.enabled && (
+                      <div className="grid sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs font-semibold mb-1" style={{ color: 'var(--color-text-secondary)' }}>Hourly Rate</label>
+                          <input type="text" value={c.hourlyRate} onChange={e => update('hourlyRate', e.target.value)} placeholder="e.g. Rp 25.000 / jam"
+                            className="w-full px-3 py-2 rounded-lg text-sm focus:outline-none"
+                            style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)', border: `1px solid ${accentColor}40` }} />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold mb-1" style={{ color: 'var(--color-text-secondary)' }}>Happy Hour Start <span className="font-normal opacity-60">(leave blank = no happy hour)</span></label>
+                          <input type="time" value={c.happyHourStart} onChange={e => update('happyHourStart', e.target.value)}
+                            className="w-full px-3 py-2 rounded-lg text-sm focus:outline-none"
+                            style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)', border: '1px solid var(--color-border)' }} />
+                        </div>
+                        {c.happyHourStart && (
+                          <>
+                            <div>
+                              <label className="block text-xs font-semibold mb-1" style={{ color: 'var(--color-text-secondary)' }}>Happy Hour Rate</label>
+                              <input type="text" value={c.happyHourRate} onChange={e => update('happyHourRate', e.target.value)} placeholder="e.g. Rp 15.000 / jam"
+                                className="w-full px-3 py-2 rounded-lg text-sm focus:outline-none"
+                                style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)', border: '1px solid rgba(251,191,36,0.5)' }} />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-semibold mb-1" style={{ color: 'var(--color-text-secondary)' }}>Happy Hour Note</label>
+                              <input type="text" value={c.happyHourNote} onChange={e => update('happyHourNote', e.target.value)} placeholder="Until closing time"
+                                className="w-full px-3 py-2 rounded-lg text-sm focus:outline-none"
+                                style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)', border: '1px solid var(--color-border)' }} />
+                            </div>
+                          </>
+                        )}
+                        <div className="sm:col-span-2">
+                          <label className="block text-xs font-semibold mb-1" style={{ color: 'var(--color-text-secondary)' }}>Description</label>
+                          <textarea value={c.desc} onChange={e => update('desc', e.target.value)} rows={2}
+                            className="w-full px-3 py-2 rounded-lg text-sm focus:outline-none resize-y"
+                            style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)', border: '1px solid var(--color-border)' }} />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : null;
+              })}
             </div>
           </div>
 

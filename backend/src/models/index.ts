@@ -10,4 +10,4 @@ export { default as RegularSettings, IRegularSettings } from './RegularSettings.
 export { default as TikTokOrder, ITikTokOrder } from './TikTokOrder.model';
 export { default as OfflineSale, IOfflineSale, IOfflineSaleItem } from './OfflineSale.model';
 export { default as TikTokCredentials, ITikTokCredentials } from './TikTokCredentials.model';
-export { default as CafeSettings, ICafeSettings, ICafeHour, ICafeGame, ICafeMahjong } from './CafeSettings.model';
+export { default as CafeSettings, ICafeSettings, ICafeHour, ICafeGame, ICafeMahjong, ICafeDayPrice, ICafeConsole } from './CafeSettings.model';
