@@ -50,7 +50,7 @@ const ManaboxUploadPage: React.FC = () => {
   return (
     <div className="min-h-screen pb-28 md:pb-10" style={{ backgroundColor: 'var(--color-background)' }}>
 
-      {/* â”€â”€ Header â”€â”€ */}
+      {/* ── Header ── */}
       <div
         className="relative overflow-hidden"
         style={{ background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 60%, #4c1d95 100%)' }}
@@ -68,7 +68,7 @@ const ManaboxUploadPage: React.FC = () => {
             Seller Dashboard
           </Link>
           <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: '#c4b5fd' }}>Seller Tools</p>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-white">ðŸ“¦ Manabox CSV Upload</h1>
+          <h1 className="text-2xl md:text-3xl font-extrabold text-white">📦 Manabox CSV Upload</h1>
           <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.6)' }}>
             Upload your collection export to add inventory automatically
           </p>
@@ -83,13 +83,13 @@ const ManaboxUploadPage: React.FC = () => {
           style={{ backgroundColor: 'var(--color-panel)', border: '1.5px solid rgba(99,102,241,0.4)' }}
         >
           <h3 className="font-bold text-base mb-3 flex items-center gap-2" style={{ color: 'var(--color-text)' }}>
-            <span className="text-lg">ðŸ“‹</span> How to export from Manabox
+            <span className="text-lg">📋</span> How to export from Manabox
           </h3>
           <ol className="space-y-2">
             {[
               'Open the Manabox app on your device',
               'Go to your collection',
-              'Tap the menu (â‹®) â†’ Export â†’ CSV format',
+              'Tap the menu (⋮) → Export → CSV format',
               'Save or share the CSV file to this device',
               'Upload the file using the form below',
             ].map((step, i) => (
@@ -126,7 +126,7 @@ const ManaboxUploadPage: React.FC = () => {
                 </svg>
                 <p className="font-bold text-sm" style={{ color: '#6366f1' }}>{file.name}</p>
                 <p className="text-xs mt-1" style={{ color: 'var(--color-text-secondary)' }}>
-                  {(file.size / 1024).toFixed(1)} KB Â· Tap to change file
+                  {(file.size / 1024).toFixed(1)} KB · Tap to change file
                 </p>
               </>
             ) : (
@@ -142,7 +142,7 @@ const ManaboxUploadPage: React.FC = () => {
 
           {error && (
             <div className="mb-4 px-4 py-3 rounded-xl text-sm font-medium" style={{ backgroundColor: '#FEE2E2', color: '#DC2626', border: '1px solid #FCA5A5' }}>
-              âŒ {error}
+              ❌ {error}
             </div>
           )}
 
@@ -152,7 +152,7 @@ const ManaboxUploadPage: React.FC = () => {
             className="w-full py-3.5 rounded-xl font-bold text-base disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.98] hover:opacity-90"
             style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', color: '#fff' }}
           >
-            {uploading ? 'â³ Uploading...' : 'ðŸš€ Upload Collection'}
+            {uploading ? '⏳ Uploading...' : '🚀 Upload Collection'}
           </button>
         </div>
 
@@ -160,7 +160,7 @@ const ManaboxUploadPage: React.FC = () => {
         {result && (
           <div className="rounded-2xl p-5 shadow-sm" style={{ backgroundColor: 'var(--color-panel)', border: '1px solid var(--color-border)' }}>
             <h2 className="text-base font-bold mb-4 flex items-center gap-2" style={{ color: 'var(--color-text)' }}>
-              <span>âœ…</span> Upload Results
+              <span>✅</span> Upload Results
             </h2>
 
             <div className="grid grid-cols-2 gap-3 mb-5">
@@ -180,12 +180,12 @@ const ManaboxUploadPage: React.FC = () => {
             {result.stats.errors > 0 && (
               <div className="rounded-xl p-4 mb-3" style={{ backgroundColor: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)' }}>
                 <p className="font-bold text-sm mb-2" style={{ color: '#ef4444' }}>
-                  âš ï¸ {result.stats.errors} errors occurred
+                  ⚠️ {result.stats.errors} errors occurred
                 </p>
                 {result.errors?.length > 0 && (
                   <ul className="text-xs space-y-1" style={{ color: '#f87171' }}>
                     {result.errors.map((err: any, idx: number) => (
-                      <li key={idx}>Row {err.row}: {err.name} â€” {err.error}</li>
+                      <li key={idx}>Row {err.row}: {err.name} – {err.error}</li>
                     ))}
                   </ul>
                 )}
@@ -193,7 +193,7 @@ const ManaboxUploadPage: React.FC = () => {
             )}
 
             <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
-              ðŸ’¡ Upload complete! Prices are calculated automatically based on your pricing tiers.
+              💡 Upload complete! Prices are calculated automatically based on your pricing tiers.
             </p>
           </div>
         )}
@@ -201,16 +201,16 @@ const ManaboxUploadPage: React.FC = () => {
         {/* What happens card */}
         <div className="rounded-2xl p-5" style={{ backgroundColor: 'var(--color-panel)', border: '1px solid var(--color-border)' }}>
           <h3 className="font-bold text-sm mb-3 flex items-center gap-2" style={{ color: 'var(--color-text)' }}>
-            <span>â„¹ï¸</span> What happens when you upload?
+            <span>ℹ️</span> What happens when you upload?
           </h3>
           <ul className="space-y-2">
             {[
-              ['ðŸ’±', 'Currency Conversion', 'USD prices are converted to IDR (~Rp 15,500/USD)'],
-              ['ðŸ“Š', 'Condition Mapping', 'Near Mint â†’ NM, Light Played â†’ LP'],
-              ['âœ¨', 'Foil Detection', 'Normal â†’ Nonfoil, Foil â†’ Foil, Etched â†’ Etched'],
-              ['ðŸ“¦', 'Inventory Tracking', 'Cards are added to your seller inventory'],
-              ['ðŸ’°', 'Pricing', 'Sell prices calculated based on admin pricing tiers'],
-              ['ðŸ”„', 'Deduplication', 'If card exists, quantity is added to existing stock'],
+              ['💱', 'Currency Conversion', 'USD prices are converted to IDR (~Rp 15,500/USD)'],
+              ['📊', 'Condition Mapping', 'Near Mint → NM, Light Played → LP'],
+              ['✨', 'Foil Detection', 'Normal → Nonfoil, Foil → Foil, Etched → Etched'],
+              ['📦', 'Inventory Tracking', 'Cards are added to your seller inventory'],
+              ['💰', 'Pricing', 'Sell prices calculated based on admin pricing tiers'],
+              ['🔄', 'Deduplication', 'If card exists, quantity is added to existing stock'],
             ].map(([icon, title, desc]) => (
               <li key={title as string} className="flex items-start gap-3">
                 <span className="text-base shrink-0 mt-0.5">{icon}</span>

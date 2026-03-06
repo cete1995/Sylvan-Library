@@ -49,7 +49,7 @@ const SellerDashboardPage: React.FC = () => {
   return (
     <div className="min-h-screen pb-24 md:pb-8" style={{ backgroundColor: 'var(--color-background)' }}>
 
-      {/* â”€â”€ Header banner â”€â”€ */}
+      {/* ── Header banner ── */}
       <div
         className="relative overflow-hidden"
         style={{ background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 60%, #4c1d95 100%)' }}
@@ -59,7 +59,7 @@ const SellerDashboardPage: React.FC = () => {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: '#c4b5fd' }}>Seller Tools</p>
-              <h1 className="text-2xl md:text-3xl font-extrabold text-white">ðŸª Seller Dashboard</h1>
+              <h1 className="text-2xl md:text-3xl font-extrabold text-white">🏪 Seller Dashboard</h1>
               <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.6)' }}>Add inventory to existing cards in the system</p>
             </div>
             <Link
@@ -70,7 +70,7 @@ const SellerDashboardPage: React.FC = () => {
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
               </svg>
-              ðŸ“¦ Manabox Upload
+              📦 Manabox Upload
             </Link>
           </div>
         </div>
@@ -118,7 +118,7 @@ const SellerDashboardPage: React.FC = () => {
           </div>
         ) : (
           <>
-            {/* â”€â”€ Mobile: card list â”€â”€ */}
+            {/* ── Mobile: card list ── */}
             <div className="md:hidden space-y-3">
               {cards.map((card) => {
                 const totalStock = card.inventory?.reduce((sum, inv) => sum + inv.quantityForSale, 0) || 0;
@@ -132,14 +132,14 @@ const SellerDashboardPage: React.FC = () => {
                     {card.imageUrl ? (
                       <img src={card.imageUrl} alt={card.name} className="w-10 h-14 object-cover rounded-lg shadow-sm shrink-0" />
                     ) : (
-                      <div className="w-10 h-14 rounded-lg flex items-center justify-center shrink-0 text-xl" style={{ backgroundColor: 'var(--color-background)' }}>ðŸƒ</div>
+                      <div className="w-10 h-14 rounded-lg flex items-center justify-center shrink-0 text-xl" style={{ backgroundColor: 'var(--color-background)' }}>🃏</div>
                     )}
 
                     {/* Info */}
                     <div className="flex-1 min-w-0">
                       <p className="font-bold text-sm truncate" style={{ color: 'var(--color-text)' }}>{card.name}</p>
                       <p className="text-xs mb-1.5" style={{ color: 'var(--color-text-secondary)' }}>
-                        {card.setCode} Â· #{card.collectorNumber}
+                        {card.setCode} · #{card.collectorNumber}
                       </p>
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={rarityStyle(card.rarity)}>
@@ -173,7 +173,7 @@ const SellerDashboardPage: React.FC = () => {
               })}
             </div>
 
-            {/* â”€â”€ Desktop: table â”€â”€ */}
+            {/* ── Desktop: table ── */}
             <div className="hidden md:block rounded-xl shadow-sm overflow-hidden" style={{ backgroundColor: 'var(--color-panel)' }}>
               <div className="overflow-x-auto">
                 <table className="w-full">
@@ -243,7 +243,7 @@ const SellerDashboardPage: React.FC = () => {
                   className="px-4 py-2 rounded-xl font-medium text-sm disabled:opacity-40 transition-all active:scale-95"
                   style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)', border: '1px solid var(--color-border)' }}
                 >
-                  â† Prev
+                  ← Prev
                 </button>
                 <span className="text-sm font-semibold px-3" style={{ color: 'var(--color-text-secondary)' }}>
                   {page} / {totalPages}
@@ -254,7 +254,7 @@ const SellerDashboardPage: React.FC = () => {
                   className="px-4 py-2 rounded-xl font-medium text-sm disabled:opacity-40 transition-all active:scale-95"
                   style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)', border: '1px solid var(--color-border)' }}
                 >
-                  Next â†’
+                  Next →
                 </button>
               </div>
             )}
