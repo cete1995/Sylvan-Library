@@ -157,8 +157,10 @@ const ConsolesPage: React.FC = () => {
     );
   }
 
-  const ps5Enabled = info.ps5?.enabled;
-  const switchEnabled = info.nintendoSwitch?.enabled;
+  // Always show both consoles — the admin `enabled` flag is for future toggling
+  // but console rental is live so we treat both as always visible here.
+  const ps5Enabled = true;
+  const switchEnabled = true;
 
   const ps5Features = [
     '4K gaming on large screen TV',
@@ -222,13 +224,13 @@ const ConsolesPage: React.FC = () => {
             {ps5Enabled && (
               <div className="flex items-center gap-2 px-4 py-2 rounded-full font-semibold text-sm"
                 style={{ background: 'rgba(59,130,246,0.2)', color: '#93c5fd', border: '1px solid rgba(59,130,246,0.35)' }}>
-                🎮 {info.ps5.name || 'PS5'} — {info.ps5.hourlyRate}/hr
+                🎮 {info.ps5?.name || 'PS5'} {info.ps5?.hourlyRate ? `— ${info.ps5.hourlyRate}/hr` : ''}
               </div>
             )}
             {switchEnabled && (
               <div className="flex items-center gap-2 px-4 py-2 rounded-full font-semibold text-sm"
                 style={{ background: 'rgba(239,68,68,0.2)', color: '#fca5a5', border: '1px solid rgba(239,68,68,0.35)' }}>
-                🕹️ {info.nintendoSwitch.name || 'Nintendo Switch'} — {info.nintendoSwitch.hourlyRate}/hr
+                🕹️ {info.nintendoSwitch?.name || 'Nintendo Switch'} {info.nintendoSwitch?.hourlyRate ? `— ${info.nintendoSwitch.hourlyRate}/hr` : ''}
               </div>
             )}
             {(ps5Enabled || switchEnabled) && (
@@ -254,44 +256,38 @@ const ConsolesPage: React.FC = () => {
               {ps5Enabled && (
                 <ConsoleCard
                   emoji="🎮"
-                  name={info.ps5.name || 'PlayStation 5'}
+                  name={info.ps5?.name || 'PlayStation 5'}
                   subtitle="Sony PlayStation 5 — 4K Gaming"
                   headerGradient="linear-gradient(135deg, #0c1445 0%, #1e2d7d 60%, #1a237e 100%)"
                   accentColor="#60a5fa"
-                  hourlyRate={info.ps5.hourlyRate}
-                  happyHourStart={info.ps5.happyHourStart}
-                  happyHourRate={info.ps5.happyHourRate}
-                  happyHourNote={info.ps5.happyHourNote}
-                  desc={info.ps5.desc}
+                  hourlyRate={info.ps5?.hourlyRate || 'See staff'}
+                  happyHourStart={info.ps5?.happyHourStart}
+                  happyHourRate={info.ps5?.happyHourRate}
+                  happyHourNote={info.ps5?.happyHourNote}
+                  desc={info.ps5?.desc}
                   features={ps5Features}
-                  whatsapp={info.whatsapp}
+                  whatsapp={info.whatsapp || '#'}
                 />
               )}
               {switchEnabled && (
                 <ConsoleCard
                   emoji="🕹️"
-                  name={info.nintendoSwitch.name || 'Nintendo Switch'}
+                  name={info.nintendoSwitch?.name || 'Nintendo Switch'}
                   subtitle="Nintendo Switch — Play Your Way"
                   headerGradient="linear-gradient(135deg, #4a0505 0%, #b91c1c 60%, #991b1b 100%)"
                   accentColor="#f87171"
-                  hourlyRate={info.nintendoSwitch.hourlyRate}
-                  happyHourStart={info.nintendoSwitch.happyHourStart}
-                  happyHourRate={info.nintendoSwitch.happyHourRate}
-                  happyHourNote={info.nintendoSwitch.happyHourNote}
-                  desc={info.nintendoSwitch.desc}
+                  hourlyRate={info.nintendoSwitch?.hourlyRate || 'See staff'}
+                  happyHourStart={info.nintendoSwitch?.happyHourStart}
+                  happyHourRate={info.nintendoSwitch?.happyHourRate}
+                  happyHourNote={info.nintendoSwitch?.happyHourNote}
+                  desc={info.nintendoSwitch?.desc}
                   features={switchFeatures}
-                  whatsapp={info.whatsapp}
+                  whatsapp={info.whatsapp || '#'}
                 />
               )}
             </div>
           </section>
-        ) : (
-          <section className="rounded-3xl p-10 text-center" style={{ backgroundColor: 'var(--color-panel)' }}>
-            <div className="text-5xl mb-4">🎮</div>
-            <h2 className="text-xl font-bold mb-2" style={{ color: 'var(--color-text)' }}>Coming Soon</h2>
-            <p style={{ color: 'var(--color-text-secondary)' }}>Console rental is not currently available. Check back soon!</p>
-          </section>
-        )}
+        ) : null}
 
         {/* Happy Hour callout banner */}
         {(ps5Enabled || switchEnabled) &&
@@ -310,7 +306,7 @@ const ConsolesPage: React.FC = () => {
               </p>
             </div>
             <a
-              href={info.whatsapp}
+              href={info.whatsapp || '#'}
               target="_blank"
               rel="noopener noreferrer"
               className="shrink-0 px-6 py-3 rounded-2xl font-bold text-sm transition-all hover:opacity-90 active:scale-95 whitespace-nowrap"
@@ -347,10 +343,10 @@ const ConsolesPage: React.FC = () => {
             {/* Mobile: two stacked mini-cards */}
             <div className="md:hidden space-y-3">
               {[
-                { label: 'Console', ps5: info.ps5.name || 'PlayStation 5', sw: info.nintendoSwitch.name || 'Nintendo Switch' },
-                { label: 'Hourly Rate', ps5: info.ps5.hourlyRate, sw: info.nintendoSwitch.hourlyRate },
-                { label: 'Happy Hour Rate', ps5: info.ps5.happyHourRate || '—', sw: info.nintendoSwitch.happyHourRate || '—' },
-                { label: 'Happy Hour From', ps5: info.ps5.happyHourStart || '—', sw: info.nintendoSwitch.happyHourStart || '—' },
+                { label: 'Console', ps5: info.ps5?.name || 'PlayStation 5', sw: info.nintendoSwitch?.name || 'Nintendo Switch' },
+                { label: 'Hourly Rate', ps5: info.ps5?.hourlyRate || '—', sw: info.nintendoSwitch?.hourlyRate || '—' },
+                { label: 'Happy Hour Rate', ps5: info.ps5?.happyHourRate || '—', sw: info.nintendoSwitch?.happyHourRate || '—' },
+                { label: 'Happy Hour From', ps5: info.ps5?.happyHourStart || '—', sw: info.nintendoSwitch?.happyHourStart || '—' },
                 { label: 'Best For', ps5: 'Immersive AAA games', sw: 'Party & casual play' },
               ].map(({ label, ps5, sw }) => (
                 <div
@@ -381,15 +377,15 @@ const ConsolesPage: React.FC = () => {
                 <thead>
                   <tr style={{ backgroundColor: 'var(--color-background)' }}>
                     <th className="px-6 py-4 text-left font-bold" style={{ color: 'var(--color-text-secondary)' }}>Feature</th>
-                    <th className="px-6 py-4 text-center font-bold" style={{ color: '#60a5fa' }}>🎮 {info.ps5.name || 'PS5'}</th>
-                    <th className="px-6 py-4 text-center font-bold" style={{ color: '#f87171' }}>🕹️ {info.nintendoSwitch.name || 'Switch'}</th>
+                    <th className="px-6 py-4 text-center font-bold" style={{ color: '#60a5fa' }}>🎮 {info.ps5?.name || 'PS5'}</th>
+                    <th className="px-6 py-4 text-center font-bold" style={{ color: '#f87171' }}>🕹️ {info.nintendoSwitch?.name || 'Switch'}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {[
-                    { label: 'Hourly Rate', ps5: info.ps5.hourlyRate, sw: info.nintendoSwitch.hourlyRate },
-                    { label: 'Happy Hour Rate', ps5: info.ps5.happyHourRate || '—', sw: info.nintendoSwitch.happyHourRate || '—' },
-                    { label: 'Happy Hour From', ps5: info.ps5.happyHourStart || '—', sw: info.nintendoSwitch.happyHourStart || '—' },
+                    { label: 'Hourly Rate', ps5: info.ps5?.hourlyRate || '—', sw: info.nintendoSwitch?.hourlyRate || '—' },
+                    { label: 'Happy Hour Rate', ps5: info.ps5?.happyHourRate || '—', sw: info.nintendoSwitch?.happyHourRate || '—' },
+                    { label: 'Happy Hour From', ps5: info.ps5?.happyHourStart || '—', sw: info.nintendoSwitch?.happyHourStart || '—' },
                     { label: 'Display', ps5: '4K HDMI TV', sw: 'Handheld or TV' },
                     { label: 'Best For', ps5: 'Immersive AAA games', sw: 'Party & casual play' },
                   ].map(({ label, ps5, sw }, i) => (
