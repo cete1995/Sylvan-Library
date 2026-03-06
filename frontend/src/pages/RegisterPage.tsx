@@ -52,7 +52,7 @@ const RegisterPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex" style={{ backgroundColor: 'var(--color-background)' }}>
+    <div className="min-h-screen flex pb-28 md:pb-0" style={{ backgroundColor: 'var(--color-background)' }}>
 
       {/* ── Left brand panel (hidden on mobile) ── */}
       <div

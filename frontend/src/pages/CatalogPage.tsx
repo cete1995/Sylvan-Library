@@ -188,7 +188,7 @@ const CatalogPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: 'var(--color-background)' }}>
+    <div className="min-h-screen pb-28 md:pb-0" style={{ backgroundColor: 'var(--color-background)' }}>
 
       {/* ── Branded header banner ── */}
       <div className="relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #0d2818 0%, #1a3d1a 60%, #14391f 100%)' }}>

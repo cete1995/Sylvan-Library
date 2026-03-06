@@ -74,7 +74,7 @@ const HomePage: React.FC = () => {
   }, []);
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: 'var(--color-background)' }}>
+    <div className="min-h-screen pb-28 md:pb-0" style={{ backgroundColor: 'var(--color-background)' }}>
 
       {/* Carousel */}
       {carouselImages.length > 0 && (

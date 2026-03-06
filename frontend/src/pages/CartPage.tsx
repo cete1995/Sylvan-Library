@@ -97,7 +97,7 @@ const CartPage: React.FC = () => {
 
   if (!cart || cart.items.length === 0) {
     return (
-      <div className="min-h-screen" style={{ backgroundColor: 'var(--color-background)' }}>
+      <div className="min-h-screen pb-28 md:pb-0" style={{ backgroundColor: 'var(--color-background)' }}>
         <div className="container mx-auto px-4 py-16 max-w-2xl">
           <div className="rounded-2xl shadow-xl p-12 text-center" style={{ backgroundColor: 'var(--color-panel)' }}>
             <svg className="w-24 h-24 mx-auto mb-6" style={{ color: 'var(--color-border)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -139,7 +139,7 @@ const CartPage: React.FC = () => {
   }, 0);
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: 'var(--color-background)' }}>
+    <div className="min-h-screen pb-28 md:pb-0" style={{ backgroundColor: 'var(--color-background)' }}>
 
       {/* ── Branded header banner ── */}
       <div className="relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #0d2818 0%, #1a3d1a 60%, #14391f 100%)' }}>
