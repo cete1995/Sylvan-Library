@@ -23,4 +23,8 @@ export const profileApi = {
     const response = await api.put<{ user: UserProfile; message: string }>('/profile', data);
     return response.data.user;
   },
+
+  changePassword: async (currentPassword: string, newPassword: string): Promise<void> => {
+    await api.post('/profile/change-password', { currentPassword, newPassword });
+  },
 };

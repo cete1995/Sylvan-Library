@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { authenticate } from '../middleware/auth.middleware';
-import { getProfile, updateProfile } from '../controllers/profile.controller';
+import { getProfile, updateProfile, changePassword } from '../controllers/profile.controller';
 
 const router = Router();
 
@@ -9,5 +9,6 @@ router.use(authenticate);
 
 router.get('/', getProfile);
 router.put('/', updateProfile);
+router.post('/change-password', changePassword);
 
 export default router;

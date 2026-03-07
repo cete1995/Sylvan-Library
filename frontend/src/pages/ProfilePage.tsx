@@ -15,6 +15,11 @@ const ProfilePage: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>('');
+  const [showPwForm, setShowPwForm] = useState(false);
+  const [pwData, setPwData] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
+  const [pwSaving, setPwSaving] = useState(false);
+  const [pwError, setPwError] = useState('');
+  const [pwSuccess, setPwSuccess] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     address: '',
@@ -120,6 +125,31 @@ const ProfilePage: React.FC = () => {
     setSelectedFile(null);
     setPreviewUrl('');
     setError('');
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPwError('');
+    setPwSuccess('');
+    if (pwData.newPassword !== pwData.confirmPassword) {
+      setPwError('New passwords do not match');
+      return;
+    }
+    if (pwData.newPassword.length < 6) {
+      setPwError('New password must be at least 6 characters');
+      return;
+    }
+    setPwSaving(true);
+    try {
+      await profileApi.changePassword(pwData.currentPassword, pwData.newPassword);
+      setPwSuccess('Password changed successfully');
+      setPwData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      setShowPwForm(false);
+    } catch (err: any) {
+      setPwError(err.response?.data?.message || err.response?.data?.error || 'Failed to change password');
+    } finally {
+      setPwSaving(false);
+    }
   };
 
   if (loading) {
@@ -405,6 +435,81 @@ const ProfilePage: React.FC = () => {
             </div>
           )}
         </div>
+
+            {/* ── Change Password card ── */}
+            <div className="mt-6 rounded-2xl shadow-sm p-6" style={{ backgroundColor: 'var(--color-panel)', border: '1px solid var(--color-border)' }}>
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-bold" style={{ color: 'var(--color-text)' }}>Change Password</h2>
+                <button
+                  type="button"
+                  onClick={() => { setShowPwForm(v => !v); setPwError(''); setPwSuccess(''); }}
+                  className="text-sm font-semibold px-4 py-1.5 rounded-lg transition-all hover:opacity-80"
+                  style={{ backgroundColor: 'var(--color-accent)', color: '#0d2818' }}
+                >
+                  {showPwForm ? 'Cancel' : 'Change Password'}
+                </button>
+              </div>
+
+              {pwSuccess && !showPwForm && (
+                <div className="mt-3 px-4 py-3 rounded-xl text-sm font-medium" style={{ backgroundColor: '#D1FAE5', color: '#065F46', border: '1px solid #6EE7B7' }}>
+                  {pwSuccess}
+                </div>
+              )}
+
+              {showPwForm && (
+                <form onSubmit={handleChangePassword} className="mt-4 space-y-4">
+                  {pwError && (
+                    <div className="px-4 py-3 rounded-xl text-sm font-medium" style={{ backgroundColor: '#FEE2E2', color: '#DC2626', border: '1px solid #FCA5A5' }}>
+                      {pwError}
+                    </div>
+                  )}
+                  {pwSuccess && (
+                    <div className="px-4 py-3 rounded-xl text-sm font-medium" style={{ backgroundColor: '#D1FAE5', color: '#065F46', border: '1px solid #6EE7B7' }}>
+                      {pwSuccess}
+                    </div>
+                  )}
+                  <div>
+                    <label className="label">Current Password</label>
+                    <input
+                      type="password"
+                      value={pwData.currentPassword}
+                      onChange={e => setPwData({ ...pwData, currentPassword: e.target.value })}
+                      className="input"
+                      placeholder="Enter current password"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="label">New Password</label>
+                    <input
+                      type="password"
+                      value={pwData.newPassword}
+                      onChange={e => setPwData({ ...pwData, newPassword: e.target.value })}
+                      className="input"
+                      placeholder="At least 6 characters"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="label">Confirm New Password</label>
+                    <input
+                      type="password"
+                      value={pwData.confirmPassword}
+                      onChange={e => setPwData({ ...pwData, confirmPassword: e.target.value })}
+                      className="input"
+                      placeholder="Repeat new password"
+                      required
+                    />
+                  </div>
+                  <div className="flex gap-3 pt-1">
+                    <button type="submit" disabled={pwSaving} className="btn-primary text-sm">
+                      {pwSaving ? 'Saving...' : 'Save New Password'}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+
           </div>
         </div>
       </div>

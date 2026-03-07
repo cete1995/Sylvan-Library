@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import bcrypt from 'bcryptjs';
 import { User } from '../models';
 import { AppError } from '../middleware/errorHandler';
 import { asyncHandler } from '../middleware/asyncHandler';
@@ -52,4 +53,37 @@ export const updateProfile = asyncHandler(async (req: Request, res: Response): P
     message: 'Profile updated successfully',
     user: updatedUser,
   });
+});
+
+/**
+ * Change password
+ * POST /api/profile/change-password
+ */
+export const changePassword = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  const authReq = req as AuthRequest;
+  const userId = authReq.user?.userId;
+  const { currentPassword, newPassword } = req.body;
+
+  if (!currentPassword || !newPassword) {
+    throw new AppError(400, 'Current password and new password are required');
+  }
+
+  if (newPassword.length < 6) {
+    throw new AppError(400, 'New password must be at least 6 characters');
+  }
+
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new AppError(404, 'User not found');
+  }
+
+  const isMatch = await bcrypt.compare(currentPassword, user.passwordHash);
+  if (!isMatch) {
+    throw new AppError(401, 'Current password is incorrect');
+  }
+
+  user.passwordHash = await bcrypt.hash(newPassword, 10);
+  await user.save();
+
+  res.json({ message: 'Password changed successfully' });
 });
