@@ -1,7 +1,7 @@
-# Sylvan Library — Copilot Context
+# Boardgame Time — Copilot Context
 
 ## What This Project Is
-A full-stack web app for **Sylvan Library**, a boardgame café + MTG singles shop in Indonesia.
+A full-stack web app for **Boardgame Time**, a boardgame café + MTG singles shop in Indonesia.
 - Customers can browse the MTG card catalog, add to cart, place orders, view order history, rent consoles, and see café info.
 - Sellers can manage inventory (add stock to existing cards) and upload collections via Manabox CSV.
 - Admins have a full dashboard for cards, pricing, orders, carousel, featured products, café settings, TikTok orders, and user management.
@@ -21,9 +21,12 @@ A full-stack web app for **Sylvan Library**, a boardgame café + MTG singles sho
 ## Brand & Styling
 
 ### Customer pages
-- Background gradient: `linear-gradient(135deg, #0d2818, #1a3d1a, #14391f)`
-- Accent: `#86efac` (green)
-- Amber highlight: `#fbbf24`
+- Background gradient: `linear-gradient(135deg, #060918, #0d1440, #111e55)`
+- Accent: `#E31E24` (red)
+- Secondary: `#1B3A8A` (navy)
+- CSS variables: `--color-accent: #E31E24`, `--color-highlight: #1B3A8A`
+- Light text on dark bg: `#fca5a5` (light red)
+- Amber accent: `#fbbf24`
 - CSS variables: `var(--color-background)`, `var(--color-panel)`, `var(--color-text)`, `var(--color-text-secondary)`, `var(--color-accent)`, `var(--color-border)`
 
 ### Seller pages
@@ -119,6 +122,8 @@ Stored in DB via `/api/admin/cafe`. Structure:
 | Commit | Description |
 |---|---|
 | `ec0bc5b` | Console rental always visible, remove Coming Soon fallback |
+| `ab0bf72` | Change password for all user roles (user/seller/admin) |
+| `6d7cd2f` | Full rebrand to Boardgame Time (red #E31E24 + navy #1B3A8A color scheme) |
 | `0e94b3f` | iPhone safe area + bottom nav clearance on all pages |
 | `5f1c2fd` | Fix emoji encoding corruption in seller pages |
 | `288fe4e` | Fix duplicate content causing TS build failure |
