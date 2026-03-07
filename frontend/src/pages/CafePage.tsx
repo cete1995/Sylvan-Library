@@ -39,9 +39,9 @@ const CafePage: React.FC = () => {
       {/* Hero */}
       <section
         className="relative overflow-hidden"
-        style={{ background: 'linear-gradient(135deg, #1a2e1a 0%, #2d4a1e 45%, #1e3a2e 100%)' }}
+        style={{ background: 'linear-gradient(135deg, #060918 0%, #0d1440 45%, #111e55 100%)' }}
       >
-        <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full opacity-10" style={{ backgroundColor: '#86efac' }} />
+        <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full opacity-10" style={{ backgroundColor: '#E31E24' }} />
         <div className="absolute -bottom-24 -left-24 w-80 h-80 rounded-full opacity-10" style={{ backgroundColor: '#fbbf24' }} />
 
         <div className="relative container mx-auto px-4 py-20 md:py-28">
@@ -50,7 +50,7 @@ const CafePage: React.FC = () => {
               className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-semibold mb-6"
               style={{ backgroundColor: 'rgba(255,255,255,0.10)', border: '1px solid rgba(255,255,255,0.18)' }}
             >
-              <span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: '#86efac' }} />
+              <span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: '#E31E24' }} />
               Boardgame Cafe & Mahjong Tables
             </div>
 
@@ -58,18 +58,18 @@ const CafePage: React.FC = () => {
               {info.tagline.includes('.') ? (
                 <>
                   {info.tagline.split('.')[0]}.{' '}
-                  <span className="text-transparent bg-clip-text" style={{ backgroundImage: 'linear-gradient(to right, #86efac, #fbbf24)' }}>
+                  <span className="text-transparent bg-clip-text" style={{ backgroundImage: 'linear-gradient(to right, #E31E24, #fbbf24)' }}>
                     {info.tagline.split('.').slice(1).join('.').trim()}
                   </span>
                 </>
               ) : (
-                <span className="text-transparent bg-clip-text" style={{ backgroundImage: 'linear-gradient(to right, #86efac, #fbbf24)' }}>
+                <span className="text-transparent bg-clip-text" style={{ backgroundImage: 'linear-gradient(to right, #E31E24, #fbbf24)' }}>
                   {info.tagline}
                 </span>
               )}
             </h1>
 
-            <p className="text-lg mb-8 leading-relaxed max-w-2xl mx-auto" style={{ color: '#bbf7d0' }}>
+            <p className="text-lg mb-8 leading-relaxed max-w-2xl mx-auto" style={{ color: '#fca5a5' }}>
               A cozy corner for board game lovers, Mahjong enthusiasts, and MTG players.
               Hundreds of games, dedicated Mahjong tables, great company.
             </p>
@@ -80,7 +80,7 @@ const CafePage: React.FC = () => {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all hover:scale-105"
-                style={{ backgroundColor: '#16a34a', color: '#fff' }}
+                style={{ backgroundColor: '#E31E24', color: '#fff' }}
               >
                 Book via WhatsApp
               </a>
@@ -101,7 +101,7 @@ const CafePage: React.FC = () => {
       </section>
 
       {/* Quick stats bar */}
-      <div style={{ backgroundColor: '#166534', color: '#fff' }}>
+      <div style={{ backgroundColor: '#0d1440', color: '#fff' }}>
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-white/20">
             {[
@@ -127,7 +127,7 @@ const CafePage: React.FC = () => {
           {/* Operating Hours */}
           <div className="rounded-2xl p-6 shadow" style={{ backgroundColor: 'var(--color-panel)' }}>
             <div className="flex items-center gap-3 mb-5">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style={{ backgroundColor: 'rgba(134,239,172,0.15)' }}></div>
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style={{ backgroundColor: 'rgba(227,30,36,0.12)' }}></div>
               <h2 className="text-xl font-bold" style={{ color: 'var(--color-text)' }}>Operating Hours</h2>
             </div>
             <div className="space-y-2">
@@ -138,14 +138,14 @@ const CafePage: React.FC = () => {
                     key={day}
                     className="flex justify-between items-center px-3 py-2 rounded-lg"
                     style={{
-                      backgroundColor: isToday ? 'rgba(134,239,172,0.12)' : 'transparent',
-                      border: isToday ? '1px solid rgba(134,239,172,0.3)' : '1px solid transparent',
+                      backgroundColor: isToday ? 'rgba(227,30,36,0.10)' : 'transparent',
+                      border: isToday ? '1px solid rgba(227,30,36,0.3)' : '1px solid transparent',
                     }}
                   >
-                    <span className="font-medium text-sm" style={{ color: isToday ? '#16a34a' : 'var(--color-text)' }}>
+                    <span className="font-medium text-sm" style={{ color: isToday ? '#E31E24' : 'var(--color-text)' }}>
                       {day}
                       {isToday && (
-                        <span className="ml-2 text-xs font-bold px-1.5 py-0.5 rounded-full" style={{ backgroundColor: '#16a34a', color: '#fff' }}>
+                        <span className="ml-2 text-xs font-bold px-1.5 py-0.5 rounded-full" style={{ backgroundColor: '#E31E24', color: '#fff' }}>
                           TODAY
                         </span>
                       )}
@@ -174,14 +174,14 @@ const CafePage: React.FC = () => {
                   {info.boardgamePricing.map(({ label, price }) => (
                     <div key={label} className="flex items-center justify-between px-3 py-2 rounded-lg" style={{ backgroundColor: 'var(--color-background)' }}>
                       <span className="text-sm font-medium" style={{ color: 'var(--color-text)' }}>{label}</span>
-                      <span className="text-lg font-extrabold" style={{ color: '#16a34a' }}>{price}</span>
+                      <span className="text-lg font-extrabold" style={{ color: '#E31E24' }}>{price}</span>
                     </div>
                   ))}
                   <p className="text-xs mt-2" style={{ color: 'var(--color-text-secondary)' }}>{info.entranceDesc}</p>
                 </div>
               ) : (
                 <>
-                  <p className="text-3xl font-extrabold mb-1" style={{ color: '#16a34a' }}>{info.entranceFee}</p>
+                  <p className="text-3xl font-extrabold mb-1" style={{ color: '#E31E24' }}>{info.entranceFee}</p>
                   <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>{info.entranceDesc}</p>
                 </>
               )}
@@ -334,7 +334,7 @@ const CafePage: React.FC = () => {
         {info.games.length > 0 && (
           <section>
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style={{ backgroundColor: 'rgba(134,239,172,0.15)' }}></div>
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style={{ backgroundColor: 'rgba(227,30,36,0.12)' }}></div>
               <div>
                 <h2 className="text-2xl font-bold" style={{ color: 'var(--color-text)' }}>Game Library</h2>
                 <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>{info.gameCount} titles available  just ask a staff member</p>
@@ -399,7 +399,7 @@ const CafePage: React.FC = () => {
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-bold text-lg hover:opacity-90 transition-all hover:scale-105"
-              style={{ backgroundColor: '#16a34a', color: '#fff' }}
+              style={{ backgroundColor: '#E31E24', color: '#fff' }}
             >
               Chat on WhatsApp
             </a>

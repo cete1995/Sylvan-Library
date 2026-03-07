@@ -446,18 +446,18 @@ const ConsolesPage: React.FC = () => {
         {/* Also at the café */}
         <section
           className="rounded-3xl p-6 md:p-8 flex flex-col md:flex-row items-center gap-6"
-          style={{ background: 'linear-gradient(135deg, #0d2818 0%, #1a3d1a 100%)' }}
+          style={{ background: 'linear-gradient(135deg, #060918 0%, #0d1440 100%)' }}
         >
           <div className="text-5xl shrink-0">🎲</div>
           <div className="text-white text-center md:text-left flex-1">
-            <h3 className="text-xl font-extrabold mb-1">Also at Sylvan Library Café</h3>
+            <h3 className="text-xl font-extrabold mb-1">Also at Boardgame Time Café</h3>
             <p className="text-sm leading-relaxed mb-4" style={{ color: 'rgba(255,255,255,0.7)' }}>
               {info.gameCount} board games, dedicated Mahjong tables, and MTG singles — all under one roof.
             </p>
             <Link
               to="/cafe"
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all hover:scale-105"
-              style={{ backgroundColor: '#86efac', color: '#0d2818' }}
+              style={{ backgroundColor: '#E31E24', color: '#ffffff' }}
             >
               View Café Info →
             </Link>

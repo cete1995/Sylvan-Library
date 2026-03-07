@@ -412,7 +412,7 @@ const AdminOfflineBuyPage: React.FC = () => {
                     </div>
                   )}
                   {memberId && (
-                    <div className="mt-1 text-xs" style={{ color: '#16a34a' }}>
+                    <div className="mt-1 text-xs" style={{ color: '#E31E24' }}>
                       ✓ Linked to registered member
                     </div>
                   )}

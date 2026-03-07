@@ -1,10 +1,10 @@
 /* Theme CSS Variables */
 :root {
-  /* Light mode colors (default) */
+  /* Boardgame Time brand colors */
   --color-background: #F9FAFB;
   --color-panel: #FFFFFF;
-  --color-accent: #3B82F6;
-  --color-highlight: #8B5CF6;
+  --color-accent: #E31E24;
+  --color-highlight: #1B3A8A;
   --color-text: #111827;
   --color-text-secondary: #6B7280;
   --color-border: #E5E7EB;

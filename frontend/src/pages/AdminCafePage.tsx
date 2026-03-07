@@ -11,7 +11,7 @@ const DEFAULT_CONSOLE: CafeConsole = {
 };
 
 const DEFAULT_SETTINGS: CafeSettings = {
-  name: 'Sylvan Library Boardgame Café',
+  name: 'Boardgame Time Boardgame Café',
   tagline: 'Play More. Stress Less.',
   address: '',
   mapUrl: 'https://maps.google.com',
@@ -198,7 +198,7 @@ const AdminCafePage: React.FC = () => {
             </Link>
             <button onClick={handleSave} disabled={saving}
               className="inline-flex items-center gap-2 px-6 py-2 rounded-lg text-sm font-bold text-white hover:opacity-90 disabled:opacity-50 transition-all shadow"
-              style={{ backgroundColor: '#16a34a' }}>
+              style={{ backgroundColor: '#E31E24' }}>
               {saving
                 ? <><svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>Saving…</>
                 : saved
@@ -247,7 +247,7 @@ const AdminCafePage: React.FC = () => {
                   <p className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--color-text-secondary)' }}>
                     Day-Based Pricing <span className="normal-case font-normal opacity-70">(if set, replaces fallback above on the Café page)</span>
                   </p>
-                  <button onClick={addBoardgamePrice} className="text-xs font-bold px-2 py-1 rounded" style={{ backgroundColor: 'rgba(22,163,74,0.15)', color: '#16a34a' }}>+ Add Row</button>
+                  <button onClick={addBoardgamePrice} className="text-xs font-bold px-2 py-1 rounded" style={{ backgroundColor: 'rgba(22,163,74,0.15)', color: '#E31E24' }}>+ Add Row</button>
                 </div>
                 {(settings.boardgamePricing || []).length === 0
                   ? <p className="text-xs italic py-1" style={{ color: 'var(--color-text-secondary)' }}>No rows — uses fallback above.</p>
@@ -441,7 +441,7 @@ const AdminCafePage: React.FC = () => {
                   style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)', border: '1px solid var(--color-border)' }} />
                 <button onClick={addGame} disabled={!newGame.name.trim()}
                   className="px-3 py-1.5 rounded-lg text-sm font-bold text-white disabled:opacity-40 hover:opacity-90 transition-all"
-                  style={{ backgroundColor: '#16a34a' }}>
+                  style={{ backgroundColor: '#E31E24' }}>
                   + Add
                 </button>
               </div>
@@ -492,7 +492,7 @@ const AdminCafePage: React.FC = () => {
         <div className="mt-8 flex justify-end gap-4">
           <button onClick={handleSave} disabled={saving}
             className="inline-flex items-center gap-2 px-8 py-3 rounded-xl font-bold text-white hover:opacity-90 disabled:opacity-50 transition-all shadow-lg"
-            style={{ backgroundColor: '#16a34a' }}>
+            style={{ backgroundColor: '#E31E24' }}>
             {saving
               ? <><svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>Saving Changes…</>
               : saved

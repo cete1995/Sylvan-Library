@@ -57,21 +57,21 @@ const RegisterPage: React.FC = () => {
       {/* ── Left brand panel (hidden on mobile) ── */}
       <div
         className="hidden lg:flex lg:w-[46%] flex-col justify-between p-12 relative overflow-hidden"
-        style={{ background: 'linear-gradient(160deg, #0d2818 0%, #1a3d1a 50%, #14391f 100%)' }}
+        style={{ background: 'linear-gradient(160deg, #060918 0%, #0d1440 50%, #111e55 100%)' }}
       >
-        <div className="absolute -top-24 -right-24 w-80 h-80 rounded-full opacity-[0.07]" style={{ backgroundColor: '#86efac' }} />
+        <div className="absolute -top-24 -right-24 w-80 h-80 rounded-full opacity-[0.07]" style={{ backgroundColor: '#E31E24' }} />
         <div className="absolute -bottom-24 -left-24 w-80 h-80 rounded-full opacity-[0.07]" style={{ backgroundColor: '#fbbf24' }} />
 
         <div>
           <div className="flex items-center gap-3 mb-10">
-            <div className="w-11 h-11 rounded-xl flex items-center justify-center text-2xl" style={{ backgroundColor: 'rgba(255,255,255,0.12)' }}>🍃</div>
-            <span className="text-xl font-extrabold text-white tracking-tight">Sylvan Library</span>
+            <div className="w-11 h-11 rounded-xl flex items-center justify-center text-2xl" style={{ backgroundColor: 'rgba(255,255,255,0.12)' }}>🎲</div>
+            <span className="text-xl font-extrabold text-white tracking-tight">Boardgame Time</span>
           </div>
           <h2 className="text-3xl font-extrabold text-white leading-snug mb-3">
             Join the<br />community
           </h2>
-          <p style={{ color: '#86efac' }} className="text-base">
-            One account for all things Sylvan Library
+          <p style={{ color: '#fca5a5' }} className="text-base">
+            One account for all things Boardgame Time
           </p>
         </div>
 
@@ -86,13 +86,13 @@ const RegisterPage: React.FC = () => {
               <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0" style={{ backgroundColor: 'rgba(255,255,255,0.09)' }}>{e}</div>
               <div>
                 <p className="text-sm font-bold text-white">{t}</p>
-                <p className="text-xs" style={{ color: '#86efac' }}>{d}</p>
+                <p className="text-xs" style={{ color: '#fca5a5' }}>{d}</p>
               </div>
             </div>
           ))}
         </div>
 
-        <p className="text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>© 2026 Sylvan Library</p>
+        <p className="text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>© 2026 Boardgame Time</p>
       </div>
 
       {/* ── Right form panel ── */}
@@ -100,8 +100,8 @@ const RegisterPage: React.FC = () => {
         <div className="w-full max-w-md">
           {/* Mobile logo */}
           <div className="flex items-center gap-2 mb-8 lg:hidden">
-            <span className="text-2xl">🍃</span>
-            <span className="text-lg font-extrabold" style={{ color: 'var(--color-text)' }}>Sylvan Library</span>
+            <span className="text-2xl">🎲</span>
+            <span className="text-lg font-extrabold" style={{ color: 'var(--color-text)' }}>Boardgame Time</span>
           </div>
 
           <h2 className="text-3xl font-extrabold mb-1" style={{ color: 'var(--color-text)' }}>Create Account</h2>

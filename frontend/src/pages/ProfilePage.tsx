@@ -170,8 +170,8 @@ const ProfilePage: React.FC = () => {
     <div className="min-h-screen pb-28 md:pb-0" style={{ backgroundColor: 'var(--color-background)' }}>
 
       {/* ── Branded header banner ── */}
-      <div className="relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #0d2818 0%, #1a3d1a 60%, #14391f 100%)' }}>
-        <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full opacity-[0.07]" style={{ backgroundColor: '#86efac' }} />
+      <div className="relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #060918 0%, #0d1440 60%, #111e55 100%)' }}>
+        <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full opacity-[0.07]" style={{ backgroundColor: '#E31E24' }} />
         <div className="container mx-auto px-4 py-10">
           <div className="flex items-center gap-5">
             <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-extrabold text-white flex-shrink-0"
@@ -182,7 +182,7 @@ const ProfilePage: React.FC = () => {
               }
             </div>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-widest mb-0.5" style={{ color: '#86efac' }}>My Account</p>
+              <p className="text-xs font-semibold uppercase tracking-widest mb-0.5" style={{ color: '#fca5a5' }}>My Account</p>
               <h1 className="text-2xl font-extrabold text-white">{profile?.name || user?.email}</h1>
               <p className="text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>{profile?.email}</p>
             </div>
@@ -444,7 +444,7 @@ const ProfilePage: React.FC = () => {
                   type="button"
                   onClick={() => { setShowPwForm(v => !v); setPwError(''); setPwSuccess(''); }}
                   className="text-sm font-semibold px-4 py-1.5 rounded-lg transition-all hover:opacity-80"
-                  style={{ backgroundColor: 'var(--color-accent)', color: '#0d2818' }}
+                  style={{ backgroundColor: 'var(--color-accent)', color: '#ffffff' }}
                 >
                   {showPwForm ? 'Cancel' : 'Change Password'}
                 </button>

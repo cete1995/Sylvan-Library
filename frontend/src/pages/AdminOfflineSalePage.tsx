@@ -295,7 +295,7 @@ const AdminOfflineSalePage: React.FC = () => {
                       <button
                         onClick={handleStartNew}
                         className="px-4 py-2 rounded-lg font-medium text-white text-sm"
-                        style={{ backgroundColor: '#16a34a' }}
+                        style={{ backgroundColor: '#E31E24' }}
                       >
                         + New Sale
                       </button>
@@ -675,7 +675,7 @@ const AdminOfflineSalePage: React.FC = () => {
                         onClick={handleCompleteSale}
                         disabled={submitting || cart.length === 0}
                         className="w-full py-3 rounded-xl text-white font-bold text-base shadow-md hover:opacity-90 disabled:opacity-50 transition-opacity"
-                        style={{ backgroundColor: '#16a34a' }}
+                        style={{ backgroundColor: '#E31E24' }}
                       >
                         {submitting ? '⏳ Processing…' : '✅ Complete Sale'}
                       </button>

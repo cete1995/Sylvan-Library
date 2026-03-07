@@ -84,10 +84,10 @@ const HomePage: React.FC = () => {
       {/* ── Hero — Café First ── */}
       <section
         className="relative overflow-hidden"
-        style={{ background: 'linear-gradient(135deg, #0d2818 0%, #1a3d1a 40%, #14391f 100%)' }}
+        style={{ background: 'linear-gradient(135deg, #060918 0%, #0d1440 40%, #111e55 100%)' }}
       >
         {/* Decorative blobs */}
-        <div className="absolute -top-32 -right-32 w-[30rem] h-[30rem] rounded-full opacity-[0.08]" style={{ backgroundColor: '#86efac' }} />
+        <div className="absolute -top-32 -right-32 w-[30rem] h-[30rem] rounded-full opacity-[0.08]" style={{ backgroundColor: '#E31E24' }} />
         <div className="absolute -bottom-32 -left-32 w-[30rem] h-[30rem] rounded-full opacity-[0.08]" style={{ backgroundColor: '#fbbf24' }} />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[50rem] h-[50rem] rounded-full opacity-[0.03]" style={{ backgroundColor: '#fff' }} />
 
@@ -99,7 +99,7 @@ const HomePage: React.FC = () => {
               className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-semibold mb-6"
               style={{ backgroundColor: 'rgba(255,255,255,0.10)', border: '1px solid rgba(255,255,255,0.22)' }}
             >
-              <span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: '#86efac' }} />
+              <span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: '#E31E24' }} />
               Boardgame Café  ·  Mahjong  ·  PS5 & Switch Rental  ·  MTG Singles
             </div>
 
@@ -107,13 +107,13 @@ const HomePage: React.FC = () => {
               Your Local{' '}
               <span
                 className="text-transparent bg-clip-text"
-                style={{ backgroundImage: 'linear-gradient(to right, #86efac, #fbbf24)' }}
+                style={{ backgroundImage: 'linear-gradient(to right, #E31E24, #fbbf24)' }}
               >
                 Hobby Hub
               </span>
             </h1>
 
-            <p className="text-lg md:text-xl mb-10 leading-relaxed max-w-2xl mx-auto" style={{ color: '#bbf7d0' }}>
+            <p className="text-lg md:text-xl mb-10 leading-relaxed max-w-2xl mx-auto" style={{ color: '#fca5a5' }}>
               100+ board games, Mahjong tables, PS5 &amp; Nintendo Switch rentals, and thousands of MTG singles — all under one roof.
               One flat entry fee. No hourly charge. Just good times.
             </p>
@@ -123,7 +123,7 @@ const HomePage: React.FC = () => {
               <Link
                 to="/cafe"
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
-                style={{ backgroundColor: '#16a34a', color: '#fff' }}
+                style={{ backgroundColor: '#E31E24', color: '#fff' }}
               >
                 <span className="text-xl">🎲</span>
                 Visit the Café
@@ -159,7 +159,7 @@ const HomePage: React.FC = () => {
             </div>
 
             {isAuthenticated && (
-              <p className="mt-5 text-sm" style={{ color: '#bbf7d0' }}>
+              <p className="mt-5 text-sm" style={{ color: '#fca5a5' }}>
                 Welcome back,{' '}
                 <span className="font-semibold text-white">{user?.name || user?.email}</span>! 👋
               </p>
@@ -169,7 +169,7 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* ── Stats Bar ── */}
-      <div style={{ backgroundColor: '#14532d', color: '#fff' }}>
+      <div style={{ backgroundColor: '#0d1440', color: '#fff' }}>
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-3 md:grid-cols-6 divide-x divide-white/20">
             {statsBar.map(({ emoji, value, label }) => (
@@ -189,14 +189,14 @@ const HomePage: React.FC = () => {
       {/* ── Café Showcase ── */}
       <section className="container mx-auto px-4 py-16 md:py-20">
         <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest mb-4" style={{ backgroundColor: 'var(--color-panel)', color: '#16a34a', border: '1px solid #16a34a40' }}>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest mb-4" style={{ backgroundColor: 'var(--color-panel)', color: '#E31E24', border: '1px solid #E31E2440' }}>
             ★ Our Main Attraction
           </div>
           <h2 className="text-3xl md:text-4xl font-extrabold mb-3" style={{ color: 'var(--color-text)' }}>
             Everything We Offer
           </h2>
           <p className="text-base max-w-xl mx-auto" style={{ color: 'var(--color-text-secondary)' }}>
-            Board games, consoles, Mahjong, and MTG — Sylvan Library is your all-in-one hobby destination.
+            Board games, consoles, Mahjong, and MTG — Boardgame Time is your all-in-one hobby destination.
           </p>
         </div>
 
@@ -220,7 +220,7 @@ const HomePage: React.FC = () => {
           <Link
             to="/cafe"
             className="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all hover:scale-105"
-            style={{ backgroundColor: '#16a34a', color: '#fff' }}
+            style={{ backgroundColor: '#E31E24', color: '#fff' }}
           >
             <span className="text-xl">🎲</span>
             See Full Café Info & Hours
@@ -237,15 +237,15 @@ const HomePage: React.FC = () => {
             <Link
               to="/cafe"
               className="group rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all hover:-translate-y-1 block xl:col-span-1"
-              style={{ background: 'linear-gradient(135deg, #0d2818 0%, #1a3d1a 60%, #1e4d20 100%)' }}
+              style={{ background: 'linear-gradient(135deg, #060918 0%, #0d1440 60%, #1B3A8A 100%)' }}
             >
               <div className="p-7 flex flex-col h-full min-h-[200px]">
                 <div className="flex items-start gap-2 mb-3">
                   <span className="text-4xl">🎲</span>
-                  <span className="mt-1.5 inline-flex px-2 py-0.5 rounded text-xs font-bold" style={{ backgroundColor: '#16a34a', color: '#fff' }}>Main</span>
+                  <span className="mt-1.5 inline-flex px-2 py-0.5 rounded text-xs font-bold" style={{ backgroundColor: '#E31E24', color: '#fff' }}>Main</span>
                 </div>
                 <h3 className="text-xl font-extrabold text-white mb-2">Boardgame Café & Mahjong</h3>
-                <p className="text-sm mb-4 flex-1" style={{ color: '#bbf7d0' }}>100+ board games, dedicated Mahjong tables. Flat entry fee.</p>
+                <p className="text-sm mb-4 flex-1" style={{ color: '#fca5a5' }}>100+ board games, dedicated Mahjong tables. Flat entry fee.</p>
                 <span className="inline-flex items-center gap-1 text-sm font-bold" style={{ color: '#fbbf24' }}>
                   View details
                   <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
@@ -311,22 +311,22 @@ const HomePage: React.FC = () => {
       {/* ── Bottom CTA — Café ── */}
       <section
         className="py-16 md:py-20"
-        style={{ background: 'linear-gradient(135deg, #14532d 0%, #166534 50%, #15803d 100%)' }}
+        style={{ background: 'linear-gradient(135deg, #060918 0%, #0d1440 50%, #1B3A8A 100%)' }}
       >
         <div className="container mx-auto px-4 text-center max-w-2xl">
           {/* Decorative */}
           <div className="flex justify-center gap-3 text-5xl mb-5">🎲 🎮 🕹️ 🀄</div>
           <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white">
-            Come Hang Out at Sylvan Library
+            Come Hang Out at Boardgame Time
           </h2>
-          <p className="text-base mb-8" style={{ color: '#bbf7d0' }}>
+          <p className="text-base mb-8" style={{ color: '#fca5a5' }}>
             Board games, PS5 &amp; Switch rentals, Mahjong, and MTG — one flat entry fee, endless fun.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               to="/cafe"
               className="inline-flex items-center justify-center gap-2 px-10 py-4 rounded-xl font-bold text-lg shadow-xl hover:shadow-2xl transition-all transform hover:scale-105 bg-white"
-              style={{ color: '#15803d' }}
+              style={{ color: '#E31E24' }}
             >
               See Café Info & Hours
             </Link>

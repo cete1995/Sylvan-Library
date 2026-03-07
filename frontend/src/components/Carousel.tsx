@@ -41,7 +41,7 @@ const Carousel: React.FC<CarouselProps> = ({ images, autoPlay = true, interval =
           <svg className="w-20 h-20 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
-          <h3 className="text-2xl font-bold mb-2">Welcome to Sylvan Library</h3>
+          <h3 className="text-2xl font-bold mb-2">Welcome to Boardgame Time</h3>
           <p className="text-blue-100">Your premier MTG card marketplace</p>
         </div>
       </div>

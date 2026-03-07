@@ -349,7 +349,7 @@ const App: React.FC = () => {
           {!isMobile && (
             <footer className="py-8 mt-12" style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)' }}>
               <div className="container mx-auto px-4 text-center">
-                <p>© 2026 Sylvan Library. All rights reserved.</p>
+                <p>© 2026 Boardgame Time. All rights reserved.</p>
                 <p className="text-sm mt-2" style={{ color: 'var(--color-text-secondary)' }}>
                   Magic: The Gathering is trademark of Wizards of the Coast LLC.
                 </p>

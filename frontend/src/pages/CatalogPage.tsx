@@ -191,12 +191,12 @@ const CatalogPage: React.FC = () => {
     <div className="min-h-screen pb-28 md:pb-0" style={{ backgroundColor: 'var(--color-background)' }}>
 
       {/* ── Branded header banner ── */}
-      <div className="relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #0d2818 0%, #1a3d1a 60%, #14391f 100%)' }}>
-        <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full opacity-[0.07]" style={{ backgroundColor: '#86efac' }} />
+      <div className="relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #060918 0%, #0d1440 60%, #111e55 100%)' }}>
+        <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full opacity-[0.07]" style={{ backgroundColor: '#E31E24' }} />
         <div className="container mx-auto px-4 py-8 max-w-7xl">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-widest mb-1" style={{ color: '#86efac' }}>MTG Singles</p>
+              <p className="text-xs font-semibold uppercase tracking-widest mb-1" style={{ color: '#fca5a5' }}>MTG Singles</p>
               <h1 className="text-3xl md:text-4xl font-extrabold text-white flex items-center gap-3">
                 🃏 Card Catalog
               </h1>

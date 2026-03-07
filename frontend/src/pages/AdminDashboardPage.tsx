@@ -310,7 +310,7 @@ const AdminDashboardPage: React.FC = () => {
         {/* ── Header ── */}
         <div className="mb-8">
           <h1 className="text-3xl font-extrabold tracking-tight" style={{ color: 'var(--color-text)' }}>Admin Dashboard</h1>
-          <p className="text-sm mt-1" style={{ color: 'var(--color-text-secondary)' }}>Sylvan Library — Store Management</p>
+          <p className="text-sm mt-1" style={{ color: 'var(--color-text-secondary)' }}>Boardgame Time — Store Management</p>
         </div>
 
         {/* ── Stats ── */}
@@ -453,7 +453,7 @@ const AdminDashboardPage: React.FC = () => {
         {/* ── � Boardgame Café ── */}
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-4 pb-2 border-b" style={{ borderColor: 'var(--color-border)' }}>
-            <div className="w-2 h-5 rounded-full" style={{ backgroundColor: '#16a34a' }}></div>
+            <div className="w-2 h-5 rounded-full" style={{ backgroundColor: '#E31E24' }}></div>
             <h2 className="font-bold text-sm uppercase tracking-widest" style={{ color: 'var(--color-text-secondary)' }}>Boardgame Café</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -464,7 +464,7 @@ const AdminDashboardPage: React.FC = () => {
               <div className="flex-1">
                 <div className="font-bold text-base" style={{ color: 'var(--color-text)' }}>Manage Café Content</div>
                 <div className="text-xs mt-0.5" style={{ color: 'var(--color-text-secondary)' }}>Edit hours, game library, Mahjong info, entry fee &amp; contact links</div>
-                <span className="inline-flex items-center gap-1 text-xs font-semibold mt-2" style={{ color: '#16a34a' }}>
+                <span className="inline-flex items-center gap-1 text-xs font-semibold mt-2" style={{ color: '#E31E24' }}>
                   Open editor
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
                 </span>
