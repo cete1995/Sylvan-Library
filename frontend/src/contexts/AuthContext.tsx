@@ -145,6 +145,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const logout = (): void => {
     stopIdleWatch();
+    // Invalidate server-side refresh token (fire-and-forget)
+    authApi.logout().catch(() => { /* ignore errors on logout */ });
     clearSession();
   };
 

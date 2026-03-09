@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
-import ThemeSelector from './ThemeSelector';
 
 const Navbar: React.FC = () => {
   const { isAuthenticated, user, logout } = useAuth();
@@ -42,9 +41,6 @@ const Navbar: React.FC = () => {
               
               {/* Mobile Icons */}
               <div className="flex items-center gap-3 md:hidden">
-                <div className="scale-75 origin-right">
-                  <ThemeSelector />
-                </div>
                 {isAuthenticated && (
                   <>
                     <Link to="/profile" style={{ color: 'var(--color-text)' }} className="hover:opacity-80">
@@ -92,7 +88,6 @@ const Navbar: React.FC = () => {
 
             {/* User Actions - Desktop */}
             <div className="hidden md:flex items-center gap-4">
-              <ThemeSelector />
               {isAuthenticated ? (
                 <>
                   <Link to="/profile" style={{ color: 'var(--color-text)' }} className="hover:opacity-80">

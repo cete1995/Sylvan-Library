@@ -42,7 +42,6 @@ export const getCart = asyncHandler(async (req: Request, res: Response) => {
         
         // Update price if different
         if (item.price !== newPrice) {
-          console.log(`Updating cart item price from ${item.price} to ${newPrice}`);
           item.price = newPrice;
           needsSave = true;
         }
@@ -93,7 +92,6 @@ export const addToCart = asyncHandler(async (req: Request, res: Response) => {
     );
     if (matchingWithPrice) {
       priceToUse = matchingWithPrice.sellPrice;
-      console.log(`Using price ${priceToUse} from matching inventory instead of 0`);
     }
   }
 
@@ -127,11 +125,9 @@ export const addToCart = asyncHandler(async (req: Request, res: Response) => {
     // Update price if it was 0
     if (cart.items[existingItemIndex].price === 0 && priceToUse > 0) {
       cart.items[existingItemIndex].price = priceToUse;
-      console.log(`Updated existing cart item price from 0 to ${priceToUse}`);
     }
   } else {
     // Add new item
-    console.log(`Adding to cart: cardId=${cardId}, inventoryIndex=${inventoryIndex}, price=${priceToUse}, sellerId=${inventoryItem.sellerId}`);
     cart.items.push({
       card: cardId,
       inventoryIndex,

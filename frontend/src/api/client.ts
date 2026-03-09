@@ -57,10 +57,12 @@ api.interceptors.response.use(
 
       const refreshToken = localStorage.getItem('refreshToken');
       if (!refreshToken) {
-        // No refresh token, logout and redirect to the correct login page
+        // No refresh token, clear all session data and redirect
         localStorage.removeItem('token');
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('user');
+        localStorage.removeItem('lastActivity');
+        localStorage.removeItem('rememberMe');
         window.location.href = '/login';
         return Promise.reject(error);
       }
@@ -87,11 +89,13 @@ api.interceptors.response.use(
         // Retry original request
         return api(originalRequest);
       } catch (refreshError) {
-        // Refresh failed, logout
+        // Refresh failed, clear all session data and redirect
         processQueue(refreshError, null);
         localStorage.removeItem('token');
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('user');
+        localStorage.removeItem('lastActivity');
+        localStorage.removeItem('rememberMe');
         window.location.href = '/login';
         return Promise.reject(refreshError);
       } finally {

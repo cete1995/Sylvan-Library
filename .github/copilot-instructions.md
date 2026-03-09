@@ -112,6 +112,13 @@ Stored in DB via `/api/admin/cafe`. Structure:
 - `ProtectedRoute` component wraps admin/seller routes
 - Images stored in `backend/uploads/images/`
 - Manabox CSV upload at `POST /api/manabox/upload`
+- Rate limiting (10 req/15min) on `POST /api/auth/login` and `POST /api/auth/register/customer`
+- `POST /api/auth/register` is **admin-protected** (`authenticate + requireAdmin`)
+- `POST /api/auth/logout` invalidates refresh token in DB (requires auth)
+- Order creation (`POST /api/orders`) verifies prices server-side and deducts `quantityForSale`
+- WhatsApp FAB on CafePage links to `https://wa.me/6281333667147`
+- PWA configured via `vite-plugin-pwa` in `vite.config.ts`; icons needed: `/pwa-192x192.png`, `/pwa-512x512.png`
+- `UserProfile.role` in `frontend/src/api/profile.ts` is `'admin' | 'customer' | 'seller'`
 
 ## Known Pitfalls
 - **Never use PowerShell `Get-Content`/`Set-Content` on TSX files** — it corrupts UTF-8 emojis/symbols (double-encodes as Windows-1252). Always use Node.js `fs.readFileSync/writeFileSync` with `'utf8'` encoding for file operations.
@@ -121,6 +128,8 @@ Stored in DB via `/api/admin/cafe`. Structure:
 ## Recent Commit History (as of March 2026)
 | Commit | Description |
 |---|---|
+| `pending` | Security & UX audit: 16-item batch fix (auth, orders, stock, rate-limit, PWA, toasts, WA FAB) |
+| `3bac93a` | Session auto-logout (1hr idle) + Remember Me bypass |
 | `ec0bc5b` | Console rental always visible, remove Coming Soon fallback |
 | `ab0bf72` | Change password for all user roles (user/seller/admin) |
 | `6d7cd2f` | Full rebrand to Boardgame Time (red #E31E24 + navy #1B3A8A color scheme) |
@@ -129,5 +138,3 @@ Stored in DB via `/api/admin/cafe`. Structure:
 | `288fe4e` | Fix duplicate content causing TS build failure |
 | `174cedf` | Seller mobile access (BottomNav + seller page rewrites) |
 | `40d0823` | ConsolesPage + CafePage/HomePage/ProfilePage updates |
-| `5577f5e` | Customer-facing page redesigns |
-| `bf0363d` | Day-based café pricing + PS5/Switch hourly with happy hour |

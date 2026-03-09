@@ -4,7 +4,7 @@ export interface UserProfile {
   _id: string;
   email: string;
   name?: string;
-  role: 'admin' | 'customer';
+  role: 'admin' | 'customer' | 'seller';
   address?: string;
   phoneNumber?: string;
   courierNotes?: string;

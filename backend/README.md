@@ -1,6 +1,6 @@
-﻿# Sylvan Library - Backend
+﻿# Boardgame Time - Backend
 
-Express + TypeScript API server for the Sylvan Library MTG Inventory system.
+Express + TypeScript API server for the Boardgame Time MTG & café app.
 
 ---
 

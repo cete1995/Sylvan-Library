@@ -138,6 +138,7 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
     user: {
       id: user._id,
       email: user.email,
+      name: user.name,
       role: user.role,
     },
   });
@@ -165,6 +166,20 @@ export const getCurrentUser = asyncHandler(async (req: Request, res: Response) =
       role: user.role,
     },
   });
+});
+
+/**
+ * Logout user and invalidate refresh token
+ * POST /api/auth/logout
+ */
+export const logout = asyncHandler(async (req: Request, res: Response) => {
+  const reqUser = (req as any).user;
+  if (reqUser?.id) {
+    await User.findByIdAndUpdate(reqUser.id, {
+      $unset: { refreshToken: 1, refreshTokenExpiry: 1 },
+    });
+  }
+  res.json({ message: 'Logged out successfully' });
 });
 
 /**

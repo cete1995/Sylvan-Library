@@ -1,6 +1,6 @@
-﻿# Sylvan Library - Frontend
+﻿# Boardgame Time - Frontend
 
-React 18 + TypeScript + Vite frontend for the Sylvan Library MTG inventory system.
+React 18 + TypeScript + Vite frontend for the Boardgame Time MTG & café app.
 
 ---
 

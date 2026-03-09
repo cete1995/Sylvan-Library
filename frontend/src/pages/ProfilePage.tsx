@@ -135,8 +135,16 @@ const ProfilePage: React.FC = () => {
       setPwError('New passwords do not match');
       return;
     }
-    if (pwData.newPassword.length < 6) {
-      setPwError('New password must be at least 6 characters');
+    if (pwData.newPassword.length < 8) {
+      setPwError('New password must be at least 8 characters');
+      return;
+    }
+    if (!/[A-Z]/.test(pwData.newPassword)) {
+      setPwError('New password must contain at least one uppercase letter');
+      return;
+    }
+    if (!/[0-9]/.test(pwData.newPassword)) {
+      setPwError('New password must contain at least one number');
       return;
     }
     setPwSaving(true);

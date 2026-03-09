@@ -1,6 +1,6 @@
-﻿# Sylvan Library — MTG Inventory & Store
+﻿# Boardgame Time — MTG Singles & Boardgame Café
 
-A full-stack web application for managing Magic: The Gathering card inventory across multiple sellers, with a public storefront, TikTok Shop integration, offline sales recording, and automated CK-based pricing.
+A full-stack web application for **Boardgame Time**, a boardgame café and MTG singles shop in Indonesia. Customers can browse the card catalog, place orders, and view café info. Sellers manage inventory. Admins have a full dashboard for cards, pricing, orders, TikTok, café settings, and user management.
 
 ---
 
@@ -93,6 +93,7 @@ A full-stack web application for managing Magic: The Gathering card inventory ac
 | MongoDB + Mongoose | Database & ODM |
 | JWT | Authentication |
 | Zod | Request validation |
+| express-rate-limit | Auth route brute-force protection |
 | Multer | File uploads (images, CSV) |
 | csv-parse | CSV parsing |
 | Axios | CK price fetching, TikTok API calls |
@@ -103,6 +104,7 @@ A full-stack web application for managing Magic: The Gathering card inventory ac
 |---|---|
 | React 18 + TypeScript | UI framework |
 | Vite | Build tool & dev server |
+| vite-plugin-pwa | Progressive Web App support |
 | Tailwind CSS | Styling |
 | React Router v6 | Client-side routing |
 | Axios | API calls |
@@ -114,7 +116,7 @@ A full-stack web application for managing Magic: The Gathering card inventory ac
 ## Project Structure
 
 ```
-Sylvan Library/
+Boardgame Time/
  backend/
     src/
        config/

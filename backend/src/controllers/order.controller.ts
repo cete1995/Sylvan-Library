@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { Order } from '../models';
+import { Order, Card } from '../models';
 import { AppError } from '../middleware/errorHandler';
 import { asyncHandler } from '../middleware/asyncHandler';
 import { AuthRequest } from '../middleware/auth.middleware';
@@ -60,8 +60,42 @@ export const createOrder = asyncHandler(async (req: Request, res: Response): Pro
     throw new AppError(400, 'Shipping address and phone number are required');
   }
 
-  // Calculate total amount
-  const totalAmount = items.reduce((sum, item) => sum + item.subtotal, 0);
+  // Verify prices server-side and check stock
+  const verifiedItems = [];
+  for (const item of items) {
+    const card = await Card.findById(item.card);
+    if (!card) {
+      throw new AppError(404, `Card not found: ${item.card}`);
+    }
+
+    // Find matching inventory entry
+    const invEntry = card.inventory.find(
+      (inv) => inv.condition === item.condition && inv.finish === item.finish
+    );
+
+    if (!invEntry) {
+      throw new AppError(400, `No inventory found for ${card.name} (${item.condition} / ${item.finish})`);
+    }
+
+    if (invEntry.quantityForSale < item.quantity) {
+      throw new AppError(400, `Insufficient stock for ${card.name}: only ${invEntry.quantityForSale} available`);
+    }
+
+    const pricePerUnit = invEntry.sellPrice;
+    const subtotal = pricePerUnit * item.quantity;
+
+    verifiedItems.push({
+      card: item.card,
+      cardName: item.cardName || card.name,
+      condition: item.condition,
+      finish: item.finish,
+      quantity: item.quantity,
+      pricePerUnit,
+      subtotal,
+    });
+  }
+
+  const totalAmount = verifiedItems.reduce((sum, item) => sum + item.subtotal, 0);
 
   // Generate order number
   const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
@@ -69,7 +103,7 @@ export const createOrder = asyncHandler(async (req: Request, res: Response): Pro
   const order = await Order.create({
     user: userId,
     orderNumber,
-    items,
+    items: verifiedItems,
     totalAmount,
     shippingAddress,
     phoneNumber,
@@ -78,6 +112,14 @@ export const createOrder = asyncHandler(async (req: Request, res: Response): Pro
     status: 'pending',
     paymentStatus: 'unpaid',
   });
+
+  // Deduct stock for each item
+  for (const item of verifiedItems) {
+    await Card.updateOne(
+      { _id: item.card, 'inventory.condition': item.condition, 'inventory.finish': item.finish },
+      { $inc: { 'inventory.$.quantityForSale': -item.quantity } }
+    );
+  }
 
   const populatedOrder = await Order.findById(order._id).populate('items.card', 'name imageUrl setName');
 
