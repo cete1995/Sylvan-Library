@@ -1,5 +1,6 @@
 import express, { Application } from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 import dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs';
@@ -12,6 +13,11 @@ dotenv.config();
 
 // Initialize Express app
 const app: Application = express();
+
+// Security headers
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' }, // Allow uploaded images to be served cross-origin
+}));
 
 // CORS — supports comma-separated FRONTEND_URL for multiple origins
 const allowedOrigins = [

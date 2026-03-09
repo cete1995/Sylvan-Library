@@ -119,8 +119,8 @@ const CatalogPage: React.FC = () => {
     try {
       const data = await cardApi.getSets();
       setSets(data.sets);
-    } catch (error) {
-      console.error('Failed to load sets:', error);
+    } catch {
+      // sets load silently — catalog still works without filter list
     }
   };
 
@@ -143,8 +143,8 @@ const CatalogPage: React.FC = () => {
       const data = await cardApi.getCards(params);
       setCards(data.cards);
       setPagination(data.pagination);
-    } catch (error) {
-      console.error('Failed to load cards:', error);
+    } catch {
+      // error shown via empty state
     } finally {
       setLoading(false);
     }

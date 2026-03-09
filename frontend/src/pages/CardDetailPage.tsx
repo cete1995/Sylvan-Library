@@ -54,8 +54,8 @@ const CardDetailPage: React.FC = () => {
       const data = await cardApi.getCardById(cardId);
       setCard(data.card);
       setCalculatedPrices(data.calculatedPrices || null);
-    } catch (error) {
-      console.error('Failed to load card:', error);
+    } catch {
+      // error shown via empty state
     } finally {
       setLoading(false);
     }

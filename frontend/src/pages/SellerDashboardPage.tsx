@@ -33,8 +33,8 @@ const SellerDashboardPage: React.FC = () => {
       });
       setCards(data.cards);
       setTotalPages(data.pagination.totalPages);
-    } catch (error) {
-      console.error('Failed to load cards:', error);
+    } catch {
+      // error shown via empty state
     } finally {
       setLoading(false);
     }

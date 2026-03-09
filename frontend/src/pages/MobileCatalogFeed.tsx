@@ -62,8 +62,8 @@ const MobileCatalogFeed: React.FC = () => {
     try {
       const data = await cardApi.getSets();
       setSets(data.sets);
-    } catch (error) {
-      console.error('Failed to load sets:', error);
+    } catch {
+      // sets load silently
     }
   };
 
@@ -90,8 +90,8 @@ const MobileCatalogFeed: React.FC = () => {
       }
       
       setHasMore(data.pagination.hasNextPage);
-    } catch (error) {
-      console.error('Failed to load cards:', error);
+    } catch {
+      // error shown via empty state
     } finally {
       setLoading(false);
     }

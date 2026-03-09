@@ -1,6 +1,4 @@
-import axios from 'axios';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+import api from './client';
 
 export interface Seller {
   _id: string;
@@ -14,66 +12,37 @@ export interface Seller {
 export const sellerApi = {
   // Get all sellers
   getSellers: async (): Promise<{ sellers: Seller[] }> => {
-    const token = localStorage.getItem('token');
-    const response = await axios.get(`${API_URL}/admin/sellers`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const response = await api.get('/admin/sellers');
     return response.data;
   },
 
   // Create a new seller
   createSeller: async (data: { email: string; password: string; name?: string }): Promise<{ seller: Seller }> => {
-    const token = localStorage.getItem('token');
-    const response = await axios.post(`${API_URL}/admin/sellers`, data, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const response = await api.post('/admin/sellers', data);
     return response.data;
   },
 
   // Delete a seller
   deleteSeller: async (id: string): Promise<{ message: string }> => {
-    const token = localStorage.getItem('token');
-    const response = await axios.delete(`${API_URL}/admin/sellers/${id}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const response = await api.delete(`/admin/sellers/${id}`);
     return response.data;
   },
 
   // Update seller info
   updateSeller: async (id: string, data: { email?: string; name?: string }): Promise<{ seller: Seller; message: string }> => {
-    const token = localStorage.getItem('token');
-    const response = await axios.put(
-      `${API_URL}/admin/sellers/${id}`,
-      data,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
+    const response = await api.put(`/admin/sellers/${id}`, data);
     return response.data;
   },
 
   // Update seller password
   updateSellerPassword: async (id: string, password: string): Promise<{ message: string }> => {
-    const token = localStorage.getItem('token');
-    const response = await axios.put(
-      `${API_URL}/admin/sellers/${id}/password`,
-      { password },
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
+    const response = await api.put(`/admin/sellers/${id}/password`, { password });
     return response.data;
   },
 
   // Delete all stock for a seller
   deleteSellerStock: async (id: string): Promise<{ message: string; totalRemoved: number; cardsUpdated: number }> => {
-    const token = localStorage.getItem('token');
-    const response = await axios.delete(
-      `${API_URL}/admin/sellers/${id}/stock`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
+    const response = await api.delete(`/admin/sellers/${id}/stock`);
     return response.data;
   },
 };

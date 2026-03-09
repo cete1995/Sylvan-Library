@@ -1,6 +1,4 @@
-import axios from 'axios';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+import api from './client';
 
 export interface PriceTier {
   maxPrice: number;
@@ -13,85 +11,33 @@ export interface UBSettings {
 }
 
 export const ubPricingApi = {
-  /**
-   * Get UB settings
-   */
-  getUBSettings: async (token: string) => {
-    const response = await axios.get(
-      `${API_URL}/admin/ub-pricing/ub-settings`,
-      {
-        headers: { Authorization: `Bearer ${token}` }
-      }
-    );
+  getUBSettings: async (_token?: string) => {
+    const response = await api.get('/admin/ub-pricing/ub-settings');
     return response.data;
   },
 
-  /**
-   * Update UB price tiers
-   */
-  updatePriceTiers: async (token: string, priceTiers: PriceTier[]) => {
-    const response = await axios.put(
-      `${API_URL}/admin/ub-pricing/ub-settings/price-tiers`,
-      { priceTiers },
-      {
-        headers: { Authorization: `Bearer ${token}` }
-      }
-    );
+  updatePriceTiers: async (_token?: string, priceTiers?: PriceTier[]) => {
+    const response = await api.put('/admin/ub-pricing/ub-settings/price-tiers', { priceTiers });
     return response.data;
   },
 
-  /**
-   * Add UB set code
-   */
-  addUBSet: async (token: string, setCode: string) => {
-    const response = await axios.post(
-      `${API_URL}/admin/ub-pricing/ub-settings/sets`,
-      { setCode },
-      {
-        headers: { Authorization: `Bearer ${token}` }
-      }
-    );
+  addUBSet: async (_token?: string, setCode?: string) => {
+    const response = await api.post('/admin/ub-pricing/ub-settings/sets', { setCode });
     return response.data;
   },
 
-  /**
-   * Remove UB set code
-   */
-  removeUBSet: async (token: string, setCode: string) => {
-    const response = await axios.delete(
-      `${API_URL}/admin/ub-pricing/ub-settings/sets/${setCode}`,
-      {
-        headers: { Authorization: `Bearer ${token}` }
-      }
-    );
+  removeUBSet: async (_token?: string, setCode?: string) => {
+    const response = await api.delete(`/admin/ub-pricing/ub-settings/sets/${setCode}`);
     return response.data;
   },
 
-  /**
-   * Sync UB card prices from CardKingdom prices
-   */
-  syncUBPrices: async (token: string, params?: { setCode?: string; cardId?: string }) => {
-    const response = await axios.post(
-      `${API_URL}/admin/ub-pricing/sync-ub-prices`,
-      params || {},
-      {
-        headers: { Authorization: `Bearer ${token}` }
-      }
-    );
+  syncUBPrices: async (_token?: string, params?: { setCode?: string; cardId?: string }) => {
+    const response = await api.post('/admin/ub-pricing/sync-ub-prices', params || {});
     return response.data;
   },
 
-  /**
-   * Calculate UB price for a specific card and finish
-   */
-  calculateUBPrice: async (token: string, cardId: string, finish: string) => {
-    const response = await axios.post(
-      `${API_URL}/admin/ub-pricing/calculate-ub-price`,
-      { cardId, finish },
-      {
-        headers: { Authorization: `Bearer ${token}` }
-      }
-    );
+  calculateUBPrice: async (_token?: string, cardId?: string, finish?: string) => {
+    const response = await api.post('/admin/ub-pricing/calculate-ub-price', { cardId, finish });
     return response.data;
   },
 };

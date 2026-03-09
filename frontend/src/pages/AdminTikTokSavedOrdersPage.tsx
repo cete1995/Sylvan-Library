@@ -48,7 +48,6 @@ const AdminTikTokSavedOrdersPage: React.FC = () => {
         setError('Failed to fetch orders');
       }
     } catch (err: any) {
-      console.error('Error fetching orders:', err);
       setError(err.response?.data?.error || err.message || 'Failed to fetch orders');
     } finally {
       setLoading(false);
@@ -91,7 +90,6 @@ const AdminTikTokSavedOrdersPage: React.FC = () => {
         alert('Failed to delete orders: ' + response.data.error);
       }
     } catch (err: any) {
-      console.error('Error deleting orders:', err);
       alert('Error: ' + (err.response?.data?.error || err.message));
     } finally {
       setLoading(false);
@@ -145,7 +143,6 @@ const AdminTikTokSavedOrdersPage: React.FC = () => {
         throw new Error(syncResponse.data.error || 'Sync failed');
       }
     } catch (err: any) {
-      console.error('Error re-syncing orders:', err);
       alert('❌ Error: ' + (err.response?.data?.error || err.message));
     } finally {
       setLoading(false);
@@ -174,13 +171,10 @@ const AdminTikTokSavedOrdersPage: React.FC = () => {
           });
           
           if (response.data.success && response.data.data.length > 0) {
-            console.log('Found sellers for item', i, ':', response.data.data);
-            console.log('→ First card inventory[0]:', response.data.data[0]?.inventory?.[0]);
-            console.log('→ sellerEmail value:', response.data.data[0]?.inventory?.[0]?.sellerEmail);
             sellersMap[i] = response.data.data;
           }
-        } catch (err) {
-          console.error(`Error finding sellers for item ${i}:`, err);
+        } catch {
+          // skip items where no sellers are found
         }
       }
       
@@ -195,7 +189,6 @@ const AdminTikTokSavedOrdersPage: React.FC = () => {
         alert('No sellers found for any items in this order');
       }
     } catch (err: any) {
-      console.error('Error finding sellers:', err);
       alert('Error: ' + (err.response?.data?.error || err.message));
     } finally {
       setLoading(false);
@@ -236,7 +229,6 @@ const AdminTikTokSavedOrdersPage: React.FC = () => {
         alert('Failed to find sellers: ' + response.data.error);
       }
     } catch (err: any) {
-      console.error('Error finding sellers:', err);
       alert('Error: ' + (err.response?.data?.error || err.message));
     } finally {
       setLoading(false);
@@ -257,9 +249,6 @@ const AdminTikTokSavedOrdersPage: React.FC = () => {
         cardId,
         inventoryIndex
       });
-      
-      console.log('Assignment response:', response.data);
-      console.log('Assigned seller from response:', response.data.data?.order?.itemList?.[itemIndex]?.assignedSeller);
       
       if (response.data.success) {
         // Remove this item from found sellers after assignment
@@ -312,7 +301,6 @@ const AdminTikTokSavedOrdersPage: React.FC = () => {
         alert('Failed to assign: ' + response.data.error);
       }
     } catch (err: any) {
-      console.error('Error assigning card:', err);
       alert('Error: ' + (err.response?.data?.error || err.message));
     } finally {
       setLoading(false);
@@ -379,7 +367,6 @@ const AdminTikTokSavedOrdersPage: React.FC = () => {
         alert('Failed to undo: ' + response.data.error);
       }
     } catch (err: any) {
-      console.error('Error undoing assignment:', err);
       alert('Error: ' + (err.response?.data?.error || err.message));
     } finally {
       setLoading(false);
@@ -443,7 +430,6 @@ const AdminTikTokSavedOrdersPage: React.FC = () => {
         alert('Failed to edit stock: ' + response.data.error);
       }
     } catch (err: any) {
-      console.error('Error editing stock:', err);
       alert('Error: ' + (err.response?.data?.error || err.message));
     } finally {
       setLoading(false);
@@ -703,7 +689,6 @@ const AdminTikTokSavedOrdersPage: React.FC = () => {
                               <div className="w-64 flex-shrink-0">
                                 {item.assignedSeller ? (
                                   (() => {
-                                    console.log('Rendering assigned seller:', 'sellerEmail=', item.assignedSeller.sellerEmail, 'sellerName=', item.assignedSeller.sellerName, 'full obj=', item.assignedSeller);
                                     return (
                                       <div className="flex flex-col gap-3">
                                         <div
