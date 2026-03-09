@@ -98,8 +98,8 @@ const AdminOfflineBuyPage: React.FC = () => {
 
   // ── Init ──────────────────────────────────────────────────────────────────
   useEffect(() => {
-    sellerApi.getSellers().then((d) => setSellers(d.sellers)).catch(console.error);
-    adminApi.getMembers().then((d) => setMembers(d.members || [])).catch(console.error);
+    sellerApi.getSellers().then((d) => setSellers(d.sellers)).catch(() => { /* silently ignore */ });
+    adminApi.getMembers().then((d) => setMembers(d.members || [])).catch(() => { /* silently ignore */ });
   }, []);
 
   // ── Load history ──────────────────────────────────────────────────────────
@@ -113,8 +113,8 @@ const AdminOfflineBuyPage: React.FC = () => {
       });
       setBuys(data.buys);
       setHistoryTotal(data.pagination.total);
-    } catch (err: any) {
-      console.error('Load history error:', err);
+    } catch {
+      // error shown via empty history list
     } finally {
       setHistoryLoading(false);
     }

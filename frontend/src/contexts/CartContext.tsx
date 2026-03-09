@@ -19,8 +19,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const data = await cartApi.getCart();
         const count = data.cart.items.reduce((sum: number, item: any) => sum + item.quantity, 0);
         setCartCount(count);
-      } catch (error) {
-        console.error('Failed to load cart count:', error);
+      } catch {
         setCartCount(0);
       }
     } else {

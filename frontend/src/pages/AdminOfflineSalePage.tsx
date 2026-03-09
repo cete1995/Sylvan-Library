@@ -72,7 +72,7 @@ const AdminOfflineSalePage: React.FC = () => {
 
   // ── Load sellers for history filter ────────────────────────────────────────
   useEffect(() => {
-    sellerApi.getSellers().then((d) => setSellers(d.sellers)).catch(console.error);
+    sellerApi.getSellers().then((d) => setSellers(d.sellers)).catch(() => { /* silently ignore */ });
   }, []);
 
   // ── Load history tab ────────────────────────────────────────────────────────
@@ -87,8 +87,8 @@ const AdminOfflineSalePage: React.FC = () => {
       });
       setSales(data.sales);
       setHistoryTotal(data.pagination.total);
-    } catch (err: any) {
-      console.error('Load history error:', err);
+    } catch {
+      // error shown via empty history list
     } finally {
       setHistoryLoading(false);
     }

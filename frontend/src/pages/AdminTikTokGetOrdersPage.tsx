@@ -112,7 +112,6 @@ const AdminTikTokGetOrdersPage: React.FC = () => {
         alert('Failed to sync orders: ' + (response.data.error || 'Unknown error'));
       }
     } catch (error: any) {
-      console.error('Error syncing orders:', error);
       const errorData = error.response?.data;
 
       // Show backend logs from the error response if available

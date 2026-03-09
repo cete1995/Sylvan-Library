@@ -40,8 +40,8 @@ const CardPriceChart: React.FC<CardPriceChartProps> = ({ uuid }) => {
       try {
         const latest = await priceApi.getLatestPrice(token, uuid);
         setLatestPrice(latest.price);
-      } catch (err) {
-        console.log('No latest price found');
+      } catch {
+        // latest price unavailable — show chart without current marker
       }
 
       // Load price history
@@ -57,8 +57,8 @@ const CardPriceChart: React.FC<CardPriceChartProps> = ({ uuid }) => {
       }));
 
       setPriceData(chartData);
-    } catch (error) {
-      console.error('Failed to load price data:', error);
+    } catch {
+      // price data unavailable
     } finally {
       setLoading(false);
     }

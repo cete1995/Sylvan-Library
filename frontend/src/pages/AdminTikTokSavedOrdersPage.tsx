@@ -719,7 +719,6 @@ const AdminTikTokSavedOrdersPage: React.FC = () => {
                                       {foundSellers[order.orderId][index].map((card: any) => (
                                         <div key={card.cardId}>
                                           {card.inventory.map((inv: any) => {
-                                            console.log(`Rendering inventory:`, 'sellerEmail=', inv.sellerEmail, 'sellerName=', inv.sellerName, 'full inv=', inv);
                                             return (
                                               <div
                                                 key={inv.inventoryIndex}

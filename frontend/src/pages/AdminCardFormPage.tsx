@@ -70,20 +70,14 @@ const AdminCardFormPage: React.FC = () => {
 
       // Fetch latest price if UUID exists
       if (card.uuid && token) {
-        console.log('Fetching price for UUID:', card.uuid);
         try {
           const priceData = await priceApi.getLatestPrice(token, card.uuid);
-          console.log('Price data received:', priceData);
           if (priceData.success && priceData.price?.prices) {
             setAllPrices(priceData.price.prices);
-          } else {
-            console.log('No price data found');
           }
-        } catch (err) {
-          console.error('Price fetch error:', err);
+        } catch {
+          // price data unavailable
         }
-      } else {
-        console.log('No UUID or token:', { uuid: card.uuid, hasToken: !!token });
       }
     } catch (error) {
       setError('Failed to load card');
@@ -184,7 +178,6 @@ const AdminCardFormPage: React.FC = () => {
         updateInventoryItem(index, 'sellPrice', result.ubPrice);
       }
     } catch (err: any) {
-      console.error('Failed to calculate UB price:', err);
       setError(err.response?.data?.error || 'Failed to calculate UB price');
     } finally {
       setCalculatingPrice(null);
@@ -206,8 +199,8 @@ const AdminCardFormPage: React.FC = () => {
           if (result.success && result.ubPrice) {
             updateInventoryItem(i, 'sellPrice', result.ubPrice);
           }
-        } catch (err) {
-          console.error(`Failed to calculate price for item ${i}:`, err);
+        } catch {
+          // skip items where price calculation fails
         }
       }
     } catch (err: any) {

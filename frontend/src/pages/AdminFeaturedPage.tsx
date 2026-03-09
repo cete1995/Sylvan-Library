@@ -77,13 +77,10 @@ const AdminFeaturedPage: React.FC = () => {
 
     try {
       setLoading(true);
-      console.log('Submitting banner data:', bannerForm);
-      const result = await upsertFeaturedBanner(token, bannerForm);
-      console.log('Banner update result:', result);
+      await upsertFeaturedBanner(token, bannerForm);
       showMessage('success', 'Banner updated successfully!');
       loadData();
     } catch (error: any) {
-      console.error('Banner update error:', error);
       const errorMessage = error.response?.data?.message || error.response?.data?.error || error.message || 'Failed to update banner';
       showMessage('error', errorMessage);
     } finally {

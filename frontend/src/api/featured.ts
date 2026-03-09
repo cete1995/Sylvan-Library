@@ -42,7 +42,6 @@ export const getFeaturedProducts = async (): Promise<FeaturedProduct[]> => {
     const response = await axios.get(`${API_URL}/featured/products`);
     return response.data.products;
   } catch (error) {
-    console.error('Error fetching featured products:', error);
     return [];
   }
 };
@@ -72,7 +71,6 @@ export const upsertFeaturedBanner = async (
     });
     return response.data.banner;
   } catch (error: any) {
-    console.error('Banner API error:', error.response?.data || error.message);
     throw error;
   }
 };

@@ -59,8 +59,6 @@ const AdminDebugPage: React.FC = () => {
     try {
       const response = await api.get(`/debug/card/${cardId}`);
       setSelectedCard(response.data.data);
-      console.log('=== CARD DEBUG INFO ===');
-      console.log('Full response:', response.data.data);
     } catch (error: any) {
       alert('Error fetching card details: ' + (error.response?.data?.error || error.message));
     } finally {

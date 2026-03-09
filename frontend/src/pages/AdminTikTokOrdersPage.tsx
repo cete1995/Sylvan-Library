@@ -74,8 +74,6 @@ const AdminTikTokOrdersPage: React.FC = () => {
         setError('Failed to fetch order detail');
       }
     } catch (err: any) {
-      console.error('Error fetching order detail:', err);
-      
       // Store full error response for debugging
       setFullResponse({
         error: true,

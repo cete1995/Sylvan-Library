@@ -84,8 +84,8 @@ const AdminMissingImagesPage: React.FC = () => {
     try {
       const data = await adminApi.getSetsWithMissingImages();
       setSets(data.sets);
-    } catch (error) {
-      console.error('Failed to load sets with missing images:', error);
+    } catch {
+      // error shown via empty state
     } finally {
       setLoading(false);
     }

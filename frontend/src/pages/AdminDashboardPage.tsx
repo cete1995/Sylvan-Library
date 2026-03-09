@@ -37,8 +37,8 @@ const AdminDashboardPage: React.FC = () => {
     try {
       const data = await adminApi.getStats();
       setStats(data);
-    } catch (error) {
-      console.error('Failed to load stats:', error);
+    } catch {
+      // stats show empty/zero state
     } finally {
       setLoading(false);
     }
@@ -49,8 +49,8 @@ const AdminDashboardPage: React.FC = () => {
     try {
       const data = await adminApi.getSets();
       setSets(data.sets);
-    } catch (error) {
-      console.error('Failed to load sets:', error);
+    } catch {
+      // sets show empty state
     } finally {
       setSetsLoading(false);
     }

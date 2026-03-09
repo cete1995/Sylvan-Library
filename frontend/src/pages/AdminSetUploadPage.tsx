@@ -21,7 +21,6 @@ const AdminSetUploadPage: React.FC = () => {
       const response = await adminApi.uploadSet(data);
       setResult(response);
     } catch (error: any) {
-      console.error('Upload error:', error);
       if (error instanceof SyntaxError) {
         setError('Invalid JSON format');
       } else {

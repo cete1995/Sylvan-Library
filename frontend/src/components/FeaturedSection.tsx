@@ -26,8 +26,8 @@ const FeaturedSection: React.FC = () => {
       const productsData = await getFeaturedProducts();
       setProducts(productsData);
       setDisplayedProducts(productsData.slice(0, PRODUCTS_PER_PAGE));
-    } catch (error) {
-      console.error('Error loading featured data:', error);
+    } catch {
+      // silently fail — featured section is optional
     }
   };
 

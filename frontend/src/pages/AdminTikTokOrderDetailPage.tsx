@@ -75,7 +75,6 @@ const AdminTikTokOrderDetailPage: React.FC = () => {
         setOrder(response.data.data.orders[0]);
       }
     } catch (error: any) {
-      console.error('Error loading order:', error);
       alert('Failed to load order: ' + (error.response?.data?.error || error.message));
     } finally {
       setLoading(false);
@@ -111,7 +110,6 @@ const AdminTikTokOrderDetailPage: React.FC = () => {
         alert('Failed to fetch order details: ' + response.data.error);
       }
     } catch (error: any) {
-      console.error('Error fetching order detail:', error);
       const errorLogs = error.response?.data?.logs || [`ERROR: ${error.response?.data?.error || error.message}`];
       setDebugLogs(errorLogs);
       alert('Failed to fetch order details: ' + (error.response?.data?.error || error.message));
