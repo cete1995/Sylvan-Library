@@ -83,7 +83,7 @@ const OrderDetailPage: React.FC = () => {
   const pc = paymentConfig[order.paymentStatus] ?? paymentConfig.unpaid;
 
   return (
-    <div className="min-h-screen py-8" style={{ backgroundColor: 'var(--color-background)' }}>
+    <div className="min-h-screen pt-8 pb-28 md:pb-8" style={{ backgroundColor: 'var(--color-background)' }}>
       <div className="container mx-auto px-4 max-w-4xl">
 
         {/* Back */}

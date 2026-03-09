@@ -47,7 +47,7 @@ const SellerDashboardPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen pb-24 md:pb-8" style={{ backgroundColor: 'var(--color-background)' }}>
+    <div className="min-h-screen pb-28 md:pb-8" style={{ backgroundColor: 'var(--color-background)' }}>
 
       {/* ── Header banner ── */}
       <div

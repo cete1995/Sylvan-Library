@@ -185,7 +185,7 @@ const CardDetailPage: React.FC = () => {
   // Mobile Layout
   if (isMobile) {
     return (
-      <div className="min-h-screen pb-32" style={{ backgroundColor: 'var(--color-background)' }}>
+      <div className="min-h-screen pb-28" style={{ backgroundColor: 'var(--color-background)' }}>
         {/* Header */}
         <div 
           className="sticky top-0 z-30 px-4 py-3 border-b flex items-center gap-3"
