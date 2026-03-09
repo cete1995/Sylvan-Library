@@ -7,6 +7,7 @@ const LoginPage: React.FC = () => {
   const { login } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [lastAttemptedEmail, setLastAttemptedEmail] = useState('');
   const [formData, setFormData] = useState({
     email: '',
@@ -44,7 +45,7 @@ const LoginPage: React.FC = () => {
 
     try {
       // Use AuthContext login which handles everything
-      await login(formData.email, formData.password);
+      await login(formData.email, formData.password, rememberMe);
       
       // Success - wait a bit then navigate
       await new Promise(resolve => setTimeout(resolve, 300));
@@ -244,6 +245,33 @@ const LoginPage: React.FC = () => {
                 placeholder="••••••••"
               />
             </div>
+
+            {/* Remember me */}
+            <label className="flex items-center gap-3 cursor-pointer select-none">
+              <div
+                className="relative w-5 h-5 rounded flex items-center justify-center flex-shrink-0 transition-all"
+                style={{
+                  backgroundColor: rememberMe ? 'var(--color-accent)' : 'var(--color-panel)',
+                  border: rememberMe ? '2px solid var(--color-accent)' : '2px solid var(--color-border)',
+                }}
+              >
+                <input
+                  type="checkbox"
+                  className="sr-only"
+                  checked={rememberMe}
+                  onChange={e => setRememberMe(e.target.checked)}
+                />
+                {rememberMe && (
+                  <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+              </div>
+              <span className="text-sm" style={{ color: 'var(--color-text)' }}>
+                Remember me
+                <span className="ml-1 text-xs" style={{ color: 'var(--color-text-secondary)' }}>(stay logged in — skip auto-logout)</span>
+              </span>
+            </label>
 
             <button
               type="button"
