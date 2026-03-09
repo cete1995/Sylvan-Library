@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { cartApi } from '../api/cart';
+import { orderApi } from '../api/order';
 import { Cart } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
@@ -15,6 +16,12 @@ const CartPage: React.FC = () => {
   const [updating, setUpdating] = useState<string | null>(null);
   const [confirmRemoveId, setConfirmRemoveId] = useState<string | null>(null);
   const [confirmClear, setConfirmClear] = useState(false);
+  const [showCheckout, setShowCheckout] = useState(false);
+  const [checkoutAddr, setCheckoutAddr] = useState('');
+  const [checkoutPhone, setCheckoutPhone] = useState('');
+  const [checkoutPayment, setCheckoutPayment] = useState('transfer');
+  const [checkoutNotes, setCheckoutNotes] = useState('');
+  const [placing, setPlacing] = useState(false);
 
   // Format price with thousands separator
   const formatPrice = (price: number): string => {
@@ -23,7 +30,7 @@ const CartPage: React.FC = () => {
 
   useEffect(() => {
     if (!user) {
-      navigate('/register');
+      navigate('/login');
       return;
     }
     loadCart();
@@ -34,7 +41,7 @@ const CartPage: React.FC = () => {
       const data = await cartApi.getCart();
       setCart(data.cart);
     } catch (error) {
-      // Cart load error is handled by showing empty state
+      toast.error('Failed to load cart');
     } finally {
       setLoading(false);
     }
@@ -69,6 +76,50 @@ const CartPage: React.FC = () => {
       toast.error('Failed to remove item');
     } finally {
       setUpdating(null);
+    }
+  };
+
+  const handlePlaceOrder = async () => {
+    if (!checkoutAddr.trim() || !checkoutPhone.trim()) {
+      toast.error('Please fill in your address and phone number');
+      return;
+    }
+    setPlacing(true);
+    try {
+      const orderItems = cart!.items.map(item => {
+        const inv = item.card.inventory[item.inventoryIndex];
+        let price = item.price || inv?.sellPrice || 0;
+        if (price === 0 && inv) {
+          const match = item.card.inventory.find(
+            i => i.condition === inv.condition && i.finish === inv.finish && i.sellPrice > 0
+          );
+          if (match) price = match.sellPrice;
+        }
+        return {
+          card: item.card._id,
+          cardName: item.card.name,
+          condition: inv?.condition || '',
+          finish: inv?.finish || '',
+          quantity: item.quantity,
+          pricePerUnit: price,
+          subtotal: price * item.quantity,
+        };
+      });
+      await orderApi.createOrder({
+        items: orderItems,
+        shippingAddress: checkoutAddr,
+        phoneNumber: checkoutPhone,
+        courierNotes: checkoutNotes || undefined,
+        paymentMethod: checkoutPayment,
+      });
+      await refreshCart();
+      toast.success('Order placed! Check your order history.');
+      setShowCheckout(false);
+      navigate('/orders');
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to place order');
+    } finally {
+      setPlacing(false);
     }
   };
 
@@ -139,6 +190,7 @@ const CartPage: React.FC = () => {
   }, 0);
 
   return (
+    <>
     <div className="min-h-screen pb-28 md:pb-0" style={{ backgroundColor: 'var(--color-background)' }}>
 
       {/* ── Branded header banner ── */}
@@ -349,7 +401,11 @@ const CartPage: React.FC = () => {
                 </div>
               </div>
 
-              <button className="w-full py-4 rounded-lg font-bold text-lg shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02] mb-4" style={{ background: `linear-gradient(to right, var(--color-accent), var(--color-highlight))`, color: 'var(--color-panel)' }}>
+              <button
+                onClick={() => setShowCheckout(true)}
+                className="w-full py-4 rounded-lg font-bold text-lg shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02] mb-4"
+                style={{ background: `linear-gradient(to right, var(--color-accent), var(--color-highlight))`, color: 'var(--color-panel)' }}
+              >
                 <svg className="w-6 h-6 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                 </svg>
@@ -367,6 +423,107 @@ const CartPage: React.FC = () => {
         </div>
       </div>
     </div>
+      {/* Checkout Modal */}
+      {showCheckout && (
+        <div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+          style={{ background: 'rgba(0,0,0,0.65)' }}
+          onClick={() => !placing && setShowCheckout(false)}
+        >
+          <div
+            className="w-full sm:max-w-lg rounded-t-2xl sm:rounded-2xl p-6 shadow-2xl overflow-y-auto max-h-[90vh]"
+            style={{ backgroundColor: 'var(--color-panel)' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-xl font-bold" style={{ color: 'var(--color-text)' }}>Checkout</h2>
+              <button
+                onClick={() => setShowCheckout(false)}
+                disabled={placing}
+                className="p-1 rounded-lg hover:opacity-70 transition-opacity"
+                style={{ color: 'var(--color-text-secondary)' }}
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold mb-1" style={{ color: 'var(--color-text)' }}>Shipping Address *</label>
+                <textarea
+                  value={checkoutAddr}
+                  onChange={e => setCheckoutAddr(e.target.value)}
+                  rows={3}
+                  placeholder="Street, city, province, postal code"
+                  className="w-full rounded-xl px-3 py-2 text-sm border focus:outline-none focus:ring-2 resize-none"
+                  style={{ backgroundColor: 'var(--color-background)', color: 'var(--color-text)', borderColor: 'var(--color-border)', focusRingColor: 'var(--color-accent)' } as React.CSSProperties}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold mb-1" style={{ color: 'var(--color-text)' }}>Phone Number *</label>
+                <input
+                  type="tel"
+                  value={checkoutPhone}
+                  onChange={e => setCheckoutPhone(e.target.value)}
+                  placeholder="e.g. 0812-3456-7890"
+                  className="w-full rounded-xl px-3 py-2 text-sm border focus:outline-none"
+                  style={{ backgroundColor: 'var(--color-background)', color: 'var(--color-text)', borderColor: 'var(--color-border)' }}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold mb-1" style={{ color: 'var(--color-text)' }}>Payment Method</label>
+                <select
+                  value={checkoutPayment}
+                  onChange={e => setCheckoutPayment(e.target.value)}
+                  className="w-full rounded-xl px-3 py-2 text-sm border focus:outline-none"
+                  style={{ backgroundColor: 'var(--color-background)', color: 'var(--color-text)', borderColor: 'var(--color-border)' }}
+                >
+                  <option value="transfer">Bank Transfer</option>
+                  <option value="cod">Cash on Delivery (COD)</option>
+                  <option value="qris">QRIS</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold mb-1" style={{ color: 'var(--color-text)' }}>Courier Notes <span style={{ color: 'var(--color-text-secondary)' }}>(optional)</span></label>
+                <textarea
+                  value={checkoutNotes}
+                  onChange={e => setCheckoutNotes(e.target.value)}
+                  rows={2}
+                  placeholder="e.g. Bubble wrap, specific courier preference"
+                  className="w-full rounded-xl px-3 py-2 text-sm border focus:outline-none resize-none"
+                  style={{ backgroundColor: 'var(--color-background)', color: 'var(--color-text)', borderColor: 'var(--color-border)' }}
+                />
+              </div>
+
+              <div className="p-3 rounded-xl" style={{ backgroundColor: 'var(--color-background)' }}>
+                <div className="flex justify-between text-sm mb-1" style={{ color: 'var(--color-text-secondary)' }}>
+                  <span>{cart!.items.length} item{cart!.items.length !== 1 ? 's' : ''}</span>
+                  <span>Shipping: arranged with seller</span>
+                </div>
+                <div className="flex justify-between font-bold text-lg">
+                  <span style={{ color: 'var(--color-text)' }}>Total</span>
+                  <span style={{ color: 'var(--color-accent)' }}>Rp. {formatPrice(totalPrice)}</span>
+                </div>
+              </div>
+
+              <button
+                onClick={handlePlaceOrder}
+                disabled={placing}
+                className="w-full py-3.5 rounded-xl font-bold text-base shadow-lg hover:shadow-xl transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                style={{ background: placing ? 'var(--color-border)' : `linear-gradient(to right, var(--color-accent), var(--color-highlight))`, color: 'var(--color-panel)' }}
+              >
+                {placing ? 'Placing Order…' : '✓ Place Order'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 

@@ -21,7 +21,7 @@ const SellerDashboardPage: React.FC = () => {
 
   useEffect(() => {
     loadCards();
-  }, [page]);
+  }, [page, searchQuery]);
 
   const loadCards = async () => {
     setLoading(true);
@@ -43,7 +43,6 @@ const SellerDashboardPage: React.FC = () => {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setPage(1);
-    loadCards();
   };
 
   return (

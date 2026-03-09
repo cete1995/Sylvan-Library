@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { cartApi } from '../api/cart';
 import { useAuth } from './AuthContext';
 
@@ -26,6 +26,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setCartCount(0);
     }
   }, [isAuthenticated, user]);
+
+  useEffect(() => {
+    refreshCart();
+  }, [refreshCart]);
 
   return (
     <CartContext.Provider value={{ cartCount, refreshCart }}>

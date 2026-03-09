@@ -65,8 +65,11 @@ export const orderApi = {
 
   // Admin routes
   getAllOrders: async (filters?: { status?: string; paymentStatus?: string }): Promise<Order[]> => {
-    const params = new URLSearchParams(filters as any);
-    const response = await api.get<{ orders: Order[] }>(`/orders/admin/all?${params}`);
+    const params = new URLSearchParams();
+    if (filters?.status) params.set('status', filters.status);
+    if (filters?.paymentStatus) params.set('paymentStatus', filters.paymentStatus);
+    const query = params.toString() ? `?${params}` : '';
+    const response = await api.get<{ orders: Order[] }>(`/orders/admin/all${query}`);
     return response.data.orders;
   },
 

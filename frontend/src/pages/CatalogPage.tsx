@@ -98,6 +98,7 @@ const CatalogPage: React.FC = () => {
         setTimeout(() => {
           window.scrollTo(0, parseInt(savedScrollY, 10));
         }, 100);
+        sessionStorage.removeItem('catalogScrollY');
       }
     }
   }, [cards, loading]);

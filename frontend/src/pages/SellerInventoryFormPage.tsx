@@ -66,7 +66,7 @@ const SellerInventoryFormPage: React.FC = () => {
       // Reload card to show updated inventory
       loadCard(card._id);
     } catch (error: any) {
-      setError(error.response?.data?.message || 'Failed to add inventory');
+      setError(error.response?.data?.error || 'Failed to add inventory');
     } finally {
       setLoading(false);
     }

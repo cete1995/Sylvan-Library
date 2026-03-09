@@ -121,7 +121,7 @@ export const createOrder = asyncHandler(async (req: Request, res: Response): Pro
       // Roll back already decremented items
       for (const prev of decremented) {
         await Card.updateOne(
-          { _id: prev.card, 'inventory.condition': prev.condition, 'inventory.finish': prev.finish },
+          { _id: prev.card, inventory: { $elemMatch: { condition: prev.condition, finish: prev.finish } } },
           { $inc: { 'inventory.$.quantityForSale': prev.quantity } }
         );
       }
@@ -149,7 +149,7 @@ export const createOrder = asyncHandler(async (req: Request, res: Response): Pro
     // Roll back stock decrements if order creation fails
     for (const prev of decremented) {
       await Card.updateOne(
-        { _id: prev.card, 'inventory.condition': prev.condition, 'inventory.finish': prev.finish },
+        { _id: prev.card, inventory: { $elemMatch: { condition: prev.condition, finish: prev.finish } } },
         { $inc: { 'inventory.$.quantityForSale': prev.quantity } }
       );
     }
@@ -178,7 +178,8 @@ export const getAllOrders = asyncHandler(async (req: Request, res: Response): Pr
   const orders = await Order.find(filter)
     .populate('user', 'name email phoneNumber')
     .populate('items.card', 'name imageUrl setName')
-    .sort({ createdAt: -1 });
+    .sort({ createdAt: -1 })
+    .limit(500);
 
   res.json({ orders });
 });

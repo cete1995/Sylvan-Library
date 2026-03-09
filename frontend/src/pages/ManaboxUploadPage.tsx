@@ -1,9 +1,10 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/client';
 
 const ManaboxUploadPage: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState('');
@@ -32,14 +33,12 @@ const ManaboxUploadPage: React.FC = () => {
     try {
       const formData = new FormData();
       formData.append('file', file);
-      const response = await axios.post('/api/manabox/upload', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+      const response = await api.post('/manabox/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
       setResult(response.data);
       setFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     } catch (err: any) {
       setError(err.response?.data?.error || 'Upload failed. Please try again.');
     } finally {
@@ -118,7 +117,7 @@ const ManaboxUploadPage: React.FC = () => {
               backgroundColor: file ? 'rgba(99,102,241,0.06)' : 'var(--color-background)',
             }}
           >
-            <input type="file" accept=".csv" onChange={handleFileChange} className="hidden" />
+            <input ref={fileInputRef} type="file" accept=".csv" onChange={handleFileChange} className="hidden" />
             {file ? (
               <>
                 <svg className="w-10 h-10 mb-3" style={{ color: '#6366f1' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -13,7 +13,11 @@ const WishlistPage: React.FC = () => {
   useEffect(() => {
     wishlistApi.getWishlist()
       .then(c => { setCards(c); setLoading(false); })
-      .catch(() => { toast.error('Failed to load wishlist'); setLoading(false); });
+      .catch((err: any) => {
+        if (err.response?.status === 401) { navigate('/login'); return; }
+        toast.error('Failed to load wishlist');
+        setLoading(false);
+      });
   }, []);
 
   const handleRemove = async (cardId: string) => {

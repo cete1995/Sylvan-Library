@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { adminApi } from '../api/admin';
 import { toast } from '../utils/toast';
@@ -49,6 +49,7 @@ const AdminOrdersPage: React.FC = () => {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkStatus, setBulkStatus] = useState<OrderStatus>('processing');
   const [bulkLoading, setBulkLoading] = useState(false);
+  const selectAllRef = useRef<HTMLInputElement>(null);
 
   const fetchOrders = useCallback(async () => {
     setLoading(true);
@@ -85,6 +86,14 @@ const AdminOrdersPage: React.FC = () => {
       setSelected(new Set(orders.map(o => o._id)));
     }
   };
+
+  useEffect(() => {
+    if (!selectAllRef.current) return;
+    const allSelected = orders.length > 0 && selected.size === orders.length;
+    const someSelected = selected.size > 0 && selected.size < orders.length;
+    selectAllRef.current.checked = allSelected;
+    selectAllRef.current.indeterminate = someSelected;
+  }, [selected, orders]);
 
   const handleBulkUpdate = async () => {
     if (selected.size === 0) return;
@@ -179,8 +188,8 @@ const AdminOrdersPage: React.FC = () => {
               <tr style={{ background: 'var(--color-panel)' }}>
                 <th className="p-3 text-left">
                   <input
+                    ref={selectAllRef}
                     type="checkbox"
-                    checked={orders.length > 0 && selected.size === orders.length}
                     onChange={toggleAll}
                     className="w-4 h-4 cursor-pointer"
                   />

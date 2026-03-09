@@ -104,12 +104,29 @@ const CardDetailPage: React.FC = () => {
     }
   }, [card?._id, user]);
 
+  // Reset activeFinish when condition tab changes to avoid empty state
+  useEffect(() => {
+    if (!card) return;
+    const hasCurrentFinish = card.inventory.some(
+      (i: any) => i.condition === activeTab && i.finish === activeFinish
+    );
+    if (!hasCurrentFinish) {
+      const fallbackFinish = card.inventory.find((i: any) => i.condition === activeTab)?.finish;
+      if (fallbackFinish) setActiveFinish(fallbackFinish as 'nonfoil' | 'foil');
+    }
+  }, [activeTab]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const loadCard = async (cardId: string) => {
     setLoading(true);
     try {
       const data = await cardApi.getCardById(cardId);
       setCard(data.card);
       setCalculatedPrices(data.calculatedPrices || null);
+      // Auto-select first condition that has inventory
+      const firstCondition = (['NM', 'LP', 'P'] as const).find(c =>
+        data.card.inventory.some((i: any) => i.condition === c)
+      );
+      if (firstCondition) setActiveTab(firstCondition);
     } catch {
       // error shown via empty state
     } finally {
