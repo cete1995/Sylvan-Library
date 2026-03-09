@@ -30,7 +30,7 @@ export const authenticate = (
     // Attach user info to request
     (req as AuthRequest).user = {
       id: decoded.id,
-      userId: decoded.id,
+      userId: decoded.id, // kept for backward compatibility (deprecated — use id)
       email: decoded.email,
       role: decoded.role,
     };

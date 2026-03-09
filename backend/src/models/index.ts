@@ -13,3 +13,5 @@ export { default as TikTokCredentials, ITikTokCredentials } from './TikTokCreden
 export { default as CafeSettings, ICafeSettings, ICafeHour, ICafeGame, ICafeMahjong, ICafeDayPrice, ICafeConsole } from './CafeSettings.model';
 export { default as Wishlist, IWishlist } from './Wishlist.model';
 export { default as StockNotification, IStockNotification } from './StockNotification.model';
+export { default as UBSettings, IUBSettings, IPriceTier } from './UBSettings.model';
+export { default as OfflineBuy, IOfflineBuy, IOfflineBuyItem } from './OfflineBuy.model';

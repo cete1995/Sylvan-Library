@@ -9,6 +9,49 @@ import { useCart } from '../contexts/CartContext';
 import ManaSymbols from '../components/ManaSymbols';
 import { toast } from '../utils/toast';
 
+const ConditionGuideModal = ({ onClose }: { onClose: () => void }) => (
+  <div
+    className="fixed inset-0 z-50 flex items-center justify-center p-4"
+    style={{ background: 'rgba(0,0,0,0.6)' }}
+    onClick={onClose}
+  >
+    <div
+      className="rounded-2xl p-6 max-w-sm w-full shadow-2xl"
+      style={{ background: 'var(--color-panel)' }}
+      onClick={e => e.stopPropagation()}
+    >
+      <h3 className="text-lg font-bold mb-4" style={{ color: 'var(--color-text)' }}>Card Condition Guide</h3>
+      <div className="space-y-3">
+        {[
+          { code: 'NM', label: 'Near Mint', desc: 'Cards look almost perfect with minimal to no wear. Borders are clean, no scratches or marks visible.' },
+          { code: 'LP', label: 'Lightly Played', desc: 'Minor edge wear or light scuffs visible on close inspection. Card is still clean and presentable.' },
+          { code: 'P', label: 'Played', desc: 'Noticeable wear, possible creases, edge roughness or surface marks. Fully playable in a sleeve.' },
+        ].map(c => (
+          <div key={c.code} className="flex gap-3">
+            <span
+              className="shrink-0 w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold"
+              style={{ background: 'var(--color-accent)', color: 'white' }}
+            >
+              {c.code}
+            </span>
+            <div>
+              <div className="font-semibold text-sm" style={{ color: 'var(--color-text)' }}>{c.label}</div>
+              <div className="text-xs mt-0.5" style={{ color: 'var(--color-text-secondary)' }}>{c.desc}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <button
+        onClick={onClose}
+        className="mt-5 w-full py-2.5 rounded-xl font-semibold text-white"
+        style={{ background: 'var(--color-accent)' }}
+      >
+        Got it
+      </button>
+    </div>
+  </div>
+);
+
 const CardDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -54,6 +97,7 @@ const CardDetailPage: React.FC = () => {
 
   useEffect(() => {
     if (card && user) {
+      setStockNotifyActive(false);
       wishlistApi.checkStockNotify(card._id)
         .then(subscribed => setStockNotifyActive(subscribed))
         .catch(() => {/* silent */});
@@ -75,7 +119,7 @@ const CardDetailPage: React.FC = () => {
 
   const handleAddToCart = async (inventoryIndex: number) => {
     if (!user) {
-      navigate('/register');
+      navigate('/login');
       return;
     }
 
@@ -215,49 +259,7 @@ const CardDetailPage: React.FC = () => {
     );
   }
 
-  // Condition Guide Modal (shared between mobile + desktop)
-  const ConditionGuideModal = () => (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: 'rgba(0,0,0,0.6)' }}
-      onClick={() => setShowConditionGuide(false)}
-    >
-      <div
-        className="rounded-2xl p-6 max-w-sm w-full shadow-2xl"
-        style={{ background: 'var(--color-panel)' }}
-        onClick={e => e.stopPropagation()}
-      >
-        <h3 className="text-lg font-bold mb-4" style={{ color: 'var(--color-text)' }}>Card Condition Guide</h3>
-        <div className="space-y-3">
-          {[
-            { code: 'NM', label: 'Near Mint', desc: 'Cards look almost perfect with minimal to no wear. Borders are clean, no scratches or marks visible.' },
-            { code: 'LP', label: 'Lightly Played', desc: 'Minor edge wear or light scuffs visible on close inspection. Card is still clean and presentable.' },
-            { code: 'P', label: 'Played', desc: 'Noticeable wear, possible creases, edge roughness or surface marks. Fully playable in a sleeve.' },
-          ].map(c => (
-            <div key={c.code} className="flex gap-3">
-              <span
-                className="shrink-0 w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold"
-                style={{ background: 'var(--color-accent)', color: 'white' }}
-              >
-                {c.code}
-              </span>
-              <div>
-                <div className="font-semibold text-sm" style={{ color: 'var(--color-text)' }}>{c.label}</div>
-                <div className="text-xs mt-0.5" style={{ color: 'var(--color-text-secondary)' }}>{c.desc}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-        <button
-          onClick={() => setShowConditionGuide(false)}
-          className="mt-5 w-full py-2.5 rounded-xl font-semibold text-white"
-          style={{ background: 'var(--color-accent)' }}
-        >
-          Got it
-        </button>
-      </div>
-    </div>
-  );
+  const closeConditionGuide = () => setShowConditionGuide(false);
 
   // Mobile Layout
   if (isMobile) {
@@ -346,7 +348,7 @@ const CardDetailPage: React.FC = () => {
           </div>
         </div>
 
-      {showConditionGuide && <ConditionGuideModal />}
+      {showConditionGuide && <ConditionGuideModal onClose={closeConditionGuide} />}
 
         {/* Condition Selector */}
         <div className="px-4 py-3">
@@ -621,7 +623,7 @@ const CardDetailPage: React.FC = () => {
                 {/* Tab Headers */}
                 <div className="flex border-b-2 items-stretch" style={{ borderColor: 'var(--color-border)' }}>
                   {['NM', 'LP', 'P'].map((condition) => {
-                    const hasInventory = card.inventory.some(item => item.condition === condition && item.finish === 'nonfoil');
+                    const hasInventory = card.inventory.some(item => item.condition === condition);
                   return (
                     <button
                       key={condition}
@@ -650,7 +652,7 @@ const CardDetailPage: React.FC = () => {
                   >?</button>
               </div>
 
-              {showConditionGuide && <ConditionGuideModal />}
+              {showConditionGuide && <ConditionGuideModal onClose={closeConditionGuide} />}
 
               {/* Tab Content */}
               <div className="p-4 md:p-6" style={{ backgroundColor: 'var(--color-panel)' }}>

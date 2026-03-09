@@ -26,9 +26,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const isRemembered = (): boolean => localStorage.getItem(REMEMBER_KEY) === 'true';
 
-  const updateActivity = () => {
+  // Stable reference — must not be recreated on re-render (removeEventListener must match)
+  const updateActivityRef = useRef(() => {
     localStorage.setItem(ACTIVITY_KEY, Date.now().toString());
-  };
+  });
+  const updateActivity = updateActivityRef.current;
 
   const clearSession = () => {
     setToken(null);

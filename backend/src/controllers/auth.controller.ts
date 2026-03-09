@@ -82,7 +82,7 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
     email: validatedData.email,
     passwordHash,
     name: validatedData.name,
-    role: 'admin',
+    role: validatedData.role ?? 'admin',
   });
 
   res.status(201).json({

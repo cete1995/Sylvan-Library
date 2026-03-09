@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import mongoose from 'mongoose';
 import crypto from 'crypto';
 import { Card, User, Cart, Carousel, Order, FeaturedProduct, FeaturedBanner, CardPrice, TikTokOrder } from '../models';
 import { AppError } from '../middleware/errorHandler';
@@ -328,6 +329,9 @@ export const bulkUpdateOrderStatus = asyncHandler(async (req: Request, res: Resp
   if (orderIds.length > 100) {
     throw new AppError(400, 'Cannot update more than 100 orders at once');
   }
+  if (!(orderIds as unknown[]).every((id) => typeof id === 'string' && mongoose.Types.ObjectId.isValid(id))) {
+    throw new AppError(400, 'All orderIds must be valid MongoDB ObjectIds');
+  }
 
   const result = await Order.updateMany(
     { _id: { $in: orderIds } },
@@ -519,6 +523,7 @@ export const fixSellerNames = asyncHandler(async (req: Request, res: Response) =
   const cards = await Card.find({ 'inventory.0': { $exists: true } }).lean();
 
   const bulkOps: any[] = [];
+  let updatedItems = 0;
 
   for (const card of cards) {
     let needsUpdate = false;
@@ -527,6 +532,7 @@ export const fixSellerNames = asyncHandler(async (req: Request, res: Response) =
         const correctName = sellerMap.get(item.sellerId.toString());
         if (correctName && item.sellerName !== correctName) {
           needsUpdate = true;
+          updatedItems++;
           return { ...item, sellerName: correctName };
         }
       }
@@ -553,6 +559,7 @@ export const fixSellerNames = asyncHandler(async (req: Request, res: Response) =
     success: true,
     message: 'Seller names updated successfully',
     updatedCards,
+    updatedItems,
     sellers: sellers.map(s => ({ id: s._id.toString(), name: s.name, email: s.email }))
   });
 });

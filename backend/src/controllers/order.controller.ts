@@ -10,7 +10,7 @@ import { AuthRequest } from '../middleware/auth.middleware';
  */
 export const getUserOrders = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const authReq = req as AuthRequest;
-  const userId = authReq.user?.userId;
+  const userId = authReq.user?.id;
 
   const orders = await Order.find({ user: userId })
     .populate('items.card', 'name imageUrl setName')
@@ -25,7 +25,7 @@ export const getUserOrders = asyncHandler(async (req: Request, res: Response): P
  */
 export const getOrderById = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const authReq = req as AuthRequest;
-  const userId = authReq.user?.userId;
+  const userId = authReq.user?.id;
   const { id } = req.params;
 
   const order = await Order.findById(id).populate('items.card', 'name imageUrl setName');
@@ -48,7 +48,7 @@ export const getOrderById = asyncHandler(async (req: Request, res: Response): Pr
  */
 export const createOrder = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const authReq = req as AuthRequest;
-  const userId = authReq.user?.userId;
+  const userId = authReq.user?.id;
   const { items, shippingAddress, phoneNumber, courierNotes, paymentMethod } = req.body;
 
   // Validate required fields

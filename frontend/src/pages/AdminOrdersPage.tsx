@@ -92,7 +92,7 @@ const AdminOrdersPage: React.FC = () => {
     try {
       const res = await adminApi.bulkUpdateOrderStatus(Array.from(selected), bulkStatus);
       toast.success(res.message);
-      fetchOrders();
+      await fetchOrders();
     } catch {
       toast.error('Failed to update orders');
     } finally {
