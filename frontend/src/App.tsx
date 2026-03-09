@@ -64,7 +64,7 @@ const PageLoader: React.FC = () => (
 );
 
 const App: React.FC = () => {
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
 
   useEffect(() => {
     const checkMobile = () => {

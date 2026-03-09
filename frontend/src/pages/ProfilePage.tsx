@@ -68,6 +68,7 @@ const ProfilePage: React.FC = () => {
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
       setSelectedFile(file);
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
@@ -85,6 +86,7 @@ const ProfilePage: React.FC = () => {
       setFormData({ ...formData, profilePhoto: uploadedUrl });
       setSuccess('Photo uploaded successfully');
       setSelectedFile(null);
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
       setPreviewUrl('');
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to upload photo');
@@ -123,6 +125,7 @@ const ProfilePage: React.FC = () => {
     }
     setIsEditing(false);
     setSelectedFile(null);
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
     setPreviewUrl('');
     setError('');
   };

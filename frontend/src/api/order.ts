@@ -64,15 +64,6 @@ export const orderApi = {
   },
 
   // Admin routes
-  getAllOrders: async (filters?: { status?: string; paymentStatus?: string }): Promise<Order[]> => {
-    const params = new URLSearchParams();
-    if (filters?.status) params.set('status', filters.status);
-    if (filters?.paymentStatus) params.set('paymentStatus', filters.paymentStatus);
-    const query = params.toString() ? `?${params}` : '';
-    const response = await api.get<{ orders: Order[] }>(`/orders/admin/all${query}`);
-    return response.data.orders;
-  },
-
   updateOrderStatus: async (id: string, data: { status?: string; paymentStatus?: string }): Promise<Order> => {
     const response = await api.put<{ order: Order; message: string }>(`/orders/admin/${id}`, data);
     return response.data.order;

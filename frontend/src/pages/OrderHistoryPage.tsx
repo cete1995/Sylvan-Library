@@ -150,7 +150,7 @@ const OrderHistoryPage: React.FC = () => {
                   </p>
                   {order.items.map((item, index) => (
                     <div key={index} className="flex gap-4 items-center">
-                      {item.card.imageUrl ? (
+                      {item.card?.imageUrl ? (
                         <img
                           src={item.card.imageUrl}
                           alt={item.cardName}
@@ -170,7 +170,7 @@ const OrderHistoryPage: React.FC = () => {
                       <div className="flex-1">
                         <p className="font-semibold" style={{ color: 'var(--color-text)' }}>{item.cardName}</p>
                         <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-                          {item.card.setName} • {item.condition} • {item.finish}
+                          {item.card?.setName} • {item.condition} • {item.finish}
                         </p>
                         <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
                           {item.quantity} × {formatPrice(item.pricePerUnit)}

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { cartApi } from '../api/cart';
 import { orderApi } from '../api/order';
+import { profileApi } from '../api/profile';
 import { Cart } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
@@ -34,6 +35,13 @@ const CartPage: React.FC = () => {
       return;
     }
     loadCart();
+    // Pre-fill checkout fields from saved profile
+    profileApi.getProfile()
+      .then(p => {
+        if (p.address) setCheckoutAddr(p.address);
+        if (p.phoneNumber) setCheckoutPhone(p.phoneNumber);
+      })
+      .catch(() => {/* silent — user can fill manually */});
   }, [user, navigate]);
 
   const loadCart = async () => {
@@ -82,6 +90,12 @@ const CartPage: React.FC = () => {
   const handlePlaceOrder = async () => {
     if (!checkoutAddr.trim() || !checkoutPhone.trim()) {
       toast.error('Please fill in your address and phone number');
+      return;
+    }
+    // Guard: ensure all items still have valid inventory entries
+    const staleItem = cart!.items.find(item => !item.card.inventory[item.inventoryIndex]);
+    if (staleItem) {
+      toast.error(`"${staleItem.card.name}" is no longer available. Please remove it from your cart.`);
       return;
     }
     setPlacing(true);

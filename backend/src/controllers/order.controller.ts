@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { Order, Card } from '../models';
+import { Order, Card, Cart } from '../models';
 import { AppError } from '../middleware/errorHandler';
 import { asyncHandler } from '../middleware/asyncHandler';
 import { AuthRequest } from '../middleware/auth.middleware';
@@ -158,30 +158,13 @@ export const createOrder = asyncHandler(async (req: Request, res: Response): Pro
 
   const populatedOrder = await Order.findById(order._id).populate('items.card', 'name imageUrl setName');
 
+  // Clear the user's cart after successful order
+  await Cart.findOneAndUpdate({ user: userId }, { $set: { items: [] } });
+
   res.status(201).json({
     message: 'Order created successfully',
     order: populatedOrder,
   });
-});
-
-/**
- * Get all orders (admin)
- * GET /api/admin/orders
- */
-export const getAllOrders = asyncHandler(async (req: Request, res: Response): Promise<void> => {
-  const { status, paymentStatus } = req.query;
-
-  const filter: any = {};
-  if (status) filter.status = status;
-  if (paymentStatus) filter.paymentStatus = paymentStatus;
-
-  const orders = await Order.find(filter)
-    .populate('user', 'name email phoneNumber')
-    .populate('items.card', 'name imageUrl setName')
-    .sort({ createdAt: -1 })
-    .limit(500);
-
-  res.json({ orders });
 });
 
 /**

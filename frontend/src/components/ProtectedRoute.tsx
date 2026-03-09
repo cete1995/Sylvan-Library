@@ -36,8 +36,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, adminOnly = f
     );
   }
 
-  // Check if seller-only route and user is not seller
-  if (sellerOnly && user?.role !== 'seller') {
+  // Check if seller-only route and user is not seller (admins can access seller routes)
+  if (sellerOnly && user?.role !== 'seller' && user?.role !== 'admin') {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
