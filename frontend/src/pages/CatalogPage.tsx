@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams, useLocation } from 'react-router-dom';
 import { cardApi } from '../api/cards';
 import { Card, SetInfo } from '../types';
@@ -13,6 +13,7 @@ const CatalogPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const hasInitialized = useRef(false);
   const isRestoring = useRef(false);
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 25,
@@ -150,11 +151,10 @@ const CatalogPage: React.FC = () => {
     }
   };
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    const params: any = { page: '1' };
-    
-    if (searchQuery) params.q = searchQuery;
+  const applyFilters = useCallback((overrides: { q?: string } = {}) => {
+    const q = overrides.q !== undefined ? overrides.q : searchQuery;
+    const params: Record<string, string> = { page: '1' };
+    if (q) params.q = q;
     if (selectedSet) params.set = selectedSet;
     if (selectedRarity) params.rarity = selectedRarity;
     if (selectedTags.length > 0) params.tags = selectedTags.join(',');
@@ -162,9 +162,13 @@ const CatalogPage: React.FC = () => {
     if (maxPrice) params.maxPrice = maxPrice;
     if (sortBy) params.sort = sortBy;
     if (onlyInStock) params.instock = 'true';
-
     setSearchParams(params);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [searchQuery, selectedSet, selectedRarity, selectedTags, minPrice, maxPrice, sortBy, onlyInStock, setSearchParams]);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    applyFilters();
   };
 
   const handlePageChange = (page: number) => {
@@ -256,7 +260,14 @@ const CatalogPage: React.FC = () => {
                   <input
                     type="text"
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setSearchQuery(val);
+                      if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+                      searchDebounceRef.current = setTimeout(() => {
+                        applyFilters({ q: val });
+                      }, 500);
+                    }}
                     placeholder="Card name..."
                     className="w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:border-transparent transition-all"
                     style={{ backgroundColor: 'var(--color-background)', color: 'var(--color-text)', borderColor: 'var(--color-text-secondary)', '--tw-ring-color': 'var(--color-accent)' } as React.CSSProperties}
@@ -446,10 +457,17 @@ const CatalogPage: React.FC = () => {
           {/* Cards Grid */}
           <div className="lg:col-span-3">
             {loading ? (
-              <div className="rounded-xl shadow-lg p-20 text-center" style={{ backgroundColor: 'var(--color-panel)' }}>
-                <div className="inline-block animate-spin rounded-full h-16 w-16 border-b-4 mb-6" style={{ borderColor: 'var(--color-accent)' }}></div>
-                <div className="text-xl font-semibold" style={{ color: 'var(--color-text)' }}>Loading cards...</div>
-                <p className="mt-2 text-sm" style={{ color: 'var(--color-text-secondary)' }}>Please wait while we fetch your collection</p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                {Array.from({ length: 15 }).map((_, i) => (
+                  <div key={i} className="rounded-lg overflow-hidden animate-pulse" style={{ backgroundColor: 'var(--color-panel)' }}>
+                    <div className="aspect-[5/7]" style={{ backgroundColor: 'var(--color-border)' }} />
+                    <div className="p-2.5 space-y-2">
+                      <div className="h-3 rounded w-3/4" style={{ backgroundColor: 'var(--color-border)' }} />
+                      <div className="h-3 rounded w-1/2" style={{ backgroundColor: 'var(--color-border)' }} />
+                      <div className="h-3 rounded w-2/3" style={{ backgroundColor: 'var(--color-border)' }} />
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : cards.length === 0 ? (
               <div className="rounded-xl shadow-lg p-16 text-center" style={{ backgroundColor: 'var(--color-panel)' }}>

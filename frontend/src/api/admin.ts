@@ -181,4 +181,17 @@ export const adminApi = {
     const response = await api.post(`/admin/members/${id}/store-credit`, { amount });
     return response.data;
   },
+
+  getAdminOrders: async (params?: { page?: number; status?: string; paymentStatus?: string }): Promise<{
+    orders: any[];
+    pagination: { page: number; limit: number; total: number; totalPages: number };
+  }> => {
+    const response = await api.get('/admin/orders', { params });
+    return response.data;
+  },
+
+  bulkUpdateOrderStatus: async (orderIds: string[], status: string): Promise<{ message: string; modifiedCount: number }> => {
+    const response = await api.post('/admin/orders/bulk-status', { orderIds, status });
+    return response.data;
+  },
 };

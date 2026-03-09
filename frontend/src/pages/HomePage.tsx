@@ -186,6 +186,35 @@ const HomePage: React.FC = () => {
       {/* Featured */}
       <FeaturedSection />
 
+      {/* ── Browse by Set ── */}
+      <section className="container mx-auto px-4 py-10 md:py-14">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-2xl md:text-3xl font-extrabold" style={{ color: 'var(--color-text)' }}>Browse by Set</h2>
+            <p className="text-sm mt-1" style={{ color: 'var(--color-text-secondary)' }}>Find singles from your favourite Magic releases</p>
+          </div>
+          <Link
+            to="/sets"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold transition-all hover:opacity-80"
+            style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-accent)', border: '1px solid var(--color-border)' }}
+          >
+            View all
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
+          </Link>
+        </div>
+        <div className="text-center py-6 rounded-2xl" style={{ backgroundColor: 'var(--color-panel)', border: '1px solid var(--color-border)' }}>
+          <p className="text-4xl mb-3">🗂️</p>
+          <p className="font-semibold mb-4" style={{ color: 'var(--color-text)' }}>Explore every set we carry</p>
+          <Link
+            to="/sets"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all hover:opacity-90"
+            style={{ backgroundColor: '#1B3A8A', color: '#fff' }}
+          >
+            Browse All Sets
+          </Link>
+        </div>
+      </section>
+
       {/* ── Café Showcase ── */}
       <section className="container mx-auto px-4 py-16 md:py-20">
         <div className="text-center mb-12">

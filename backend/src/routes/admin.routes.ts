@@ -25,6 +25,8 @@ import {
   updateMember,
   deleteMember,
   adjustStoreCredit,
+  getAdminOrders,
+  bulkUpdateOrderStatus,
 } from '../controllers/admin.controller';
 import { uploadSetJson, importSetFromMTGJson } from '../controllers/set.controller';
 import { updateCafeSettings } from '../controllers/cafe.controller';
@@ -56,6 +58,15 @@ router.use(requireAdmin);
  * @access  Private (Admin)
  */
 router.get('/stats', getStats);
+
+/**
+ * @route   GET  /api/admin/orders
+ * @route   POST /api/admin/orders/bulk-status
+ * @desc    Admin order management
+ * @access  Private (Admin)
+ */
+router.get('/orders', getAdminOrders);
+router.post('/orders/bulk-status', bulkUpdateOrderStatus);
 
 /**
  * @route   GET /api/admin/sets

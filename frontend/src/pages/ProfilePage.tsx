@@ -205,6 +205,7 @@ const ProfilePage: React.FC = () => {
           <div className="lg:w-56 shrink-0 space-y-2">
             {[
               { to: '/orders', emoji: '📦', label: 'My MTG Orders' },
+              { to: '/wishlist', emoji: '❤️', label: 'My Wishlist' },
               { to: '/catalog', emoji: '🃏', label: 'Browse Cards' },
               { to: '/cafe', emoji: '🎲', label: 'Boardgame Café' },
               { to: '/consoles', emoji: '🎮', label: 'Console Rental' },

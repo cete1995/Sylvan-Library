@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { cardApi } from '../api/cards';
 import { cartApi } from '../api/cart';
+import { wishlistApi } from '../api/wishlist';
 import { Card } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
@@ -23,6 +24,9 @@ const CardDetailPage: React.FC = () => {
   const [calculatedPrices, setCalculatedPrices] = useState<{ nonfoil: number; foil: number } | null>(null);
   const [showFront, setShowFront] = useState(true);
   const [isFlipping, setIsFlipping] = useState(false);
+  const [showConditionGuide, setShowConditionGuide] = useState(false);
+  const [stockNotifyActive, setStockNotifyActive] = useState(false);
+  const [stockNotifyLoading, setStockNotifyLoading] = useState(false);
 
   const handleFlip = () => {
     if (isFlipping) return;
@@ -47,6 +51,14 @@ const CardDetailPage: React.FC = () => {
       loadCard(id);
     }
   }, [id]);
+
+  useEffect(() => {
+    if (card && user) {
+      wishlistApi.checkStockNotify(card._id)
+        .then(subscribed => setStockNotifyActive(subscribed))
+        .catch(() => {/* silent */});
+    }
+  }, [card?._id, user]);
 
   const loadCard = async (cardId: string) => {
     setLoading(true);
@@ -79,6 +91,27 @@ const CardDetailPage: React.FC = () => {
       toast.error(error.response?.data?.error || error.message || 'Failed to add to cart');
     } finally {
       setAddingToCart(null);
+    }
+  };
+
+  const handleStockNotify = async () => {
+    if (!user) { navigate('/login'); return; }
+    if (!card) return;
+    setStockNotifyLoading(true);
+    try {
+      if (stockNotifyActive) {
+        await wishlistApi.unsubscribeStockNotify(card._id);
+        setStockNotifyActive(false);
+        toast.success('Notification removed');
+      } else {
+        await wishlistApi.subscribeStockNotify(card._id);
+        setStockNotifyActive(true);
+        toast.success("We'll notify you when this is back in stock!");
+      }
+    } catch {
+      toast.error('Failed to update notification');
+    } finally {
+      setStockNotifyLoading(false);
     }
   };
 
@@ -182,6 +215,50 @@ const CardDetailPage: React.FC = () => {
     );
   }
 
+  // Condition Guide Modal (shared between mobile + desktop)
+  const ConditionGuideModal = () => (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: 'rgba(0,0,0,0.6)' }}
+      onClick={() => setShowConditionGuide(false)}
+    >
+      <div
+        className="rounded-2xl p-6 max-w-sm w-full shadow-2xl"
+        style={{ background: 'var(--color-panel)' }}
+        onClick={e => e.stopPropagation()}
+      >
+        <h3 className="text-lg font-bold mb-4" style={{ color: 'var(--color-text)' }}>Card Condition Guide</h3>
+        <div className="space-y-3">
+          {[
+            { code: 'NM', label: 'Near Mint', desc: 'Cards look almost perfect with minimal to no wear. Borders are clean, no scratches or marks visible.' },
+            { code: 'LP', label: 'Lightly Played', desc: 'Minor edge wear or light scuffs visible on close inspection. Card is still clean and presentable.' },
+            { code: 'P', label: 'Played', desc: 'Noticeable wear, possible creases, edge roughness or surface marks. Fully playable in a sleeve.' },
+          ].map(c => (
+            <div key={c.code} className="flex gap-3">
+              <span
+                className="shrink-0 w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold"
+                style={{ background: 'var(--color-accent)', color: 'white' }}
+              >
+                {c.code}
+              </span>
+              <div>
+                <div className="font-semibold text-sm" style={{ color: 'var(--color-text)' }}>{c.label}</div>
+                <div className="text-xs mt-0.5" style={{ color: 'var(--color-text-secondary)' }}>{c.desc}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <button
+          onClick={() => setShowConditionGuide(false)}
+          className="mt-5 w-full py-2.5 rounded-xl font-semibold text-white"
+          style={{ background: 'var(--color-accent)' }}
+        >
+          Got it
+        </button>
+      </div>
+    </div>
+  );
+
   // Mobile Layout
   if (isMobile) {
     return (
@@ -269,9 +346,19 @@ const CardDetailPage: React.FC = () => {
           </div>
         </div>
 
+      {showConditionGuide && <ConditionGuideModal />}
+
         {/* Condition Selector */}
         <div className="px-4 py-3">
-          <div className="text-sm font-bold mb-2" style={{ color: 'var(--color-text)' }}>Condition</div>
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-sm font-bold" style={{ color: 'var(--color-text)' }}>Condition</span>
+            <button
+              onClick={() => setShowConditionGuide(true)}
+              className="w-5 h-5 rounded-full text-xs font-bold flex items-center justify-center"
+              style={{ background: 'var(--color-border)', color: 'var(--color-text-secondary)' }}
+              aria-label="Condition guide"
+            >?</button>
+          </div>
           <div className="grid grid-cols-3 gap-2">
             {['NM', 'LP', 'P'].map((condition) => {
               const hasInventory = card.inventory.some(item => item.condition === condition);
@@ -415,6 +502,23 @@ const CardDetailPage: React.FC = () => {
             </button>
           </div>
         )}
+
+        {/* Out-of-stock notify bar */}
+        {currentItem && currentItem.quantityForSale === 0 && (
+          <div
+            className="fixed bottom-16 left-0 right-0 p-4 border-t shadow-lg z-20"
+            style={{ backgroundColor: 'var(--color-panel)', borderTopColor: 'var(--color-border)' }}
+          >
+            <button
+              onClick={handleStockNotify}
+              disabled={stockNotifyLoading}
+              className="w-full py-4 rounded-xl font-bold text-lg shadow-lg flex items-center justify-center gap-2 transition-all disabled:opacity-60"
+              style={{ backgroundColor: stockNotifyActive ? '#374151' : '#1B3A8A', color: 'white' }}
+            >
+              {stockNotifyActive ? '🔕 Remove Notification' : '🔔 Notify Me When In Stock'}
+            </button>
+          </div>
+        )}
       </div>
     );
   }
@@ -515,7 +619,7 @@ const CardDetailPage: React.FC = () => {
             {card.inventory && card.inventory.length > 0 ? (
               <div className="rounded-xl overflow-hidden shadow-lg" style={{ backgroundColor: 'var(--color-panel)' }}>
                 {/* Tab Headers */}
-                <div className="flex border-b-2" style={{ borderColor: 'var(--color-border)' }}>
+                <div className="flex border-b-2 items-stretch" style={{ borderColor: 'var(--color-border)' }}>
                   {['NM', 'LP', 'P'].map((condition) => {
                     const hasInventory = card.inventory.some(item => item.condition === condition && item.finish === 'nonfoil');
                   return (
@@ -536,7 +640,17 @@ const CardDetailPage: React.FC = () => {
                     </button>
                   );
                 })}
+                  {/* Condition guide button */}
+                  <button
+                    onClick={() => setShowConditionGuide(true)}
+                    className="px-4 text-sm font-bold flex items-center justify-center"
+                    style={{ color: 'var(--color-text-secondary)' }}
+                    title="Condition guide"
+                    aria-label="Condition guide"
+                  >?</button>
               </div>
+
+              {showConditionGuide && <ConditionGuideModal />}
 
               {/* Tab Content */}
               <div className="p-4 md:p-6" style={{ backgroundColor: 'var(--color-panel)' }}>
@@ -594,6 +708,14 @@ const CardDetailPage: React.FC = () => {
                     return (
                       <div className="text-center py-8" style={{ color: 'var(--color-text-secondary)' }}>
                         <p className="text-lg font-semibold">No inventory available for {getConditionLabel(activeTab)}</p>
+                        <button
+                          onClick={handleStockNotify}
+                          disabled={stockNotifyLoading}
+                          className="mt-4 px-6 py-2.5 rounded-full font-semibold text-white disabled:opacity-60 transition-colors"
+                          style={{ background: stockNotifyActive ? '#374151' : '#1B3A8A' }}
+                        >
+                          {stockNotifyActive ? '🔕 Remove Notification' : '🔔 Notify Me When In Stock'}
+                        </button>
                       </div>
                     );
                   }

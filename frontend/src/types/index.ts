@@ -107,6 +107,11 @@ export interface Stats {
   totalQuantity: number;
   totalInventoryValue: string;
   totalListingValue: string;
+  totalOrders: number;
+  totalRevenue: string;
+  pendingOrders: number;
+  unpaidOrders: number;
+  lowStockCards: Array<{ _id: string; name: string; setCode: string; minQty: number }>;
 }
 
 export interface CartItem {

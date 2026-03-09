@@ -219,30 +219,122 @@ export const getAdminCards = asyncHandler(async (req: Request, res: Response) =>
  * GET /api/admin/stats
  */
 export const getStats = asyncHandler(async (req: Request, res: Response) => {
-  const [result, totalCards] = await Promise.all([
+  const [result, totalCards, orderAggregate, lowStockCards] = await Promise.all([
     Card.aggregate([
       { $match: { isActive: true } },
       { $unwind: { path: '$inventory', preserveNullAndEmptyArrays: false } },
       {
         $group: {
           _id: null,
-          totalQuantity:      { $sum: '$inventory.quantityOwned' },
+          totalQuantity:       { $sum: '$inventory.quantityOwned' },
           totalInventoryValue: { $sum: { $multiply: ['$inventory.quantityOwned', '$inventory.buyPrice'] } },
           totalListingValue:   { $sum: { $multiply: ['$inventory.quantityForSale', '$inventory.sellPrice'] } },
         },
       },
     ]),
     Card.countDocuments({ isActive: true }),
+    Order.aggregate([
+      {
+        $group: {
+          _id: null,
+          total:   { $sum: 1 },
+          revenue: { $sum: '$totalAmount' },
+          pending: { $sum: { $cond: [{ $eq: ['$status', 'pending'] }, 1, 0] } },
+          unpaid:  { $sum: { $cond: [{ $eq: ['$paymentStatus', 'unpaid'] }, 1, 0] } },
+        },
+      },
+    ]),
+    Card.aggregate([
+      { $match: { isActive: true } },
+      { $unwind: '$inventory' },
+      { $match: { 'inventory.quantityForSale': { $gte: 1, $lte: 2 } } },
+      {
+        $group: {
+          _id:    '$_id',
+          name:   { $first: '$name' },
+          setCode: { $first: '$setCode' },
+          minQty: { $min: '$inventory.quantityForSale' },
+        },
+      },
+      { $sort: { minQty: 1 } },
+      { $limit: 8 },
+    ]),
   ]);
 
   const stats = result[0] ?? { totalQuantity: 0, totalInventoryValue: 0, totalListingValue: 0 };
+  const orders = orderAggregate[0] ?? { total: 0, revenue: 0, pending: 0, unpaid: 0 };
 
   res.json({
     totalCards,
-    totalQuantity: stats.totalQuantity,
+    totalQuantity:      stats.totalQuantity,
     totalInventoryValue: (stats.totalInventoryValue as number).toFixed(2),
     totalListingValue:   (stats.totalListingValue as number).toFixed(2),
+    totalOrders:        orders.total,
+    totalRevenue:       (orders.revenue as number).toFixed(2),
+    pendingOrders:      orders.pending,
+    unpaidOrders:       orders.unpaid,
+    lowStockCards,
   });
+});
+
+/**
+ * Get paginated orders for admin management
+ * GET /api/admin/orders
+ */
+export const getAdminOrders = asyncHandler(async (req: Request, res: Response) => {
+  const page = Math.max(1, parseInt(req.query.page as string) || 1);
+  const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 20));
+  const skip = (page - 1) * limit;
+  const { status, paymentStatus } = req.query;
+
+  const filter: Record<string, unknown> = {};
+  if (status && typeof status === 'string' && status !== 'all') {
+    filter.status = status;
+  }
+  if (paymentStatus && typeof paymentStatus === 'string' && paymentStatus !== 'all') {
+    filter.paymentStatus = paymentStatus;
+  }
+
+  const [orders, total] = await Promise.all([
+    Order.find(filter)
+      .populate('user', 'name email')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean(),
+    Order.countDocuments(filter),
+  ]);
+
+  res.json({
+    orders,
+    pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+  });
+});
+
+/**
+ * Bulk update order status
+ * POST /api/admin/orders/bulk-status
+ */
+export const bulkUpdateOrderStatus = asyncHandler(async (req: Request, res: Response) => {
+  const { orderIds, status } = req.body as { orderIds?: unknown; status?: unknown };
+
+  if (!Array.isArray(orderIds) || orderIds.length === 0) {
+    throw new AppError(400, 'orderIds must be a non-empty array');
+  }
+  const validStatuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
+  if (typeof status !== 'string' || !validStatuses.includes(status)) {
+    throw new AppError(400, `status must be one of: ${validStatuses.join(', ')}`);
+  }
+  if (orderIds.length > 100) {
+    throw new AppError(400, 'Cannot update more than 100 orders at once');
+  }
+
+  const result = await Order.updateMany(
+    { _id: { $in: orderIds } },
+    { $set: { status } }
+  );
+
+  res.json({ message: `Updated ${result.modifiedCount} order(s)`, modifiedCount: result.modifiedCount });
 });
 
 /**

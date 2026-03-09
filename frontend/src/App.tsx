@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Link } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
@@ -7,7 +7,7 @@ import Navbar from './components/Navbar';
 import BottomNav from './components/BottomNav';
 import ProtectedRoute from './components/ProtectedRoute';
 
-// Pages
+// Eagerly-loaded customer pages (fast path, frequently hit)
 import HomePage from './pages/HomePage';
 import CatalogPage from './pages/CatalogPage';
 import MobileCatalogFeed from './pages/MobileCatalogFeed';
@@ -15,37 +15,53 @@ import CardDetailPage from './pages/CardDetailPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import CartPage from './pages/CartPage';
-import AdminDashboardPage from './pages/AdminDashboardPage';
-import AdminCardListPage from './pages/AdminCardListPage';
-import AdminCardFormPage from './pages/AdminCardFormPage';
-import AdminBulkUploadPage from './pages/AdminBulkUploadPage';
-import AdminSetUploadPage from './pages/AdminSetUploadPage';
-import AdminCarouselPage from './pages/AdminCarouselPage';
-import AdminFeaturedPage from './pages/AdminFeaturedPage';
-import AdminPriceManagementPage from './pages/AdminPriceManagementPage';
-import AdminUBPricingPage from './pages/AdminUBPricingPage';
-import AdminUBSettingsPage from './pages/AdminUBSettingsPage';
-import AdminRegularSettingsPage from './pages/AdminRegularSettingsPage';
-import AdminSellerManagementPage from './pages/AdminSellerManagementPage';
-import AdminMembershipPage from './pages/AdminMembershipPage';
-import AdminTikTokDebugPage from './pages/AdminTikTokDebugPage';
-import AdminTikTokGetOrdersPage from './pages/AdminTikTokGetOrdersPage';
-import AdminTikTokOrdersPage from './pages/AdminTikTokOrdersPage';
-import AdminTikTokOrderDetailPage from './pages/AdminTikTokOrderDetailPage';
-import AdminTikTokSavedOrdersPage from './pages/AdminTikTokSavedOrdersPage';
-import AdminMissingImagesPage from './pages/AdminMissingImagesPage';
-import AdminDebugPage from './pages/AdminDebugPage';
-import AdminOfflineSalePage from './pages/AdminOfflineSalePage';
-import AdminOfflineBuyPage from './pages/AdminOfflineBuyPage';
-import ManaboxUploadPage from './pages/ManaboxUploadPage';
-import SellerDashboardPage from './pages/SellerDashboardPage';
-import SellerInventoryFormPage from './pages/SellerInventoryFormPage';
 import ProfilePage from './pages/ProfilePage';
 import OrderHistoryPage from './pages/OrderHistoryPage';
 import OrderDetailPage from './pages/OrderDetailPage';
 import CafePage from './pages/CafePage';
 import ConsolesPage from './pages/ConsolesPage';
-import AdminCafePage from './pages/AdminCafePage';
+
+// Lazily-loaded admin pages (reduces initial bundle)
+const AdminDashboardPage       = lazy(() => import('./pages/AdminDashboardPage'));
+const AdminCardListPage        = lazy(() => import('./pages/AdminCardListPage'));
+const AdminCardFormPage        = lazy(() => import('./pages/AdminCardFormPage'));
+const AdminBulkUploadPage      = lazy(() => import('./pages/AdminBulkUploadPage'));
+const AdminSetUploadPage       = lazy(() => import('./pages/AdminSetUploadPage'));
+const AdminCarouselPage        = lazy(() => import('./pages/AdminCarouselPage'));
+const AdminFeaturedPage        = lazy(() => import('./pages/AdminFeaturedPage'));
+const AdminPriceManagementPage = lazy(() => import('./pages/AdminPriceManagementPage'));
+const AdminUBPricingPage       = lazy(() => import('./pages/AdminUBPricingPage'));
+const AdminUBSettingsPage      = lazy(() => import('./pages/AdminUBSettingsPage'));
+const AdminRegularSettingsPage = lazy(() => import('./pages/AdminRegularSettingsPage'));
+const AdminSellerManagementPage = lazy(() => import('./pages/AdminSellerManagementPage'));
+const AdminMembershipPage      = lazy(() => import('./pages/AdminMembershipPage'));
+const AdminTikTokDebugPage     = lazy(() => import('./pages/AdminTikTokDebugPage'));
+const AdminTikTokGetOrdersPage = lazy(() => import('./pages/AdminTikTokGetOrdersPage'));
+const AdminTikTokOrdersPage    = lazy(() => import('./pages/AdminTikTokOrdersPage'));
+const AdminTikTokOrderDetailPage = lazy(() => import('./pages/AdminTikTokOrderDetailPage'));
+const AdminTikTokSavedOrdersPage = lazy(() => import('./pages/AdminTikTokSavedOrdersPage'));
+const AdminMissingImagesPage   = lazy(() => import('./pages/AdminMissingImagesPage'));
+const AdminDebugPage           = lazy(() => import('./pages/AdminDebugPage'));
+const AdminOfflineSalePage     = lazy(() => import('./pages/AdminOfflineSalePage'));
+const AdminOfflineBuyPage      = lazy(() => import('./pages/AdminOfflineBuyPage'));
+const AdminCafePage            = lazy(() => import('./pages/AdminCafePage'));
+const AdminOrdersPage          = lazy(() => import('./pages/AdminOrdersPage'));
+
+// Lazily-loaded seller pages
+const ManaboxUploadPage        = lazy(() => import('./pages/ManaboxUploadPage'));
+const SellerDashboardPage      = lazy(() => import('./pages/SellerDashboardPage'));
+const SellerInventoryFormPage  = lazy(() => import('./pages/SellerInventoryFormPage'));
+
+// Lazily-loaded additional pages
+const SetBrowsePage  = lazy(() => import('./pages/SetBrowsePage'));
+const WishlistPage   = lazy(() => import('./pages/WishlistPage'));
+
+// Fallback UI while lazy chunks load
+const PageLoader: React.FC = () => (
+  <div className="flex items-center justify-center min-h-[60vh]">
+    <div className="w-8 h-8 rounded-full border-4 border-t-transparent animate-spin" style={{ borderColor: 'var(--color-accent)', borderTopColor: 'transparent' }} />
+  </div>
+);
 
 const App: React.FC = () => {
   const [isMobile, setIsMobile] = useState(false);
@@ -69,6 +85,7 @@ const App: React.FC = () => {
             <div className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--color-background)' }}>
             {!isMobile && <Navbar />}
             <main className="flex-1">
+              <Suspense fallback={<PageLoader />}>
               <Routes>
                 {/* Public Routes */}
                 <Route path="/" element={<HomePage />} />
@@ -79,6 +96,7 @@ const App: React.FC = () => {
                 <Route path="/cart" element={<CartPage />} />
                 <Route path="/cafe" element={<CafePage />} />
                 <Route path="/consoles" element={<ConsolesPage />} />
+                <Route path="/sets" element={<SetBrowsePage />} />
                 {/* Redirect old admin login to unified login */}
                 <Route path="/admin/login" element={<Navigate to="/login" replace />} />
 
@@ -104,6 +122,14 @@ const App: React.FC = () => {
                 element={
                   <ProtectedRoute adminOnly={false}>
                     <OrderDetailPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/wishlist"
+                element={
+                  <ProtectedRoute adminOnly={false}>
+                    <WishlistPage />
                   </ProtectedRoute>
                 }
               />
@@ -301,6 +327,14 @@ const App: React.FC = () => {
                   </ProtectedRoute>
                 }
               />
+              <Route
+                path="/admin/orders"
+                element={
+                  <ProtectedRoute adminOnly={true}>
+                    <AdminOrdersPage />
+                  </ProtectedRoute>
+                }
+              />
 
               {/* Protected Seller Routes */}
               <Route
@@ -341,6 +375,7 @@ const App: React.FC = () => {
                 }
               />
             </Routes>
+              </Suspense>
           </main>
 
           {/* Footer - Hidden on Mobile */}

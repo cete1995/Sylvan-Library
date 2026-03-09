@@ -326,6 +326,51 @@ const AdminDashboardPage: React.FC = () => {
           ))}
         </div>
 
+        {/* ── Sales Analytics ── */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+          {[
+            { label: 'Total Orders', value: stats?.totalOrders || 0, sub: 'All time', color: '#6366F1', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /> },
+            { label: 'Revenue', value: `Rp ${formatPrice(stats?.totalRevenue || 0)}`, sub: 'Paid orders', color: '#10B981', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /> },
+            { label: 'Pending Orders', value: stats?.pendingOrders || 0, sub: 'Needs processing', color: '#F59E0B', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /> },
+            { label: 'Unpaid Orders', value: stats?.unpaidOrders || 0, sub: 'Awaiting payment', color: '#EF4444', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /> },
+          ].map(s => (
+            <div key={s.label} className="rounded-2xl p-5 shadow-sm border" style={{ backgroundColor: 'var(--color-panel)', borderColor: 'var(--color-border)' }}>
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: s.color + '1A' }}>
+                  <svg className="w-5 h-5" style={{ color: s.color }} fill="none" stroke="currentColor" viewBox="0 0 24 24">{s.icon}</svg>
+                </div>
+                <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--color-text-secondary)' }}>{s.label}</span>
+              </div>
+              <div className="text-2xl font-bold truncate" style={{ color: 'var(--color-text)' }}>{s.value}</div>
+              <div className="text-xs mt-0.5" style={{ color: 'var(--color-text-secondary)' }}>{s.sub}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* ── Low Stock Alert ── */}
+        {stats?.lowStockCards && stats.lowStockCards.length > 0 && (
+          <div className="mb-8 rounded-2xl border overflow-hidden" style={{ borderColor: '#F59E0B44', backgroundColor: 'var(--color-panel)' }}>
+            <div className="flex items-center gap-2 px-5 py-3 border-b" style={{ borderColor: '#F59E0B44', backgroundColor: 'rgba(245,158,11,0.08)' }}>
+              <svg className="w-4 h-4" style={{ color: '#F59E0B' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+              <span className="font-bold text-sm uppercase tracking-widest" style={{ color: '#F59E0B' }}>Low Stock Alert</span>
+              <span className="ml-auto px-2 py-0.5 rounded-full text-xs font-bold text-white" style={{ backgroundColor: '#F59E0B' }}>{stats.lowStockCards.length}</span>
+            </div>
+            <div className="divide-y" style={{ borderColor: 'var(--color-border)' }}>
+              {stats.lowStockCards.map(c => (
+                <Link key={c._id} to={`/admin/cards?q=${encodeURIComponent(c.name)}`}
+                  className="flex items-center gap-3 px-5 py-3 hover:opacity-80 transition-all">
+                  <i className={`ss ss-${c.setCode.toLowerCase()} ss-2x`} style={{ color: 'var(--color-text-secondary)' }}></i>
+                  <span className="flex-1 text-sm font-medium truncate" style={{ color: 'var(--color-text)' }}>{c.name}</span>
+                  <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: c.minQty === 1 ? '#FEE2E2' : '#FEF3C7', color: c.minQty === 1 ? '#DC2626' : '#D97706' }}>
+                    {c.minQty} left
+                  </span>
+                  <svg className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--color-text-secondary)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* ── Section helper ── */}
         {/* Each section: label bar + tile grid */}
 
@@ -490,6 +535,7 @@ const AdminDashboardPage: React.FC = () => {
               { to: '/admin/featured', label: 'Featured Section', desc: 'Highlight products', bg: '#FEF3C7', ic: '#D97706', svg: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /> },
               { to: '/admin/offline-sales', label: 'Sell Offline', desc: 'Walk-in sales to customers', bg: '#D1FAE5', ic: '#059669', svg: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /> },
               { to: '/admin/offline-buys', label: 'Buy From Member', desc: 'Buy cards from walk-in members', bg: '#DBEAFE', ic: '#2563EB', svg: <><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></> },
+              { to: '/admin/orders', label: 'Online Orders', desc: 'View & manage web orders', bg: '#D1FAE5', ic: '#059669', svg: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /> },
             ].map(t => (
               <Link key={t.to} to={t.to} className="flex flex-col gap-2 p-4 rounded-xl border hover:shadow-md transition-all hover:border-purple-300"
                 style={{ backgroundColor: 'var(--color-panel)', borderColor: 'var(--color-border)' }}>

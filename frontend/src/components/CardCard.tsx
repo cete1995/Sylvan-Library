@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { Card } from '../types';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { useCart } from '../contexts/CartContext';
+import { cartApi } from '../api/cart';
+import { toast } from '../utils/toast';
 
 interface CardCardProps {
   card: Card;
@@ -8,6 +12,10 @@ interface CardCardProps {
 
 const CardCard: React.FC<CardCardProps> = ({ card }) => {
   const [showFront, setShowFront] = useState(true);
+  const [addingToCart, setAddingToCart] = useState(false);
+  const { user } = useAuth();
+  const { refreshCart } = useCart();
+  const navigate = useNavigate();
 
   // DFC detection via layout field (transform, modal_dfc, reversible_card, flip).
   // Falls back to name ' // ' check for cards imported before layout was stored.
@@ -44,6 +52,27 @@ const CardCard: React.FC<CardCardProps> = ({ card }) => {
     return price.toLocaleString('id-ID');
   };
   
+  // Quick add NM nonfoil to cart
+  const handleQuickAdd = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!user) { navigate('/login'); return; }
+    const inventoryIndex = card.inventory.findIndex(
+      item => item.condition === 'NM' && item.finish === 'nonfoil' && item.quantityForSale > 0
+    );
+    if (inventoryIndex === -1) return;
+    setAddingToCart(true);
+    try {
+      await cartApi.addToCart(card._id, inventoryIndex, 1);
+      await refreshCart();
+      toast.success('Added to cart!');
+    } catch {
+      toast.error('Could not add to cart');
+    } finally {
+      setAddingToCart(false);
+    }
+  };
+
   // Rarity colors — uses CSS vars for common/default so they adapt to light/dark mode
   const getRarityStyle = (rarity: string): React.CSSProperties => {
     switch(rarity.toLowerCase()) {
@@ -77,6 +106,7 @@ const CardCard: React.FC<CardCardProps> = ({ card }) => {
           <img
             src={displayUrl}
             alt={card.name}
+            loading="lazy"
             className={`w-full h-full object-cover ${!isAvailable ? 'grayscale' : ''}`}
           />
         ) : (
@@ -154,6 +184,22 @@ const CardCard: React.FC<CardCardProps> = ({ card }) => {
               </span>
             </div>
           </div>
+
+          {/* Quick Add button (desktop only) */}
+          {nmNonfoilStock > 0 && (
+            <button
+              onClick={handleQuickAdd}
+              disabled={addingToCart}
+              className="hidden md:flex w-full mt-2 items-center justify-center gap-1 py-1.5 rounded-lg text-xs font-semibold text-white transition-opacity disabled:opacity-60"
+              style={{ background: '#059669' }}
+            >
+              {addingToCart ? (
+                <span className="inline-block w-3 h-3 rounded-full border-2 border-white border-t-transparent animate-spin" />
+              ) : (
+                <>+ Add NM</>
+              )}
+            </button>
+          )}
         </div>
       </div>
     </Link>

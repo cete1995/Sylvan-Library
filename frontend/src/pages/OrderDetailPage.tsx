@@ -98,6 +98,52 @@ const OrderDetailPage: React.FC = () => {
           Back to Orders
         </button>
 
+        {/* Status Timeline */}
+        {order.status !== 'cancelled' ? (() => {
+          const steps = ['pending', 'processing', 'shipped', 'delivered'];
+          const stepLabels = ['Pending', 'Processing', 'Shipped', 'Delivered'];
+          const currentIdx = steps.indexOf(order.status);
+          return (
+            <div className="rounded-2xl shadow p-5 mb-6" style={{ backgroundColor: 'var(--color-panel)' }}>
+              <div className="flex items-center justify-between">
+                {steps.map((step, i) => (
+                  <React.Fragment key={step}>
+                    <div className="flex flex-col items-center gap-1.5">
+                      <div
+                        className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors"
+                        style={
+                          i <= currentIdx
+                            ? { background: 'var(--color-accent)', color: 'white' }
+                            : { background: 'var(--color-border)', color: 'var(--color-text-secondary)' }
+                        }
+                      >
+                        {i < currentIdx ? '✓' : i + 1}
+                      </div>
+                      <span
+                        className="text-xs font-medium text-center"
+                        style={{ color: i <= currentIdx ? 'var(--color-accent)' : 'var(--color-text-secondary)' }}
+                      >
+                        {stepLabels[i]}
+                      </span>
+                    </div>
+                    {i < steps.length - 1 && (
+                      <div
+                        className="flex-1 h-1 mx-2 rounded-full transition-colors"
+                        style={{ background: i < currentIdx ? 'var(--color-accent)' : 'var(--color-border)' }}
+                      />
+                    )}
+                  </React.Fragment>
+                ))}
+              </div>
+            </div>
+          );
+        })() : (
+          <div className="rounded-2xl shadow p-4 mb-6 flex items-center gap-3" style={{ backgroundColor: '#FEE2E2' }}>
+            <span className="text-2xl">❌</span>
+            <span className="font-semibold text-red-700">This order has been cancelled.</span>
+          </div>
+        )}
+
         {/* Header */}
         <div className="rounded-2xl shadow-lg p-6 mb-6" style={{ backgroundColor: 'var(--color-panel)' }}>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
