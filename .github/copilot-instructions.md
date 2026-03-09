@@ -111,6 +111,13 @@ Stored in DB via `/api/admin/cafe`. Structure:
 ```
 **Note:** `ps5.enabled` / `nintendoSwitch.enabled` flags are ignored on the public ConsolesPage — both consoles always display since console rental is live.
 
+- CartPage has inline checkout modal (address, phone, payment method, courier notes) — calls `orderApi.createOrder`, clears cart server-side via `Cart.findOneAndUpdate`, redirects to `/orders` on success; pre-fills address/phone from saved profile
+- CartPage redirect for unauthenticated users goes to `/login` (not `/register`)
+- `CartContext.refreshCart()` is called on mount/auth change so cart badge is always correct
+- `ProtectedRoute` with `sellerOnly={true}` allows both `seller` and `admin` roles (admins can access seller routes)
+- `App.tsx` initialises `isMobile` synchronously (`useState(() => window.innerWidth < 768)`) to avoid flash on `/catalog`
+- `ManaboxUploadPage` uses the configured `api` client (not raw axios) — critical for production URL resolution
+
 ## Common Patterns
 - All async route handlers wrapped in `asyncHandler` middleware
 - Auth via JWT in `Authorization: Bearer <token>` header
@@ -141,6 +148,9 @@ Stored in DB via `/api/admin/cafe`. Structure:
 ## Recent Commit History (as of March 2026)
 | Commit | Description |
 |---|---|
+| `0fe806c` | fix: 8 bugs audit 3 — cart cleared after order, checkout pre-fill, isMobile flash, null guards, blob URL leak, admin seller access, remove dead getAllOrders |
+| `1c36d3c` | fix: 15 buyer/seller/admin bugs (audit 2) — checkout modal, cartCount badge, ManaboxUploadPage prod URL, CardDetailPage auto-tab, SellerDashboard race, scroll restore, URLSearchParams, indeterminate checkbox, wishlist 401 |
+| `d24c0ec` | fix: 11 bugs (audit 1) — auth role, bulkUpdate validation, models barrel, ConditionGuideModal scope, AuthContext leak, order rollback |
 | `bb78357` | feat: 14 improvements — wishlist, analytics, lazy loading, skeleton, debounce, conditions guide, order timeline, bulk orders, sets browse |
 | `53b0c22` | Security & UX audit: 16-item batch fix (auth, orders, stock, rate-limit, PWA, toasts, WA FAB) |
 | `3bac93a` | Session auto-logout (1hr idle) + Remember Me bypass |
