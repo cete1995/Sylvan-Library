@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { User } from '../models';
-import { hashPassword, comparePassword, generateToken, generateRefreshToken, verifyToken } from '../utils/auth.utils';
+import { hashPassword, comparePassword, generateToken, generateRefreshToken, verifyToken, verifyRefreshToken } from '../utils/auth.utils';
 import { AppError } from '../middleware/errorHandler';
 import { asyncHandler } from '../middleware/asyncHandler';
 import { registerSchema, loginSchema } from '../validators/auth.validator';
@@ -81,6 +81,7 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
   const user = await User.create({
     email: validatedData.email,
     passwordHash,
+    name: validatedData.name,
     role: 'admin',
   });
 
@@ -89,6 +90,7 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
     user: {
       id: user._id,
       email: user.email,
+      name: user.name,
       role: user.role,
     },
   });
@@ -163,6 +165,7 @@ export const getCurrentUser = asyncHandler(async (req: Request, res: Response) =
     user: {
       id: user._id,
       email: user.email,
+      name: user.name,
       role: user.role,
     },
   });
@@ -193,10 +196,10 @@ export const refreshToken = asyncHandler(async (req: Request, res: Response) => 
     throw new AppError(400, 'Refresh token is required');
   }
 
-  // Verify refresh token
+  // Verify refresh token with dedicated refresh secret
   let decoded;
   try {
-    decoded = verifyToken(refreshToken);
+    decoded = verifyRefreshToken(refreshToken);
   } catch (error) {
     throw new AppError(401, 'Invalid or expired refresh token');
   }

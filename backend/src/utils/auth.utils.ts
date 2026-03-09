@@ -26,7 +26,7 @@ export const generateToken = (payload: JwtPayload): string => {
 };
 
 export const generateRefreshToken = (payload: JwtPayload): string => {
-  return jwt.sign(payload, config.jwtSecret, { expiresIn: '7d' }); // Long-lived refresh token
+  return jwt.sign(payload, config.jwtRefreshSecret, { expiresIn: '7d' }); // Long-lived refresh token
 };
 
 export const verifyToken = (token: string): JwtPayload => {
@@ -34,5 +34,13 @@ export const verifyToken = (token: string): JwtPayload => {
     return jwt.verify(token, config.jwtSecret) as JwtPayload;
   } catch (error) {
     throw new Error('Invalid or expired token');
+  }
+};
+
+export const verifyRefreshToken = (token: string): JwtPayload => {
+  try {
+    return jwt.verify(token, config.jwtRefreshSecret) as JwtPayload;
+  } catch (error) {
+    throw new Error('Invalid or expired refresh token');
   }
 };

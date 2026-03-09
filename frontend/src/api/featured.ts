@@ -1,7 +1,8 @@
 import axios from 'axios';
+import { API_BASE_URL } from './client';
 import { Card } from '../types';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = API_BASE_URL;
 
 export interface FeaturedBanner {
   _id?: string;
@@ -66,15 +67,9 @@ export const upsertFeaturedBanner = async (
   bannerData: Omit<FeaturedBanner, '_id' | 'createdAt' | 'updatedAt'>
 ): Promise<FeaturedBanner> => {
   try {
-    console.log('Sending banner request to:', `${API_URL}/admin/featured/banner`);
-    console.log('Banner data:', bannerData);
-    console.log('Token:', token ? 'Present' : 'Missing');
-    
     const response = await axios.post(`${API_URL}/admin/featured/banner`, bannerData, {
       headers: { Authorization: `Bearer ${token}` },
     });
-    
-    console.log('Banner response:', response.data);
     return response.data.banner;
   } catch (error: any) {
     console.error('Banner API error:', error.response?.data || error.message);

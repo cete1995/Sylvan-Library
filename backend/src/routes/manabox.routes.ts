@@ -4,7 +4,7 @@ import csvParser from 'csv-parser';
 import { Readable } from 'stream';
 import Card from '../models/Card.model';
 import User from '../models/User.model';
-import { authenticate } from '../middleware/auth.middleware';
+import { authenticate, requireAdminOrSeller } from '../middleware/auth.middleware';
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -48,7 +48,7 @@ const mapRarity = (manaboxRarity: string): 'common' | 'uncommon' | 'rare' | 'myt
 };
 
 // Parse Manabox CSV and upload to seller's inventory
-router.post('/upload', authenticate, upload.single('file'), async (req: Request, res: Response): Promise<void> => {
+router.post('/upload', authenticate, requireAdminOrSeller, upload.single('file'), async (req: Request, res: Response): Promise<void> => {
   try {
     if (!req.file) {
       res.status(400).json({ success: false, error: 'No file uploaded' });

@@ -19,8 +19,6 @@ router.get('/search', authenticate, requireAdmin, async (req: Request, res: Resp
       name: { $regex: q, $options: 'i' }
     }).limit(20).select('_id name setCode collectorNumber');
 
-    console.log(`[DEBUG] Search for "${q}" found ${cards.length} cards`);
-
     res.json({
       success: true,
       data: cards
@@ -41,11 +39,6 @@ router.get('/card/:cardId', authenticate, requireAdmin, async (req: Request, res
       res.status(404).json({ success: false, error: 'Card not found' });
       return;
     }
-
-    console.log('\n========================================');
-    console.log(`[DEBUG] Card: ${card.name} (${card.setCode} #${card.collectorNumber})`);
-    console.log(`[DEBUG] Total inventory items: ${card.inventory.length}`);
-    console.log('========================================');
 
     // Get all unique seller IDs
     const sellerIds = [...new Set(
@@ -85,24 +78,8 @@ router.get('/card/:cardId', authenticate, requireAdmin, async (req: Request, res
         tiktokSkuId: inv.tiktokSkuId
       };
 
-      // Console logging
-      console.log(`\n[Inventory ${index}]`);
-      console.log(`  Condition: ${detail.condition}, Finish: ${detail.finish}`);
-      console.log(`  Quantity Owned: ${detail.quantityOwned} (type: ${detail.quantityOwned_type}, isNaN: ${detail.quantityOwned_isNaN})`);
-      console.log(`  Quantity For Sale: ${detail.quantityForSale} (type: ${detail.quantityForSale_type}, isNaN: ${detail.quantityForSale_isNaN})`);
-      console.log(`  Seller SKU: ${detail.sellerSku || 'N/A'}`);
-      if (seller) {
-        console.log(`  Seller: ${seller.name || seller.email} (${seller.role})`);
-        console.log(`  Seller ID: ${sellerId}`);
-      } else {
-        console.log(`  Seller: None`);
-      }
-      console.log(`  Buy Price: Rp ${detail.buyPrice}, Sell Price: Rp ${detail.sellPrice}`);
-
       return detail;
     });
-
-    console.log('========================================\n');
 
     res.json({
       success: true,
@@ -128,7 +105,6 @@ router.get('/card/:cardId', authenticate, requireAdmin, async (req: Request, res
       }
     });
   } catch (error: any) {
-    console.error('[DEBUG ERROR]', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });

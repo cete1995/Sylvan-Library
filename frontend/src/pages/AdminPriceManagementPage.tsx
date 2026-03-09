@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { priceApi } from '../api/price';
 import { useAuth } from '../contexts/AuthContext';
+import { API_BASE_URL } from '../api/client';
 
 const AdminPriceManagementPage: React.FC = () => {
   const { token, isLoading } = useAuth();
@@ -25,19 +26,14 @@ const AdminPriceManagementPage: React.FC = () => {
 
   const loadStatus = async () => {
     if (!token) {
-      console.log('No token available');
       return;
     }
     
     try {
       setLoading(true);
-      console.log('Fetching import status with token:', token.substring(0, 20) + '...');
       const data = await priceApi.getImportStatus(token);
-      console.log('Import status loaded:', data);
       setStatus(data);
     } catch (error: any) {
-      console.error('Failed to load status:', error);
-      console.error('Error response:', error.response);
       if (error.response?.status === 401) {
         alert('Session expired. Please log in again.');
         localStorage.clear();
@@ -64,24 +60,22 @@ const AdminPriceManagementPage: React.FC = () => {
     try {
       // Start import
       const importResponse = await priceApi.importPrices(token);
-      console.log('Import started:', importResponse);
+      void importResponse;
       
       // Connect to SSE for progress updates (EventSource doesn't support custom headers, so we pass token as query param)
-      const eventSource = new EventSource(`http://localhost:5000/api/prices/import-progress?token=${encodeURIComponent(token)}`);
+      const eventSource = new EventSource(`${API_BASE_URL}/prices/import-progress?token=${encodeURIComponent(token)}`);
 
       eventSource.onopen = () => {
-        console.log('SSE connection opened');
+        // SSE connection opened
       };
 
       eventSource.onmessage = (event) => {
-        console.log('Progress update:', event.data);
         try {
           const progressData = JSON.parse(event.data);
           setProgress(progressData);
           
           // Close connection when complete
           if (!progressData.isImporting && progressData.status === 'completed') {
-            console.log('Import completed');
             eventSource.close();
             setImporting(false);
             setResult({
@@ -93,25 +87,22 @@ const AdminPriceManagementPage: React.FC = () => {
             });
             loadStatus(); // Refresh status
           } else if (progressData.status === 'error') {
-            console.error('Import error from progress');
             eventSource.close();
             setImporting(false);
-            alert('Import failed. Check console for details.');
+            alert('Import failed. Check the admin dashboard for details.');
           }
         } catch (err) {
-          console.error('Failed to parse progress data:', err);
+          void err;
         }
       };
 
-      eventSource.onerror = (error) => {
-        console.error('SSE error:', error);
+      eventSource.onerror = (_error) => {
         eventSource.close();
         setImporting(false);
         alert('Connection to progress updates failed. Import may still be running in background.');
       };
 
     } catch (error: any) {
-      console.error('Import error:', error);
       alert('Failed to start import: ' + (error.response?.data?.message || error.message));
       setImporting(false);
     }

@@ -68,8 +68,14 @@ export const changePassword = asyncHandler(async (req: Request, res: Response): 
     throw new AppError(400, 'Current password and new password are required');
   }
 
-  if (newPassword.length < 6) {
-    throw new AppError(400, 'New password must be at least 6 characters');
+  if (newPassword.length < 8) {
+    throw new AppError(400, 'New password must be at least 8 characters');
+  }
+  if (!/[A-Z]/.test(newPassword)) {
+    throw new AppError(400, 'New password must contain at least one uppercase letter');
+  }
+  if (!/[0-9]/.test(newPassword)) {
+    throw new AppError(400, 'New password must contain at least one number');
   }
 
   const user = await User.findById(userId);

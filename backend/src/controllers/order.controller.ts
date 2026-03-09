@@ -100,25 +100,60 @@ export const createOrder = asyncHandler(async (req: Request, res: Response): Pro
   // Generate order number
   const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
 
-  const order = await Order.create({
-    user: userId,
-    orderNumber,
-    items: verifiedItems,
-    totalAmount,
-    shippingAddress,
-    phoneNumber,
-    courierNotes,
-    paymentMethod,
-    status: 'pending',
-    paymentStatus: 'unpaid',
-  });
-
-  // Deduct stock for each item
+  // Atomically decrement stock before creating order to prevent race conditions
+  const decremented: Array<{ card: string; condition: string; finish: string; quantity: number }> = [];
   for (const item of verifiedItems) {
-    await Card.updateOne(
-      { _id: item.card, 'inventory.condition': item.condition, 'inventory.finish': item.finish },
+    const updateResult = await Card.updateOne(
+      {
+        _id: item.card,
+        inventory: {
+          $elemMatch: {
+            condition: item.condition,
+            finish: item.finish,
+            quantityForSale: { $gte: item.quantity },
+          },
+        },
+      },
       { $inc: { 'inventory.$.quantityForSale': -item.quantity } }
     );
+
+    if (updateResult.modifiedCount === 0) {
+      // Roll back already decremented items
+      for (const prev of decremented) {
+        await Card.updateOne(
+          { _id: prev.card, 'inventory.condition': prev.condition, 'inventory.finish': prev.finish },
+          { $inc: { 'inventory.$.quantityForSale': prev.quantity } }
+        );
+      }
+      throw new AppError(409, `Insufficient stock for ${item.cardName} — it was just purchased by another user`);
+    }
+
+    decremented.push({ card: item.card, condition: item.condition, finish: item.finish, quantity: item.quantity });
+  }
+
+  let order;
+  try {
+    order = await Order.create({
+      user: userId,
+      orderNumber,
+      items: verifiedItems,
+      totalAmount,
+      shippingAddress,
+      phoneNumber,
+      courierNotes,
+      paymentMethod,
+      status: 'pending',
+      paymentStatus: 'unpaid',
+    });
+  } catch (err) {
+    // Roll back stock decrements if order creation fails
+    for (const prev of decremented) {
+      await Card.updateOne(
+        { _id: prev.card, 'inventory.condition': prev.condition, 'inventory.finish': prev.finish },
+        { $inc: { 'inventory.$.quantityForSale': prev.quantity } }
+      );
+    }
+    throw err;
   }
 
   const populatedOrder = await Order.findById(order._id).populate('items.card', 'name imageUrl setName');

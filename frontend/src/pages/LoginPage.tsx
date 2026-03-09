@@ -67,10 +67,6 @@ const LoginPage: React.FC = () => {
       }
     } catch (err: any) {
       // Error occurred - stop loading and show error
-      console.error('Login error:', err);
-      console.error('Error response:', err.response);
-      console.error('Error data:', err.response?.data);
-      
       const errorMessage = err.response?.data?.error || err.response?.data?.message || err.message || 'Invalid email or password';
       
       // Keep the email but clear password

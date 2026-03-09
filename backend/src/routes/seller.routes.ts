@@ -129,8 +129,8 @@ router.put('/:id/password', authenticate, requireAdmin, async (req: Request, res
     const { id } = req.params;
     const { password } = req.body;
 
-    if (!password || password.length < 6) {
-      res.status(400).json({ message: 'Password must be at least 6 characters' });
+    if (!password || password.length < 8) {
+      res.status(400).json({ message: 'Password must be at least 8 characters' });
       return;
     }
 

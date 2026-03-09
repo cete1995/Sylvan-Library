@@ -34,7 +34,7 @@ const CartPage: React.FC = () => {
       const data = await cartApi.getCart();
       setCart(data.cart);
     } catch (error) {
-      console.error('Failed to load cart:', error);
+      // Cart load error is handled by showing empty state
     } finally {
       setLoading(false);
     }
