@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import crypto from 'crypto';
 import { Card, User, Cart, Carousel, Order, FeaturedProduct, FeaturedBanner, CardPrice, TikTokOrder } from '../models';
 import { AppError } from '../middleware/errorHandler';
 import { asyncHandler } from '../middleware/asyncHandler';
@@ -644,7 +645,7 @@ export const createMember = asyncHandler(async (req: Request, res: Response) => 
   const existing = await User.findOne({ email: email.toLowerCase().trim() });
   if (existing) throw new AppError(409, 'A user with this email already exists');
 
-  const tempPassword = 'Sylvan' + Math.floor(1000 + Math.random() * 9000);
+  const tempPassword = 'Bgt-' + crypto.randomBytes(9).toString('base64url');
   const passwordHash = await hashPassword(tempPassword);
 
   const member = await User.create({

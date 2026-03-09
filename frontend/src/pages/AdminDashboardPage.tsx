@@ -57,8 +57,6 @@ const AdminDashboardPage: React.FC = () => {
   };
 
   const handleForceSyncAllPrices = async () => {
-    const token = localStorage.getItem('token');
-    if (!token) return;
     if (!confirm(
       'Force Resync will recalculate prices for EVERY card with CK data — including zero-stock cards. ' +
       'This is useful after importing a new set. Continue?'
@@ -66,7 +64,7 @@ const AdminDashboardPage: React.FC = () => {
 
     setForceSyncing(true);
     try {
-      const result = await pricingApi.forceResyncAllPrices(token);
+      const result = await pricingApi.forceResyncAllPrices();
       alert(
         `Force resync completed!\n\n` +
         `Updated: ${result.updated} cards\n` +
@@ -84,19 +82,13 @@ const AdminDashboardPage: React.FC = () => {
   };
 
   const handleSyncAllPrices = async () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      alert('Please log in to sync prices');
-      return;
-    }
-
     if (!confirm('This will sync all card prices (both UB and Regular sets) based on latest CardKingdom prices. This may take several minutes. Continue?')) {
       return;
     }
 
     setSyncing(true);
     try {
-      const result = await pricingApi.syncAllPrices(token);
+      const result = await pricingApi.syncAllPrices();
       alert(
         `Price sync completed!\n\n` +
         `Updated: ${result.updated} cards\n` +
