@@ -31,7 +31,7 @@ export const generateRefreshToken = (payload: JwtPayload): string => {
 
 export const verifyToken = (token: string): JwtPayload => {
   try {
-    return jwt.verify(token, config.jwtSecret) as JwtPayload;
+    return jwt.verify(token, config.jwtSecret, { algorithms: ['HS256'] }) as JwtPayload;
   } catch (error) {
     throw new Error('Invalid or expired token');
   }
@@ -39,7 +39,7 @@ export const verifyToken = (token: string): JwtPayload => {
 
 export const verifyRefreshToken = (token: string): JwtPayload => {
   try {
-    return jwt.verify(token, config.jwtRefreshSecret) as JwtPayload;
+    return jwt.verify(token, config.jwtRefreshSecret, { algorithms: ['HS256'] }) as JwtPayload;
   } catch (error) {
     throw new Error('Invalid or expired refresh token');
   }

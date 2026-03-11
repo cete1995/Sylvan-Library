@@ -14,6 +14,15 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+// Rate limiter for token refresh: max 30 requests per 15 minutes per IP
+const refreshLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  message: { error: 'Too many refresh requests, please try again after 15 minutes' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 /**
  * @route   POST /api/auth/register
  * @desc    Register a new admin/seller user
@@ -47,7 +56,7 @@ router.get('/me', authenticate, getCurrentUser);
  * @desc    Refresh access token using refresh token
  * @access  Public
  */
-router.post('/refresh', refreshToken);
+router.post('/refresh', refreshLimiter, refreshToken);
 
 /**
  * @route   POST /api/auth/logout

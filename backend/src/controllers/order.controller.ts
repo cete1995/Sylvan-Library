@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import mongoose from 'mongoose';
 import { Order, Card, Cart } from '../models';
 import { AppError } from '../middleware/errorHandler';
 import { asyncHandler } from '../middleware/asyncHandler';
@@ -28,13 +29,15 @@ export const getOrderById = asyncHandler(async (req: Request, res: Response): Pr
   const userId = authReq.user?.id;
   const { id } = req.params;
 
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    throw new AppError(400, 'Invalid order ID format');
+  }
+
   const order = await Order.findById(id).populate('items.card', 'name imageUrl setName');
 
   if (!order) {
     throw new AppError(404, 'Order not found');
   }
-
-  // Ensure user can only view their own orders
   if (order.user.toString() !== userId) {
     throw new AppError(403, 'Access denied');
   }
@@ -63,9 +66,19 @@ export const createOrder = asyncHandler(async (req: Request, res: Response): Pro
   // Verify prices server-side and check stock
   const verifiedItems = [];
   for (const item of items) {
+    // V3 — validate card id is a valid ObjectId before hitting the DB
+    if (!mongoose.Types.ObjectId.isValid(item.card)) {
+      throw new AppError(400, 'Invalid card ID in order items');
+    }
+
+    // V2 — quantity must be a positive integer, cap at 999 to prevent abuse
+    if (!Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > 999) {
+      throw new AppError(400, 'Item quantity must be a whole number between 1 and 999');
+    }
+
     const card = await Card.findById(item.card);
     if (!card) {
-      throw new AppError(404, `Card not found: ${item.card}`);
+      throw new AppError(404, 'Card not found in order items');
     }
 
     // Find matching inventory entry

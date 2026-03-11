@@ -64,7 +64,12 @@ export const importSetFromMTGJson = asyncHandler(async (req: Request, res: Respo
   const { setCode } = req.body;
   if (!setCode) throw new AppError(400, 'setCode is required');
 
-  const url = `https://mtgjson.com/api/v5/${setCode.toUpperCase()}.json`;
+  // V8 — only allow safe alphanumeric set codes (2–6 chars, A-Z/0-9 only)
+  if (typeof setCode !== 'string' || !/^[A-Z0-9]{2,6}$/i.test(setCode.trim())) {
+    throw new AppError(400, 'setCode must be 2–6 alphanumeric characters (e.g. "MOM", "LTR")');
+  }
+
+  const url = `https://mtgjson.com/api/v5/${setCode.trim().toUpperCase()}.json`;
   let setData: SetJsonData;
   try {
     const response = await axios.get(url, { timeout: 30000 });
@@ -73,7 +78,7 @@ export const importSetFromMTGJson = asyncHandler(async (req: Request, res: Respo
     if (err.response?.status === 404) {
       throw new AppError(404, `Set "${setCode.toUpperCase()}" not found on MTGJson. Check the set code.`);
     }
-    throw new AppError(502, `Failed to fetch from MTGJson: ${err.message}`);
+    throw new AppError(502, 'Failed to fetch set data from MTGJson. Check the set code and try again.');
   }
 
   const result = await processSetData(setData);

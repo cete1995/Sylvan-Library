@@ -67,6 +67,7 @@ export const errorHandler = (
 export const notFoundHandler = (req: Request, res: Response): void => {
   res.status(404).json({
     error: 'Route not found',
-    path: req.originalUrl,
+    // Only expose the path in development to aid debugging
+    ...(process.env.NODE_ENV !== 'production' && { path: req.originalUrl }),
   });
 };

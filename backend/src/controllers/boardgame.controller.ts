@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import mongoose from 'mongoose';
 import { asyncHandler } from '../middleware/asyncHandler';
 import { AppError } from '../middleware/errorHandler';
 import BoardGame from '../models/BoardGame.model';
@@ -101,6 +102,9 @@ export const createBoardgame = asyncHandler(async (req: Request, res: Response) 
  * PUT /api/admin/boardgames/:id
  */
 export const updateBoardgame = asyncHandler(async (req: Request, res: Response) => {
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    throw new AppError(400, 'Invalid boardgame ID format');
+  }
   const game = await BoardGame.findById(req.params.id);
   if (!game) throw new AppError(404, 'Boardgame not found');
 
@@ -128,6 +132,9 @@ export const updateBoardgame = asyncHandler(async (req: Request, res: Response) 
  * Soft-delete: marks as unavailable instead of removing from DB.
  */
 export const deleteBoardgame = asyncHandler(async (req: Request, res: Response) => {
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    throw new AppError(400, 'Invalid boardgame ID format');
+  }
   const game = await BoardGame.findById(req.params.id);
   if (!game) throw new AppError(404, 'Boardgame not found');
 
@@ -141,6 +148,9 @@ export const deleteBoardgame = asyncHandler(async (req: Request, res: Response) 
  * Hard-delete: permanently removes the document.
  */
 export const permanentDeleteBoardgame = asyncHandler(async (req: Request, res: Response) => {
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    throw new AppError(400, 'Invalid boardgame ID format');
+  }
   const game = await BoardGame.findByIdAndDelete(req.params.id);
   if (!game) throw new AppError(404, 'Boardgame not found');
   res.json({ message: 'Boardgame permanently deleted' });

@@ -31,6 +31,26 @@ export const updateProfile = asyncHandler(async (req: Request, res: Response): P
   const userId = authReq.user?.userId;
   const { name, address, phoneNumber, courierNotes, profilePhoto } = req.body;
 
+  // V10 — enforce field length limits to prevent DB bloat
+  if (name !== undefined && (typeof name !== 'string' || name.length > 100)) {
+    throw new AppError(400, 'Name must be a string up to 100 characters');
+  }
+  if (address !== undefined && (typeof address !== 'string' || address.length > 300)) {
+    throw new AppError(400, 'Address must be a string up to 300 characters');
+  }
+  if (phoneNumber !== undefined && (typeof phoneNumber !== 'string' || phoneNumber.length > 30)) {
+    throw new AppError(400, 'Phone number must be a string up to 30 characters');
+  }
+  if (courierNotes !== undefined && (typeof courierNotes !== 'string' || courierNotes.length > 500)) {
+    throw new AppError(400, 'Courier notes must be a string up to 500 characters');
+  }
+  // V6 — profilePhoto must be a valid http/https URL or empty string
+  if (profilePhoto !== undefined && profilePhoto !== '') {
+    if (typeof profilePhoto !== 'string' || !/^https?:\/\/.+/.test(profilePhoto) || profilePhoto.length > 500) {
+      throw new AppError(400, 'Profile photo must be a valid http/https URL');
+    }
+  }
+
   const user = await User.findById(userId);
   
   if (!user) {
