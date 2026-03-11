@@ -95,6 +95,13 @@ const CafePage: React.FC = () => {
                   Get Directions
                 </a>
               )}
+              <Link
+                to="/boardgames"
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-bold text-lg transition-all hover:scale-105"
+                style={{ backgroundColor: 'rgba(255,255,255,0.08)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.3)' }}
+              >
+                🎲 Browse Our Games
+              </Link>
             </div>
           </div>
         </div>

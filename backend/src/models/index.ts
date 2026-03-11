@@ -15,3 +15,4 @@ export { default as Wishlist, IWishlist } from './Wishlist.model';
 export { default as StockNotification, IStockNotification } from './StockNotification.model';
 export { default as UBSettings, IUBSettings, IPriceTier } from './UBSettings.model';
 export { default as OfflineBuy, IOfflineBuy, IOfflineBuyItem } from './OfflineBuy.model';
+export { default as BoardGame, IBoardGame } from './BoardGame.model';

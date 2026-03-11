@@ -20,6 +20,7 @@ import OrderHistoryPage from './pages/OrderHistoryPage';
 import OrderDetailPage from './pages/OrderDetailPage';
 import CafePage from './pages/CafePage';
 import ConsolesPage from './pages/ConsolesPage';
+import BoardgameCataloguePage from './pages/BoardgameCataloguePage';
 
 // Lazily-loaded admin pages (reduces initial bundle)
 const AdminDashboardPage       = lazy(() => import('./pages/AdminDashboardPage'));
@@ -46,6 +47,7 @@ const AdminOfflineSalePage     = lazy(() => import('./pages/AdminOfflineSalePage
 const AdminOfflineBuyPage      = lazy(() => import('./pages/AdminOfflineBuyPage'));
 const AdminCafePage            = lazy(() => import('./pages/AdminCafePage'));
 const AdminOrdersPage          = lazy(() => import('./pages/AdminOrdersPage'));
+const AdminBoardgamesPage      = lazy(() => import('./pages/AdminBoardgamesPage'));
 
 // Lazily-loaded seller pages
 const ManaboxUploadPage        = lazy(() => import('./pages/ManaboxUploadPage'));
@@ -96,6 +98,7 @@ const App: React.FC = () => {
                 <Route path="/cart" element={<CartPage />} />
                 <Route path="/cafe" element={<CafePage />} />
                 <Route path="/consoles" element={<ConsolesPage />} />
+                <Route path="/boardgames" element={<BoardgameCataloguePage />} />
                 <Route path="/sets" element={<SetBrowsePage />} />
                 {/* Redirect old admin login to unified login */}
                 <Route path="/admin/login" element={<Navigate to="/login" replace />} />
@@ -140,6 +143,14 @@ const App: React.FC = () => {
                 element={
                   <ProtectedRoute adminOnly={true}>
                     <AdminCafePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/boardgames"
+                element={
+                  <ProtectedRoute adminOnly={true}>
+                    <AdminBoardgamesPage />
                   </ProtectedRoute>
                 }
               />
