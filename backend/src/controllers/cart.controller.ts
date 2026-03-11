@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import mongoose from 'mongoose';
 import { Cart, Card } from '../models';
 import { AppError } from '../middleware/errorHandler';
 import { asyncHandler } from '../middleware/asyncHandler';
@@ -69,6 +70,23 @@ export const addToCart = asyncHandler(async (req: Request, res: Response) => {
     throw new AppError(400, 'Card ID and inventory index are required');
   }
 
+  // CWE-20: Validate cardId is a valid ObjectId before querying DB
+  if (!mongoose.Types.ObjectId.isValid(cardId)) {
+    throw new AppError(400, 'Invalid card ID');
+  }
+
+  // CWE-20: Validate inventoryIndex is a non-negative integer
+  const idx = Number(inventoryIndex);
+  if (!Number.isInteger(idx) || idx < 0) {
+    throw new AppError(400, 'Invalid inventory index');
+  }
+
+  // CWE-20: Cap quantity to reasonable bounds
+  const qty = Number(quantity);
+  if (!Number.isInteger(qty) || qty < 1 || qty > 99) {
+    throw new AppError(400, 'Quantity must be between 1 and 99');
+  }
+
   // Verify card exists and get inventory item
   const card = await Card.findById(cardId);
   if (!card) {
@@ -76,11 +94,11 @@ export const addToCart = asyncHandler(async (req: Request, res: Response) => {
   }
 
   const inventory = card.inventory || [];
-  if (inventoryIndex < 0 || inventoryIndex >= inventory.length) {
+  if (idx >= inventory.length) {
     throw new AppError(400, 'Invalid inventory index');
   }
 
-  const inventoryItem = inventory[inventoryIndex];
+  const inventoryItem = inventory[idx];
 
   // If the selected inventory has price 0, try to find a matching inventory with price > 0
   let priceToUse = inventoryItem.sellPrice;
@@ -103,12 +121,12 @@ export const addToCart = asyncHandler(async (req: Request, res: Response) => {
 
   // Check if this exact item (card + inventory index) already exists in cart
   const existingItemIndex = cart.items.findIndex(
-    item => item.card.toString() === cardId && item.inventoryIndex === inventoryIndex
+    item => item.card.toString() === cardId && item.inventoryIndex === idx
   );
 
   // Calculate total quantity (existing + new)
   const existingQuantity = existingItemIndex >= 0 ? cart.items[existingItemIndex].quantity : 0;
-  const totalQuantity = existingQuantity + quantity;
+  const totalQuantity = existingQuantity + qty;
   
   // Check if enough quantity available
   if (inventoryItem.quantityForSale < totalQuantity) {
@@ -130,8 +148,8 @@ export const addToCart = asyncHandler(async (req: Request, res: Response) => {
     // Add new item
     cart.items.push({
       card: cardId,
-      inventoryIndex,
-      quantity,
+      inventoryIndex: idx,
+      quantity: qty,
       price: priceToUse,
     });
   }

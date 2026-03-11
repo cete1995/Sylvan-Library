@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { API_BASE_URL } from '../api/client';
-import * as XLSX from 'xlsx';
 
 type ActiveTab = 'category' | 'price-inventory';
 
@@ -856,35 +855,37 @@ const AdminTikTokDebugPage: React.FC = () => {
       return;
     }
 
-    // Build rows — productId and skuId are forced to text so Excel never converts them to scientific notation
-    const wsData: XLSX.WorkSheet = {};
+    // Build CSV with BOM so Excel opens it with correct encoding and treats IDs as text
     const headers = ['productId', 'skuId', 'sellerSku', 'productName', 'price', 'stock', 'error'];
-    headers.forEach((h, c) => {
-      wsData[XLSX.utils.encode_cell({ r: 0, c })] = { v: h, t: 's' };
-    });
+    const escape = (v: any) => {
+      const s = String(v ?? '');
+      // Prefix long-looking numeric IDs with a tab trick — or just quote+force-text via leading apostrophe in cell
+      // Standard CSV quoting: wrap in quotes if contains comma/quote/newline, escape internal quotes
+      if (s.includes(',') || s.includes('"') || s.includes('\n')) {
+        return '"' + s.replace(/"/g, '""') + '"';
+      }
+      return s;
+    };
 
-    failedRows.forEach((row, r) => {
-      const rowData: any[] = [
-        { v: row.productId, t: 's' },  // force text — prevents 1.73E+18
-        { v: row.skuId, t: 's' },      // force text — prevents 1.73E+18
-        { v: (row as any).sellerSku || '', t: 's' },
-        { v: row.productName || '', t: 's' },
-        { v: row.price || '', t: 's' },
-        { v: row.stock || '', t: 's' },
-        { v: row.error || '', t: 's' },
-      ];
-      rowData.forEach((cell, c) => {
-        wsData[XLSX.utils.encode_cell({ r: r + 1, c })] = cell;
-      });
-    });
+    const rows = failedRows.map(row => [
+      // Prefix with \t to prevent Excel scientific-notation conversion on long numeric IDs
+      '\t' + (row.productId ?? ''),
+      '\t' + (row.skuId ?? ''),
+      escape((row as any).sellerSku ?? ''),
+      escape(row.productName ?? ''),
+      escape(row.price ?? ''),
+      escape(row.stock ?? ''),
+      escape(row.error ?? ''),
+    ].join(','));
 
-    wsData['!ref'] = XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: failedRows.length, c: headers.length - 1 } });
-    // Widen productId and skuId columns so the full number is visible
-    wsData['!cols'] = [{ wch: 22 }, { wch: 22 }, { wch: 24 }, { wch: 36 }, { wch: 10 }, { wch: 8 }, { wch: 50 }];
-
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, wsData, 'Failed Rows');
-    XLSX.writeFile(wb, `failed-rows-${new Date().toISOString().slice(0, 10)}.xlsx`);
+    const csvContent = '\uFEFF' + headers.join(',') + '\n' + rows.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `failed-rows-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const [autoFillLoading, setAutoFillLoading] = useState(false);
@@ -1469,7 +1470,7 @@ productId,skuId,price,stock{'\n'}
                         className="py-4 rounded-lg font-bold text-lg transition-all hover:scale-[1.01]"
                         style={{ backgroundColor: '#3b82f6', color: 'white' }}
                       >
-                        📥 Download Failed XLSX
+                        📥 Download Failed CSV
                       </button>
                     </div>
                     {autoFillMessage && (

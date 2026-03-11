@@ -48,7 +48,8 @@ router.get('/credentials', authenticate, requireAdmin, async (req: Request, res:
       updatedAt:    doc.updatedAt,
     });
   } catch (err: any) {
-    res.status(500).json({ error: err.message });
+    console.error('TikTok credentials GET error:', err);
+    res.status(500).json({ error: 'Failed to load credentials' });
   }
 });
 
@@ -69,7 +70,8 @@ router.post('/credentials', authenticate, requireAdmin, async (req: Request, res
     );
     res.json({ success: true, message: 'Credentials saved securely.' });
   } catch (err: any) {
-    res.status(500).json({ error: err.message });
+    console.error('TikTok credentials POST error:', err);
+    res.status(500).json({ error: 'Failed to save credentials' });
   }
 });
 

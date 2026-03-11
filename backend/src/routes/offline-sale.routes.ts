@@ -12,6 +12,11 @@ const router = Router();
 // All routes require admin authentication
 router.use(authenticate, requireAdmin);
 
+// CWE-625: Escape special regex characters to prevent ReDoS
+function escapeRegex(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 /**
  * GET /api/admin/offline-sales/search-cards
  * Search cards that belong to a specific seller (by name query)
@@ -34,10 +39,11 @@ router.get('/search-cards', async (req: Request, res: Response): Promise<void> =
     };
 
     if (q && q.trim().length > 0) {
+      const safeQ = escapeRegex(q.trim());
       matchStage.$or = [
-        { name: { $regex: q.trim(), $options: 'i' } },
-        { setCode: { $regex: q.trim(), $options: 'i' } },
-        { setName: { $regex: q.trim(), $options: 'i' } },
+        { name: { $regex: safeQ, $options: 'i' } },
+        { setCode: { $regex: safeQ, $options: 'i' } },
+        { setName: { $regex: safeQ, $options: 'i' } },
       ];
     }
 
@@ -109,7 +115,7 @@ router.get('/search-cards', async (req: Request, res: Response): Promise<void> =
     res.json({ success: true, cards: filtered });
   } catch (error: any) {
     console.error('Offline sale search-cards error:', error.message);
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'Internal server error' });
   }
 });
 
@@ -156,7 +162,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
     });
   } catch (error: any) {
     console.error('List offline sales error:', error.message);
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'Internal server error' });
   }
 });
 
@@ -174,7 +180,7 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
     res.json({ success: true, sale });
   } catch (error: any) {
     console.error('Get offline sale error:', error.message);
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'Internal server error' });
   }
 });
 
@@ -315,7 +321,7 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
     res.status(201).json({ success: true, sale });
   } catch (error: any) {
     console.error('Create offline sale error:', error.message);
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'Internal server error' });
   }
 });
 
@@ -354,7 +360,7 @@ router.post('/:id/void', async (req: Request, res: Response): Promise<void> => {
     res.json({ success: true, message: 'Sale voided and inventory restored', sale });
   } catch (error: any) {
     console.error('Void offline sale error:', error.message);
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'Internal server error' });
   }
 });
 

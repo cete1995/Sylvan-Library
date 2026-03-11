@@ -1,10 +1,14 @@
 import { Router, Request, Response } from 'express';
+import mongoose from 'mongoose';
 import User from '../models/User.model';
 import Card from '../models/Card.model';
 import bcrypt from 'bcryptjs';
 import { authenticate, requireAdmin } from '../middleware/auth.middleware';
 
 const router = Router();
+
+// Simple RFC 5321-compliant email pattern
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // Get all sellers (admin only)
 router.get('/', authenticate, requireAdmin, async (req: Request, res: Response) => {
@@ -22,9 +26,21 @@ router.post('/', authenticate, requireAdmin, async (req: Request, res: Response)
   try {
     const { email, password, name } = req.body;
 
-    // Validate required fields
+    // CWE-20: Validate required fields and formats
     if (!email || !password) {
       res.status(400).json({ message: 'Email and password are required' });
+      return;
+    }
+    if (typeof email !== 'string' || email.length > 254 || !EMAIL_RE.test(email)) {
+      res.status(400).json({ message: 'Invalid email address' });
+      return;
+    }
+    if (typeof password !== 'string' || password.length < 8 || password.length > 128) {
+      res.status(400).json({ message: 'Password must be 8–128 characters' });
+      return;
+    }
+    if (name !== undefined && (typeof name !== 'string' || name.length > 100)) {
+      res.status(400).json({ message: 'Name must be 100 characters or fewer' });
       return;
     }
 
@@ -62,6 +78,12 @@ router.delete('/:id', authenticate, requireAdmin, async (req: Request, res: Resp
   try {
     const { id } = req.params;
 
+    // CWE-20: Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      res.status(400).json({ message: 'Invalid seller ID' });
+      return;
+    }
+
     const seller = await User.findById(id);
     if (!seller) {
       res.status(404).json({ message: 'Seller not found' });
@@ -86,6 +108,12 @@ router.put('/:id', authenticate, requireAdmin, async (req: Request, res: Respons
   try {
     const { id } = req.params;
     const { email, name } = req.body;
+
+    // CWE-20: Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      res.status(400).json({ message: 'Invalid seller ID' });
+      return;
+    }
 
     const seller = await User.findById(id);
     if (!seller) {

@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import mongoose from 'mongoose';
 import { authenticate, requireAdmin } from '../middleware/auth.middleware';
 import Card from '../models/Card.model';
 import User from '../models/User.model';
@@ -8,6 +9,11 @@ import { isUBSet } from '../utils/ubPricing';
 
 const router = Router();
 router.use(authenticate, requireAdmin);
+
+// CWE-625: Escape special regex characters to prevent ReDoS
+function escapeRegex(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // GET /api/admin/offline-buys/search-cards?q=xxx
@@ -19,10 +25,11 @@ router.get('/search-cards', async (req: Request, res: Response): Promise<void> =
 
     const matchFilter: Record<string, any> = { isActive: true };
     if (q && q.trim().length > 0) {
+      const safeQ = escapeRegex(q.trim());
       matchFilter.$or = [
-        { name: { $regex: q.trim(), $options: 'i' } },
-        { setCode: { $regex: q.trim(), $options: 'i' } },
-        { setName: { $regex: q.trim(), $options: 'i' } },
+        { name: { $regex: safeQ, $options: 'i' } },
+        { setCode: { $regex: safeQ, $options: 'i' } },
+        { setName: { $regex: safeQ, $options: 'i' } },
       ];
     }
 
@@ -63,7 +70,7 @@ router.get('/search-cards', async (req: Request, res: Response): Promise<void> =
     res.json({ success: true, cards: results });
   } catch (error: any) {
     console.error('Buy search-cards error:', error.message);
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'Internal server error' });
   }
 });
 
@@ -95,7 +102,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
     });
   } catch (error: any) {
     console.error('List offline buys error:', error.message);
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'Internal server error' });
   }
 });
 
@@ -144,7 +151,13 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
       const { cardId, condition, finish, quantity, pricePerUnit } = item;
 
       if (!cardId || !condition || !finish || !quantity || quantity < 1) {
-        res.status(400).json({ success: false, error: `Invalid item data: ${JSON.stringify(item)}` });
+        res.status(400).json({ success: false, error: `Invalid item data` });
+        return;
+      }
+
+      // CWE-20: Validate cardId is a valid ObjectId
+      if (!mongoose.Types.ObjectId.isValid(cardId)) {
+        res.status(400).json({ success: false, error: 'Invalid card ID' });
         return;
       }
 
@@ -234,7 +247,7 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
     res.status(201).json({ success: true, buy });
   } catch (error: any) {
     console.error('Create offline buy error:', error.message);
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'Internal server error' });
   }
 });
 
@@ -280,7 +293,7 @@ router.post('/:id/void', async (req: Request, res: Response): Promise<void> => {
     res.json({ success: true, message: 'Buy voided and inventory reversed', buy });
   } catch (error: any) {
     console.error('Void offline buy error:', error.message);
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: 'Internal server error' });
   }
 });
 
