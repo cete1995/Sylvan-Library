@@ -719,11 +719,12 @@ export const listMembers = asyncHandler(async (req: Request, res: Response) => {
   const search = req.query.search as string | undefined;
   const query: any = {};
   if (search) {
+    const safeSearch = escapeRegex(search);
     query.$or = [
-      { name:      { $regex: search, $options: 'i' } },
-      { email:     { $regex: search, $options: 'i' } },
-      { wpnEmail:  { $regex: search, $options: 'i' } },
-      { phoneNumber: { $regex: search, $options: 'i' } },
+      { name:        { $regex: safeSearch, $options: 'i' } },
+      { email:       { $regex: safeSearch, $options: 'i' } },
+      { wpnEmail:    { $regex: safeSearch, $options: 'i' } },
+      { phoneNumber: { $regex: safeSearch, $options: 'i' } },
     ];
   }
   const members = await User.find(query)
