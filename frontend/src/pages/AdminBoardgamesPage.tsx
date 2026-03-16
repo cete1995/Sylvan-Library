@@ -14,6 +14,12 @@ interface FormState {
   available: boolean;
   featured: boolean;
   sortOrder: number;
+  // Detail-page content
+  gallery: string;      // one URL per line in the form textarea
+  howToPlay: string;
+  designer: string;
+  publisher: string;
+  age: string;
 }
 
 const EMPTY_FORM: FormState = {
@@ -28,6 +34,11 @@ const EMPTY_FORM: FormState = {
   available: true,
   featured: false,
   sortOrder: 0,
+  gallery: '',
+  howToPlay: '',
+  designer: '',
+  publisher: '',
+  age: '',
 };
 
 const DIFFICULTY_STYLES: Record<string, { bg: string; text: string }> = {
@@ -54,6 +65,11 @@ const GameFormModal: React.FC<{
     available: game.available,
     featured: game.featured,
     sortOrder: game.sortOrder,
+    gallery: (game.gallery ?? []).join('\n'),
+    howToPlay: game.howToPlay ?? '',
+    designer: game.designer ?? '',
+    publisher: game.publisher ?? '',
+    age: game.age ?? '',
   } : { ...EMPTY_FORM });
   const [saving, setSaving] = useState(false);
 
@@ -65,9 +81,13 @@ const GameFormModal: React.FC<{
     if (!form.name.trim()) { toast.error('Name is required'); return; }
     setSaving(true);
     try {
+      const payload = {
+        ...form,
+        gallery: form.gallery.split('\n').map((s) => s.trim()).filter(Boolean),
+      };
       const saved = game
-        ? await boardgameApi.update(game._id, form)
-        : await boardgameApi.create(form);
+        ? await boardgameApi.update(game._id, payload)
+        : await boardgameApi.create(payload);
       toast.success(game ? 'Game updated' : 'Game added');
       onSaved(saved);
     } catch {
@@ -184,6 +204,51 @@ const GameFormModal: React.FC<{
                 <span className="text-sm text-white">{label}</span>
               </label>
             ))}
+          </div>
+
+          {/* ─── Detail Page Content ─── */}
+          <div className="border-t pt-4" style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
+            <p style={{ fontSize: '0.65rem', fontWeight: 700, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.75rem' }}>
+              Detail Page Content
+            </p>
+          </div>
+
+          {/* Designer + Publisher + Age */}
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <p style={labelStyle}>Designer</p>
+              <input style={inputStyle} value={form.designer} onChange={(e) => set('designer', e.target.value)} placeholder="e.g. Klaus Teuber" />
+            </div>
+            <div>
+              <p style={labelStyle}>Publisher</p>
+              <input style={inputStyle} value={form.publisher} onChange={(e) => set('publisher', e.target.value)} placeholder="e.g. KOSMOS" />
+            </div>
+            <div>
+              <p style={labelStyle}>Age Rating</p>
+              <input style={inputStyle} value={form.age} onChange={(e) => set('age', e.target.value)} placeholder="e.g. 10+" />
+            </div>
+          </div>
+
+          {/* How to Play */}
+          <div>
+            <p style={labelStyle}>How to Play</p>
+            <textarea
+              style={{ ...inputStyle, minHeight: '90px', resize: 'vertical' }}
+              value={form.howToPlay}
+              onChange={(e) => set('howToPlay', e.target.value)}
+              placeholder="Describe the rules, setup, or how the game is played…"
+            />
+          </div>
+
+          {/* Gallery */}
+          <div>
+            <p style={labelStyle}>Gallery Images <span style={{ opacity: 0.5, fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(one URL per line)</span></p>
+            <textarea
+              style={{ ...inputStyle, minHeight: '70px', resize: 'vertical', fontFamily: 'monospace', fontSize: '0.75rem' }}
+              value={form.gallery}
+              onChange={(e) => set('gallery', e.target.value)}
+              placeholder={"https://example.com/photo1.jpg\nhttps://example.com/photo2.jpg"}
+            />
           </div>
         </form>
 

@@ -13,6 +13,12 @@ export interface BoardGame {
   available: boolean;
   featured: boolean;
   sortOrder: number;
+  // Rich detail-page fields
+  gallery: string[];
+  howToPlay: string;
+  designer: string;
+  publisher: string;
+  age: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -46,6 +52,11 @@ export const boardgameApi = {
   getAll: async (filters?: BoardGameFilters): Promise<BoardGameListResponse> => {
     const res = await api.get<BoardGameListResponse>('/boardgames', { params: filters });
     return res.data;
+  },
+
+  getOne: async (id: string): Promise<BoardGame> => {
+    const res = await api.get<{ game: BoardGame }>(`/boardgames/${id}`);
+    return res.data.game;
   },
 
   adminGetAll: async (filters?: AdminBoardGameFilters): Promise<BoardGameListResponse> => {

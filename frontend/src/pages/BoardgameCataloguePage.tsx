@@ -14,9 +14,10 @@ const DIFFICULTY_COLORS: Record<string, { bg: string; text: string }> = {
 const GameCard: React.FC<{ game: BoardGame }> = ({ game }) => {
   const diff = DIFFICULTY_COLORS[game.difficulty] ?? DIFFICULTY_COLORS.Medium;
   return (
-    <div
+    <Link
+      to={`/boardgames/${game._id}`}
       className="rounded-2xl overflow-hidden shadow flex flex-col transition-transform hover:scale-[1.02]"
-      style={{ backgroundColor: 'var(--color-panel)' }}
+      style={{ backgroundColor: 'var(--color-panel)', textDecoration: 'none' }}
     >
       {/* Image */}
       <div
@@ -75,7 +76,7 @@ const GameCard: React.FC<{ game: BoardGame }> = ({ game }) => {
           </span>
         </div>
       </div>
-    </div>
+    </Link>
   );
 };
 

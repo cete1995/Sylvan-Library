@@ -12,6 +12,12 @@ export interface IBoardGame extends Document {
   available: boolean;      // currently on the shelf
   featured: boolean;       // show prominently on cafe page
   sortOrder: number;
+  // Rich detail-page fields
+  gallery: string[];       // extra image URLs for detail page gallery
+  howToPlay: string;       // how-to-play description / rules overview
+  designer: string;        // game designer name
+  publisher: string;       // publisher name
+  age: string;             // minimum age e.g. "10+"
   createdAt: Date;
   updatedAt: Date;
 }
@@ -29,6 +35,11 @@ const BoardGameSchema = new Schema<IBoardGame>(
     available:       { type: Boolean, default: true },
     featured:        { type: Boolean, default: false },
     sortOrder:       { type: Number, default: 0 },
+    gallery:         { type: [String], default: [] },
+    howToPlay:       { type: String, default: '' },
+    designer:        { type: String, default: '' },
+    publisher:       { type: String, default: '' },
+    age:             { type: String, default: '' },
   },
   { timestamps: true }
 );

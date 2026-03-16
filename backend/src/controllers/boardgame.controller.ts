@@ -41,6 +41,19 @@ export const getBoardgames = asyncHandler(async (req: Request, res: Response) =>
   });
 });
 
+/**
+ * GET /api/boardgames/:id
+ * Returns a single available boardgame by ID (for detail page).
+ */
+export const getBoardgameById = asyncHandler(async (req: Request, res: Response) => {
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    throw new AppError(400, 'Invalid boardgame ID');
+  }
+  const game = await BoardGame.findOne({ _id: req.params.id, available: true });
+  if (!game) throw new AppError(404, 'Boardgame not found');
+  res.json({ game });
+});
+
 // ─────────────────────────────────────────────
 // Admin
 // ─────────────────────────────────────────────
@@ -75,7 +88,8 @@ export const adminGetBoardgames = asyncHandler(async (req: Request, res: Respons
  */
 export const createBoardgame = asyncHandler(async (req: Request, res: Response) => {
   const { name, description, minPlayers, maxPlayers, durationMinutes,
-          category, difficulty, imageUrl, available, featured, sortOrder } = req.body;
+          category, difficulty, imageUrl, available, featured, sortOrder,
+          gallery, howToPlay, designer, publisher, age } = req.body;
 
   if (!name || typeof name !== 'string' || !name.trim()) {
     throw new AppError(400, 'Game name is required');
@@ -93,6 +107,11 @@ export const createBoardgame = asyncHandler(async (req: Request, res: Response) 
     available: available !== false,
     featured: featured === true,
     sortOrder: sortOrder ?? 0,
+    gallery: Array.isArray(gallery) ? gallery : [],
+    howToPlay: howToPlay ?? '',
+    designer: designer ?? '',
+    publisher: publisher ?? '',
+    age: age ?? '',
   });
 
   res.status(201).json({ message: 'Boardgame created', game });
@@ -109,7 +128,8 @@ export const updateBoardgame = asyncHandler(async (req: Request, res: Response) 
   if (!game) throw new AppError(404, 'Boardgame not found');
 
   const { name, description, minPlayers, maxPlayers, durationMinutes,
-          category, difficulty, imageUrl, available, featured, sortOrder } = req.body;
+          category, difficulty, imageUrl, available, featured, sortOrder,
+          gallery, howToPlay, designer, publisher, age } = req.body;
 
   if (name !== undefined) game.name = String(name).trim() || game.name;
   if (description !== undefined) game.description = description;
@@ -122,6 +142,11 @@ export const updateBoardgame = asyncHandler(async (req: Request, res: Response) 
   if (available !== undefined) game.available = Boolean(available);
   if (featured !== undefined) game.featured = Boolean(featured);
   if (sortOrder !== undefined) game.sortOrder = Number(sortOrder);
+  if (gallery !== undefined) game.gallery = Array.isArray(gallery) ? gallery : [];
+  if (howToPlay !== undefined) game.howToPlay = howToPlay;
+  if (designer !== undefined) game.designer = designer;
+  if (publisher !== undefined) game.publisher = publisher;
+  if (age !== undefined) game.age = age;
 
   await game.save();
   res.json({ message: 'Boardgame updated', game });

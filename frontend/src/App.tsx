@@ -57,6 +57,7 @@ const SellerInventoryFormPage  = lazy(() => import('./pages/SellerInventoryFormP
 // Lazily-loaded additional pages
 const SetBrowsePage  = lazy(() => import('./pages/SetBrowsePage'));
 const WishlistPage   = lazy(() => import('./pages/WishlistPage'));
+const BoardgameDetailPage = lazy(() => import('./pages/BoardgameDetailPage'));
 
 // Fallback UI while lazy chunks load
 const PageLoader: React.FC = () => (
@@ -99,6 +100,7 @@ const App: React.FC = () => {
                 <Route path="/cafe" element={<CafePage />} />
                 <Route path="/consoles" element={<ConsolesPage />} />
                 <Route path="/boardgames" element={<BoardgameCataloguePage />} />
+                <Route path="/boardgames/:id" element={<BoardgameDetailPage />} />
                 <Route path="/sets" element={<SetBrowsePage />} />
                 {/* Redirect old admin login to unified login */}
                 <Route path="/admin/login" element={<Navigate to="/login" replace />} />
