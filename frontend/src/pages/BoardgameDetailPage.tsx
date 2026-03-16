@@ -361,7 +361,7 @@ const BoardgameDetailPage: React.FC = () => {
             <span style={{ color: '#fca5a5' }}>{game.name}</span>?
           </p>
           <p className="text-sm mb-5" style={{ color: 'rgba(255,255,255,0.52)' }}>
-            Visit us at Sylvan Library — we have this game on the shelf and ready to play.
+            Visit us at Boardgame Time — we have this game on the shelf and ready to play.
           </p>
           <div className="flex flex-wrap gap-3 justify-center">
             <a
