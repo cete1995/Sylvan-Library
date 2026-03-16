@@ -14,10 +14,10 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// Rate limiter for token refresh: max 30 requests per 15 minutes per IP
+// Rate limiter for token refresh: max 10 requests per 15 minutes per IP
 const refreshLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 30,
+  max: 10,
   message: { error: 'Too many refresh requests, please try again after 15 minutes' },
   standardHeaders: true,
   legacyHeaders: false,

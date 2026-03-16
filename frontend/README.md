@@ -121,13 +121,18 @@ frontend/src/
 | / | Home |
 | /catalog | Card catalog (desktop table, mobile feed) |
 | /cards/:id | Card detail |
+| /sets | Browse by MTG set |
 | /cafe | Boardgame Café & Mahjong info |
+| /boardgames | Boardgame catalogue |
+| /boardgames/:id | Boardgame detail page |
+| /consoles | Console rental info (PS5 / Switch) |
 | /login | Login (admin / seller / customer) |
 | /register | Customer registration |
 | /cart | Shopping cart |
 | /orders | Order history (requires login) |
 | /orders/:id | Order detail (requires login) |
 | /profile | Profile (requires login) |
+| /wishlist | Wishlist (requires login) |
 
 ### Admin (requires admin login)
 | Path | Page |
@@ -146,6 +151,7 @@ frontend/src/
 | /admin/regular-settings | Regular pricing settings |
 | /admin/carousel | Carousel management |
 | /admin/featured | Featured banners and products |
+| /admin/orders | All online orders (bulk status update) |
 | /admin/offline-sales | Walk-in sales |
 | /admin/offline-buys | Walk-in buy-backs |
 | /admin/tiktok-debug | TikTok bulk update and debug |
@@ -155,7 +161,8 @@ frontend/src/
 | /admin/tiktok-orders/:orderId | TikTok order detail |
 | /admin/membership | Customer membership |
 | /admin/debug | System maintenance tools |
-| /admin/cafe | Boardgame Café content editor |
+| /admin/cafe | Boardgame Café content editor (hours, consoles) |
+| /admin/boardgames | Boardgame library CRUD |
 
 ### Seller (requires seller login)
 | Path | Page |

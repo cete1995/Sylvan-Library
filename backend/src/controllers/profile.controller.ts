@@ -109,6 +109,9 @@ export const changePassword = asyncHandler(async (req: Request, res: Response): 
   }
 
   user.passwordHash = await bcrypt.hash(newPassword, 10);
+  // Invalidate all existing sessions so stolen tokens can't be reused
+  user.refreshToken = undefined;
+  user.refreshTokenExpiry = undefined;
   await user.save();
 
   res.json({ message: 'Password changed successfully' });

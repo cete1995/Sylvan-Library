@@ -28,27 +28,39 @@ A full-stack web application for **Boardgame Time**, a boardgame café and MTG s
 - Card detail pages with images and per-seller inventory breakdown
 - Shopping cart, checkout, order history & order detail page, customer profile
 - Customer registration & login
+- **Wishlist** — save cards, receive stock-back notifications when OOS cards restock
+- **Browse by Set** — navigate the full MTG set list, click into any set's cards
+- **Condition guide** — inline NM / LP / P guide on card detail pages
+- **Order timeline** — visual stepper (Pending → Processing → Shipped → Delivered) on order detail
 
 ### Boardgame Café Page
-- Public `/cafe` page showing live content managed from the admin panel
+- Public `/cafe` page with live content managed from the admin panel
 - Operating hours (per-day open/closed toggle), entry fee, Mahjong table info
-- Game library (name, players, duration, icon), contact links (WhatsApp, Instagram, Google Maps)
-- All content stored in MongoDB and editable by admins with no code changes required
+- **Featured game carousel** — boardgames marked as Featured in the DB appear as a horizontally-scrollable card carousel; each card links to its detail page
+- Contact links (WhatsApp, Instagram, Google Maps), tagline, and WhatsApp FAB
+- All content stored in MongoDB and editable without code changes
+
+### Boardgame Catalogue (`/boardgames`)
+- Full searchable, filterable catalogue of boardgames in the café
+- Filter by category (Strategy, Party, Family, …) and difficulty (Easy / Medium / Hard / Expert)
+- Each game has a dedicated detail page (`/boardgames/:id`) with gallery, how-to-play guide, stats (players, duration, age), designer/publisher info
+- Admins manage the full game library at `/admin/boardgames` (CRUD, gallery, featured flag, sort order)
 
 ### Admin Panel
-- **Card Inventory**  add, edit, soft-delete, bulk CSV import
-- **Browse Cards**  sortable table with finish badges (Normal/Foil/Etched), per-finish Web Price & Marketplace price columns
-- **Seller management**  create/edit/delete seller accounts, reset passwords
-- **Dashboard**  inventory value, order counts, active sellers, recent activity
-- **CK price sync**  fetch latest Card Kingdom prices and recalculate all sell prices
-- **Bulk price update**  apply multiplier changes across all cards at once
-- **Featured banners & carousel**  manage homepage promotional content
-- **Set management**  upload set JSON to register new sets
-- **Maintenance tools**  fix seller names, regenerate SKUs, fix inventory quantities, fix DFC layouts
-- **Missing images**  filter and bulk-assign images to cards without one
-- **Membership**  manage customer membership tiers
-- **Boardgame Café CMS**  edit hours, game library, Mahjong info, entry fee, and contact links via `/admin/cafe`
-- **Danger zone**  separate targeted clear buttons for users, cards, and orders (API keys always preserved)
+- **Card Inventory** — add, edit, soft-delete, bulk CSV import
+- **Browse Cards** — sortable table with finish badges (Normal/Foil/Etched), per-finish Web Price & Marketplace price columns
+- **Seller management** — create/edit/delete seller accounts, reset passwords
+- **Dashboard** — inventory value, order counts, active sellers, recent activity
+- **CK price sync** — fetch latest Card Kingdom prices and recalculate all sell prices
+- **Bulk price update** — apply multiplier changes across all cards at once
+- **Featured banners & carousel** — manage homepage promotional content
+- **Set management** — upload set JSON to register new sets
+- **Maintenance tools** — fix seller names, regenerate SKUs, fix inventory quantities, fix DFC layouts
+- **Missing images** — filter and bulk-assign images to cards without one
+- **Membership** — manage customer membership tiers
+- **Boardgame Library** — full CRUD for boardgames at `/admin/boardgames` (name, description, gallery, how-to-play, category, difficulty, featured flag, sort order)
+- **Boardgame Café CMS** — edit hours, entry fee, Mahjong info, console rental (PS5/Switch) rates & happy-hour, contact links via `/admin/cafe`
+- **Danger zone** — separate targeted clear buttons for users, cards, and orders (API keys always preserved)
 
 ### Seller Panel
 - Manage own inventory slots per card (condition, finish, qty, price)
@@ -334,13 +346,18 @@ Sell Price = CK Price  Multiplier
 | `/` | Home |
 | `/catalog` | Card catalog |
 | `/cards/:id` | Card detail |
+| `/sets` | Browse by MTG set |
 | `/cafe` | Boardgame Café & Mahjong info |
+| `/boardgames` | Boardgame catalogue |
+| `/boardgames/:id` | Boardgame detail page |
+| `/consoles` | Console rental info (PS5 / Switch) |
 | `/login` | Login (admin / seller / customer) |
 | `/register` | Customer registration |
 | `/cart` | Shopping cart |
 | `/orders` | Order history (requires login) |
 | `/orders/:id` | Order detail (requires login) |
 | `/profile` | Profile (requires login) |
+| `/wishlist` | Wishlist (requires login) |
 
 ### Admin
 | Path | Description |
@@ -359,6 +376,7 @@ Sell Price = CK Price  Multiplier
 | `/admin/regular-settings` | Regular pricing settings |
 | `/admin/carousel` | Carousel management |
 | `/admin/featured` | Featured banners & products |
+| `/admin/orders` | All online orders (paginated, bulk status update) |
 | `/admin/offline-sales` | Walk-in sales |
 | `/admin/offline-buys` | Walk-in buy-backs |
 | `/admin/tiktok-debug` | TikTok bulk update & debug |
@@ -368,7 +386,8 @@ Sell Price = CK Price  Multiplier
 | `/admin/tiktok-orders/:orderId` | TikTok order detail |
 | `/admin/membership` | Customer membership |
 | `/admin/debug` | System maintenance tools |
-| `/admin/cafe` | Boardgame Café content editor |
+| `/admin/cafe` | Boardgame Café content editor (hours, consoles, entry fee) |
+| `/admin/boardgames` | Boardgame library CRUD |
 
 ### Seller
 | Path | Description |
@@ -381,11 +400,15 @@ Sell Price = CK Price  Multiplier
 
 ## Deployment
 
-| Platform | Notes |
-|---|---|
-| **DigitalOcean Droplet** | Recommended  $4/mo, Singapore region |
-| **Railway.app** | Free tier, zero-config Node.js |
-| **Any VPS** | Node.js 20, MongoDB, Nginx, PM2 |
+| Platform | Service | Notes |
+|---|---|---|
+| **Vercel** | Frontend | Root Directory: `/frontend`; auto-deploys on push to `main` |
+| **Railway** | Backend | Auto-deploys on push to `main` |
+
+**Live URLs:**
+- Frontend: https://sylvanlibraryfe.vercel.app
+- Backend: https://sylvan-library-production.up.railway.app
+- GitHub: https://github.com/cete1995/Sylvan-Library (branch: `main`)
 
 ```bash
 # Backend

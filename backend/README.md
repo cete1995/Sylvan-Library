@@ -12,18 +12,18 @@ Express + TypeScript API server for the Boardgame Time MTG & café app.
 
 ### Install and run
 
-`ash
+```bash
 cd backend
 npm install
-`
+```
 
-Create ackend/.env (see Environment Variables below), then:
+Create `backend/.env` (see Environment Variables below), then:
 
-`ash
+```bash
 npm run dev     # development with auto-reload
 npm run build   # compile TypeScript
 npm start       # run compiled output
-`
+```
 
 API runs at http://localhost:5000.
 
@@ -33,14 +33,14 @@ API runs at http://localhost:5000.
 
 Create a .env file in the ackend/ directory:
 
-`env
+```env
 PORT=5000
 NODE_ENV=development
 MONGODB_URI=mongodb://localhost:27017/sylvan-library
 JWT_SECRET=change_this_to_a_long_random_string
 JWT_EXPIRES_IN=7d
 FRONTEND_URL=http://localhost:5173
-`
+```
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
@@ -55,21 +55,21 @@ FRONTEND_URL=http://localhost:5173
 
 ## Creating an Admin Account
 
-`ash
+```bash
 node create-admin.js
-`
+```
 
 Follow the prompts. To reset a password later:
 
-`ash
+```bash
 node reset-admin-password.js
-`
+```
 
 ---
 
 ## Project Structure
 
-`
+```
 backend/
 src/
   config/
@@ -93,7 +93,12 @@ src/
     FeaturedBanner.model.ts
     FeaturedProduct.model.ts
     UBSettings.model.ts     # UB set pricing settings
-    RegularSettings.model.ts    CafeSettings.model.ts   # Boardgame café content (single-document)  routes/                # One route file per resource
+    RegularSettings.model.ts
+    CafeSettings.model.ts   # Boardgame café content (single-document)
+    Boardgame.model.ts      # Boardgame library entries
+    Wishlist.model.ts       # Per-user wishlist
+    StockNotification.model.ts
+  routes/                # One route file per resource
   utils/
     regularPricing.ts    # Regular set price calculation
     ubPricing.ts         # UB set price calculation
@@ -110,7 +115,7 @@ check-recent-sets.js
 bulkup.csv               # TikTok bulk-update CSV example
 tiktok-bulk-update-template.csv
 TIKTOK_CSV_INSTRUCTIONS.md
-`
+```
 
 ---
 
@@ -119,7 +124,7 @@ TIKTOK_CSV_INSTRUCTIONS.md
 ### Card
 Core document with an inventory[] array of slots (one per seller + condition + finish combo).
 
-`	ypescript
+```typescript
 // Card top-level fields
 {
   name: string
@@ -152,17 +157,17 @@ Core document with an inventory[] array of slots (one per seller + condition + f
   tiktokSkuId?: string          // written back from bulkup CSV sync
   sellerSku?: string            // used to match CSV rows to inventory slots
 }
-`
+```
 
 ### User
-`	ypescript
+```typescript
 {
   email: string
   passwordHash: string
   role: "admin" | "seller" | "customer"
   displayName?: string
 }
-`
+```
 
 ---
 

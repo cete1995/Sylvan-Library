@@ -171,7 +171,7 @@ const BoardgameCataloguePage: React.FC = () => {
               Our Game Library
             </h1>
             <p className="text-lg mb-2" style={{ color: '#fca5a5' }}>
-              Browse our full collection of boardgames available at Sylvan Library.
+              Browse our full collection of boardgames available at Boardgame Time.
             </p>
             {!loading && (
               <p className="text-sm font-semibold" style={{ color: 'rgba(255,255,255,0.5)' }}>

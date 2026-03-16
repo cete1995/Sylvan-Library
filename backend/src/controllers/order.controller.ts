@@ -194,8 +194,17 @@ export const updateOrderStatus = asyncHandler(async (req: Request, res: Response
     throw new AppError(404, 'Order not found');
   }
 
-  if (status !== undefined) order.status = status;
-  if (paymentStatus !== undefined) order.paymentStatus = paymentStatus;
+  const VALID_STATUSES = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
+  const VALID_PAYMENT_STATUSES = ['unpaid', 'paid', 'refunded'];
+
+  if (status !== undefined) {
+    if (!VALID_STATUSES.includes(status)) throw new AppError(400, `Invalid status: ${status}`);
+    order.status = status;
+  }
+  if (paymentStatus !== undefined) {
+    if (!VALID_PAYMENT_STATUSES.includes(paymentStatus)) throw new AppError(400, `Invalid paymentStatus: ${paymentStatus}`);
+    order.paymentStatus = paymentStatus;
+  }
 
   await order.save();
 

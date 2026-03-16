@@ -48,6 +48,13 @@ export const upsertFeaturedBanner = asyncHandler(async (req: Request, res: Respo
     throw new AppError(400, 'All fields are required: imageUrl, title, buttonText, buttonLink');
   }
 
+  // Prevent open redirect / JS injection via buttonLink
+  const isRelative = typeof buttonLink === 'string' && buttonLink.startsWith('/');
+  const isAbsolute = typeof buttonLink === 'string' && /^https?:\/\//i.test(buttonLink);
+  if (!isRelative && !isAbsolute) {
+    throw new AppError(400, 'buttonLink must be a relative path (starting with /) or an absolute http/https URL');
+  }
+
   let banner = await FeaturedBanner.findOne();
 
   if (banner) {

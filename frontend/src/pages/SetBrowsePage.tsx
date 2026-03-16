@@ -23,7 +23,7 @@ const SetBrowsePage: React.FC = () => {
 
   return (
     <div
-      className="min-h-screen pb-28 md:pb-8"
+      className="min-h-screen pb-28 md:pb-0"
       style={{ background: 'linear-gradient(135deg, #060918, #0d1440, #111e55)' }}
     >
       {/* Header */}
