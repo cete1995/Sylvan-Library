@@ -50,8 +50,15 @@ const AdminUBPricingPage: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <Link to="/admin/dashboard" className="hover:underline mb-4 inline-block" style={{ color: 'var(--color-accent)' }}>
-        ← Back to Admin Dashboard
+      <Link
+        to="/admin/dashboard"
+        className="mb-6 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl font-semibold text-sm hover:opacity-80 transition-all"
+        style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)', border: '1px solid var(--color-border)' }}
+      >
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        Back to Dashboard
       </Link>
 
       <div className="mb-8">

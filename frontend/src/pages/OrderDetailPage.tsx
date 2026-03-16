@@ -69,10 +69,13 @@ const OrderDetailPage: React.FC = () => {
           <p className="mb-6" style={{ color: 'var(--color-text-secondary)' }}>{error}</p>
           <button
             onClick={() => navigate('/orders')}
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all hover:opacity-80"
-            style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-panel)' }}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-sm transition-all hover:opacity-80"
+            style={{ backgroundColor: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.8)', border: '1px solid rgba(255,255,255,0.12)' }}
           >
-            ← Back to Orders
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Back to Orders
           </button>
         </div>
       </div>

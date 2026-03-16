@@ -30,10 +30,13 @@ const SetBrowsePage: React.FC = () => {
       <div className="px-4 pt-8 pb-4">
         <button
           onClick={() => navigate(-1)}
-          className="text-sm mb-4 flex items-center gap-1"
-          style={{ color: 'var(--color-text-secondary)' }}
+          className="mb-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl font-semibold text-sm hover:opacity-80 transition-all"
+          style={{ backgroundColor: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.8)', border: '1px solid rgba(255,255,255,0.12)' }}
         >
-          ← Back
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          Back
         </button>
         <h1 className="text-2xl font-bold text-white mb-1">Browse by Set</h1>
         <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>

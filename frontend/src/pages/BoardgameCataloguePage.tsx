@@ -159,10 +159,13 @@ const BoardgameCataloguePage: React.FC = () => {
           <div className="max-w-2xl mx-auto text-center text-white">
             <Link
               to="/cafe"
-              className="inline-flex items-center gap-1.5 text-sm mb-5 opacity-70 hover:opacity-100 transition-opacity"
-              style={{ color: '#fca5a5' }}
+              className="inline-flex items-center gap-2 text-sm mb-5 px-4 py-2 rounded-xl font-semibold hover:opacity-90 transition-all"
+              style={{ backgroundColor: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.85)', border: '1px solid rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)' }}
             >
-              ← Back to Café
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              Back to Café
             </Link>
             <h1 className="text-4xl md:text-5xl font-extrabold mb-4 leading-tight">
               Our Game Library
