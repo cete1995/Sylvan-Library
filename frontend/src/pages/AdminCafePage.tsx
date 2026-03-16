@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { cafeApi, CafeSettings, CafeHour, CafeGame, CafeDayPrice, CafeConsole } from '../api/cafe';
+import { cafeApi, CafeSettings, CafeHour, CafeDayPrice, CafeConsole } from '../api/cafe';
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
@@ -75,7 +75,7 @@ const AdminCafePage: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
-  const [newGame, setNewGame] = useState<CafeGame>({ name: '', players: '', duration: '', icon: '🎲' });
+
 
   useEffect(() => {
     cafeApi.getSettings()
@@ -125,23 +125,7 @@ const AdminCafePage: React.FC = () => {
       return { ...s, mahjong: { ...s.mahjong, pricing: arr } };
     });
 
-  const addGame = () => {
-    if (!newGame.name.trim()) return;
-    setSettings(s => ({ ...s, games: [...s.games, { ...newGame }] }));
-    setNewGame({ name: '', players: '', duration: '', icon: '🎲' });
-  };
 
-  const removeGame = (idx: number) =>
-    setSettings(s => ({ ...s, games: s.games.filter((_, i) => i !== idx) }));
-
-  const moveGame = (idx: number, dir: -1 | 1) =>
-    setSettings(s => {
-      const games = [...s.games];
-      const to = idx + dir;
-      if (to < 0 || to >= games.length) return s;
-      [games[idx], games[to]] = [games[to], games[idx]];
-      return { ...s, games };
-    });
 
   const handleSave = async () => {
     setSaving(true);
@@ -418,72 +402,30 @@ const AdminCafePage: React.FC = () => {
             </div>
           </div>
 
-          {/* ── Game Library ── */}
+          {/* ── Game Library → redirect ── */}
           <div className="rounded-2xl p-6 shadow-sm" style={{ backgroundColor: 'var(--color-panel)' }}>
-            <SectionHeader color="#F97316">🎲 Game Library</SectionHeader>
-
-            {/* Add new game */}
-            <div className="rounded-xl p-4 mb-4" style={{ backgroundColor: 'var(--color-background)', border: '1px dashed var(--color-border)' }}>
-              <p className="text-xs font-bold mb-3" style={{ color: 'var(--color-text-secondary)' }}>ADD GAME</p>
-              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-                <input type="text" value={newGame.icon} onChange={e => setNewGame(g => ({ ...g, icon: e.target.value }))}
-                  placeholder="🎲" className="px-2 py-1.5 rounded-lg text-sm text-center focus:outline-none w-full"
-                  style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)', border: '1px solid var(--color-border)' }} />
-                <input type="text" value={newGame.name} onChange={e => setNewGame(g => ({ ...g, name: e.target.value }))}
-                  placeholder="Game name" className="sm:col-span-1 px-3 py-1.5 rounded-lg text-sm focus:outline-none w-full"
-                  style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)', border: '1px solid var(--color-border)' }}
-                  onKeyDown={e => e.key === 'Enter' && addGame()} />
-                <input type="text" value={newGame.players} onChange={e => setNewGame(g => ({ ...g, players: e.target.value }))}
-                  placeholder="2–4 players" className="px-3 py-1.5 rounded-lg text-sm focus:outline-none w-full"
-                  style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)', border: '1px solid var(--color-border)' }} />
-                <input type="text" value={newGame.duration} onChange={e => setNewGame(g => ({ ...g, duration: e.target.value }))}
-                  placeholder="30 min" className="px-3 py-1.5 rounded-lg text-sm focus:outline-none w-full"
-                  style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)', border: '1px solid var(--color-border)' }} />
-                <button onClick={addGame} disabled={!newGame.name.trim()}
-                  className="px-3 py-1.5 rounded-lg text-sm font-bold text-white disabled:opacity-40 hover:opacity-90 transition-all"
-                  style={{ backgroundColor: '#E31E24' }}>
-                  + Add
-                </button>
+            <SectionHeader color="#E31E24">🎲 Game Library</SectionHeader>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
+              <div className="flex-1">
+                <p className="text-sm font-medium mb-1" style={{ color: 'var(--color-text)' }}>
+                  Game management has moved to a dedicated page.
+                </p>
+                <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+                  Add games with photos, descriptions, how-to-play guides and a gallery — then mark them
+                  as <strong>Featured</strong> to show them in the carousel on the Café page.
+                </p>
               </div>
+              <Link
+                to="/admin/boardgames"
+                className="shrink-0 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all hover:opacity-90 shadow"
+                style={{ backgroundColor: '#E31E24', color: '#fff' }}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Manage Games
+              </Link>
             </div>
-
-            {/* Games list */}
-            {settings.games.length === 0
-              ? <p className="text-sm text-center py-6" style={{ color: 'var(--color-text-secondary)' }}>No games added yet.</p>
-              : (
-                <div className="space-y-1.5">
-                  {settings.games.map((g, idx) => (
-                    <div key={idx} className="flex items-center gap-2 p-2.5 rounded-xl"
-                      style={{ backgroundColor: 'var(--color-background)', border: '1px solid var(--color-border)' }}>
-                      <span className="text-xl w-7 text-center flex-shrink-0">{g.icon}</span>
-                      <span className="font-semibold text-sm flex-1 min-w-0 truncate" style={{ color: 'var(--color-text)' }}>{g.name}</span>
-                      <span className="text-xs flex-shrink-0" style={{ color: 'var(--color-text-secondary)' }}>{g.players}</span>
-                      <span className="text-xs flex-shrink-0" style={{ color: 'var(--color-text-secondary)' }}>{g.duration}</span>
-                      <div className="flex gap-1 ml-1 flex-shrink-0">
-                        <button onClick={() => moveGame(idx, -1)} disabled={idx === 0}
-                          className="w-7 h-7 rounded flex items-center justify-center hover:opacity-70 disabled:opacity-20 transition-all"
-                          style={{ backgroundColor: 'var(--color-panel)' }}>
-                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 15l7-7 7 7" /></svg>
-                        </button>
-                        <button onClick={() => moveGame(idx, 1)} disabled={idx === settings.games.length - 1}
-                          className="w-7 h-7 rounded flex items-center justify-center hover:opacity-70 disabled:opacity-20 transition-all"
-                          style={{ backgroundColor: 'var(--color-panel)' }}>
-                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
-                        </button>
-                        <button onClick={() => removeGame(idx)}
-                          className="w-7 h-7 rounded flex items-center justify-center hover:opacity-70 transition-all"
-                          style={{ backgroundColor: '#FEE2E2', color: '#DC2626' }}>
-                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )
-            }
-            <p className="text-xs mt-3" style={{ color: 'var(--color-text-secondary)' }}>
-              {settings.games.length} game{settings.games.length !== 1 ? 's' : ''} in library · Use arrows to reorder
-            </p>
           </div>
 
         </div>
