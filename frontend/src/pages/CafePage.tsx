@@ -1,16 +1,21 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { cafeApi, CafeSettings } from '../api/cafe';
+import { boardgameApi, BoardGame } from '../api/boardgames';
 
 const CafePage: React.FC = () => {
   const [info, setInfo] = useState<CafeSettings | null>(null);
   const [loadError, setLoadError] = useState(false);
+  const [featuredGames, setFeaturedGames] = useState<BoardGame[]>([]);
   const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
 
   useEffect(() => {
     cafeApi.getSettings()
       .then(setInfo)
       .catch(() => setLoadError(true));
+    boardgameApi.getAll({ featured: true, limit: 12 })
+      .then(r => setFeaturedGames(r.games))
+      .catch(() => {});
   }, []);
 
   if (!info && !loadError) {
@@ -337,40 +342,97 @@ const CafePage: React.FC = () => {
           </section>
         )}
 
-        {/* Game Library */}
-        {info.games.length > 0 && (
-          <section>
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style={{ backgroundColor: 'rgba(227,30,36,0.12)' }}></div>
+        {/* Game Library — database-driven carousel */}
+        <section>
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style={{ backgroundColor: 'rgba(227,30,36,0.12)' }}>🎲</div>
               <div>
                 <h2 className="text-2xl font-bold" style={{ color: 'var(--color-text)' }}>Game Library</h2>
-                <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>{info.gameCount} titles available  just ask a staff member</p>
+                <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>{info.gameCount} titles available · ask staff or browse below</p>
               </div>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-              {info.games.map((game) => (
-                <div
-                  key={game.name}
-                  className="rounded-xl p-4 text-center transition-all hover:scale-105 cursor-default shadow-sm"
-                  style={{ backgroundColor: 'var(--color-panel)' }}
-                >
-                  <div className="text-3xl mb-2">{game.icon}</div>
-                  <p className="font-bold text-sm leading-tight mb-1" style={{ color: 'var(--color-text)' }}>{game.name}</p>
-                  <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>{game.players} players</p>
-                  <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>{game.duration}</p>
-                </div>
-              ))}
+            <Link
+              to="/boardgames"
+              className="hidden sm:inline-flex items-center gap-1.5 text-sm font-bold px-4 py-2 rounded-lg transition-all hover:opacity-80"
+              style={{ color: '#E31E24', backgroundColor: 'rgba(227,30,36,0.08)' }}
+            >
+              View all
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+              </svg>
+            </Link>
+          </div>
+
+          {featuredGames.length > 0 ? (
+            <>
               <div
-                className="rounded-xl p-4 text-center flex flex-col items-center justify-center shadow-sm"
-                style={{ backgroundColor: 'var(--color-panel)', border: '2px dashed var(--color-accent)', opacity: 0.7 }}
+                className="flex gap-4 overflow-x-auto pb-3"
+                style={{ scrollSnapType: 'x mandatory', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
               >
-                <div className="text-2xl mb-1">+</div>
-                <p className="font-bold text-sm" style={{ color: 'var(--color-text-secondary)' }}>Many more</p>
-                <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>Ask staff</p>
+                {featuredGames.map((game) => (
+                  <Link
+                    key={game._id}
+                    to={`/boardgames/${game._id}`}
+                    className="shrink-0 rounded-2xl overflow-hidden shadow-md transition-all hover:scale-105 hover:shadow-lg"
+                    style={{ width: '158px', scrollSnapAlign: 'start', backgroundColor: 'var(--color-panel)', textDecoration: 'none' }}
+                  >
+                    {game.imageUrl ? (
+                      <div className="h-28 bg-center bg-cover" style={{ backgroundImage: `url(${game.imageUrl})` }} />
+                    ) : (
+                      <div className="h-28 flex items-center justify-center text-4xl" style={{ backgroundColor: 'rgba(227,30,36,0.08)' }}>🎲</div>
+                    )}
+                    <div className="p-3">
+                      <p className="font-bold text-sm leading-tight truncate" style={{ color: 'var(--color-text)' }}>{game.name}</p>
+                      <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-secondary)' }}>
+                        {game.minPlayers}–{game.maxPlayers} players · {game.durationMinutes}min
+                      </p>
+                      <span
+                        className="inline-block mt-1.5 text-xs font-semibold px-2 py-0.5 rounded-full"
+                        style={{
+                          backgroundColor: game.difficulty === 'Easy' ? 'rgba(16,185,129,0.15)' : game.difficulty === 'Hard' ? 'rgba(239,68,68,0.15)' : 'rgba(245,158,11,0.15)',
+                          color: game.difficulty === 'Easy' ? '#10b981' : game.difficulty === 'Hard' ? '#ef4444' : '#f59e0b',
+                        }}
+                      >
+                        {game.difficulty}
+                      </span>
+                    </div>
+                  </Link>
+                ))}
+                {/* Browse-all terminal card */}
+                <Link
+                  to="/boardgames"
+                  className="shrink-0 rounded-2xl flex flex-col items-center justify-center gap-2 text-center p-4 transition-all hover:scale-105"
+                  style={{ width: '158px', minHeight: '185px', scrollSnapAlign: 'start', border: '2px dashed rgba(227,30,36,0.35)', textDecoration: 'none' }}
+                >
+                  <span className="text-3xl">🎲</span>
+                  <span className="font-bold text-sm leading-tight" style={{ color: '#E31E24' }}>Browse All Games</span>
+                  <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>Full library →</span>
+                </Link>
               </div>
-            </div>
-          </section>
-        )}
+              <p className="text-xs text-center mt-2 sm:hidden" style={{ color: 'var(--color-text-secondary)', opacity: 0.55 }}>
+                ← swipe to explore →
+              </p>
+            </>
+          ) : (
+            <Link
+              to="/boardgames"
+              className="flex items-center gap-5 p-6 rounded-2xl border transition-all hover:shadow-md group"
+              style={{ backgroundColor: 'var(--color-panel)', borderColor: 'var(--color-border)', textDecoration: 'none' }}
+            >
+              <div className="text-5xl">🎲</div>
+              <div className="flex-1">
+                <p className="font-extrabold text-lg leading-tight" style={{ color: 'var(--color-text)' }}>Explore Our Game Library</p>
+                <p className="text-sm mt-1" style={{ color: 'var(--color-text-secondary)' }}>
+                  Browse {info.gameCount || 'hundreds of'} board games — find your next favourite!
+                </p>
+              </div>
+              <svg className="w-5 h-5 shrink-0 transition-transform group-hover:translate-x-1" style={{ color: '#E31E24' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+              </svg>
+            </Link>
+          )}
+        </section>
 
         {/* MTG at the Cafe */}
         <section

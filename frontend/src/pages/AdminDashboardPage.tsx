@@ -493,32 +493,62 @@ const AdminDashboardPage: React.FC = () => {
             <div className="w-2 h-5 rounded-full" style={{ backgroundColor: '#E31E24' }}></div>
             <h2 className="font-bold text-sm uppercase tracking-widest" style={{ color: 'var(--color-text-secondary)' }}>Boardgame Café</h2>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <Link to="/admin/cafe"
-              className="flex items-center gap-4 p-5 rounded-xl border hover:shadow-md transition-all hover:border-green-400"
-              style={{ backgroundColor: 'var(--color-panel)', borderColor: 'var(--color-border)', background: 'linear-gradient(135deg, rgba(22,163,74,0.07) 0%, rgba(20,83,45,0.04) 100%)' }}>
-              <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl flex-shrink-0" style={{ backgroundColor: 'rgba(22,163,74,0.12)' }}>🎲</div>
-              <div className="flex-1">
-                <div className="font-bold text-base" style={{ color: 'var(--color-text)' }}>Manage Café Content</div>
-                <div className="text-xs mt-0.5" style={{ color: 'var(--color-text-secondary)' }}>Edit hours, game library, Mahjong info, entry fee &amp; contact links</div>
-                <span className="inline-flex items-center gap-1 text-xs font-semibold mt-2" style={{ color: '#E31E24' }}>
-                  Open editor
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
-                </span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {/* Game Library */}
+            <Link to="/admin/boardgames"
+              className="flex flex-col gap-3 p-5 rounded-xl border hover:shadow-md transition-all hover:border-red-400"
+              style={{ backgroundColor: 'var(--color-panel)', borderColor: 'var(--color-border)', background: 'linear-gradient(135deg, rgba(227,30,36,0.07) 0%, rgba(185,28,28,0.03) 100%)' }}>
+              <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl" style={{ backgroundColor: 'rgba(227,30,36,0.12)' }}>🎲</div>
+              <div>
+                <div className="font-bold text-sm" style={{ color: 'var(--color-text)' }}>Game Library</div>
+                <div className="text-xs mt-0.5" style={{ color: 'var(--color-text-secondary)' }}>Add & edit boardgames · detail pages, gallery, how-to-play</div>
               </div>
+              <span className="inline-flex items-center gap-1 text-xs font-semibold mt-auto" style={{ color: '#E31E24' }}>
+                Manage games
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
+              </span>
             </Link>
-            <Link to="/cafe" target="_blank"
-              className="flex items-center gap-4 p-5 rounded-xl border hover:shadow-md transition-all hover:border-green-400"
-              style={{ backgroundColor: 'var(--color-panel)', borderColor: 'var(--color-border)' }}>
-              <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl flex-shrink-0" style={{ backgroundColor: 'rgba(251,191,36,0.15)' }}>🌐</div>
-              <div className="flex-1">
-                <div className="font-bold text-base" style={{ color: 'var(--color-text)' }}>Preview Café Page</div>
-                <div className="text-xs mt-0.5" style={{ color: 'var(--color-text-secondary)' }}>See the live /cafe page as customers see it</div>
-                <span className="inline-flex items-center gap-1 text-xs font-semibold mt-2" style={{ color: '#D97706' }}>
-                  Open in new tab
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
-                </span>
+            {/* Console Rental */}
+            <Link to="/admin/cafe"
+              className="flex flex-col gap-3 p-5 rounded-xl border hover:shadow-md transition-all hover:border-indigo-400"
+              style={{ backgroundColor: 'var(--color-panel)', borderColor: 'var(--color-border)', background: 'linear-gradient(135deg, rgba(99,102,241,0.07) 0%, rgba(76,29,149,0.03) 100%)' }}>
+              <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl" style={{ backgroundColor: 'rgba(99,102,241,0.12)' }}>🎮</div>
+              <div>
+                <div className="font-bold text-sm" style={{ color: 'var(--color-text)' }}>Console Rental</div>
+                <div className="text-xs mt-0.5" style={{ color: 'var(--color-text-secondary)' }}>PS5 & Switch hourly rates, happy hour start time & pricing</div>
               </div>
+              <span className="inline-flex items-center gap-1 text-xs font-semibold mt-auto" style={{ color: '#6366f1' }}>
+                Edit settings
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
+              </span>
+            </Link>
+            {/* Café Settings */}
+            <Link to="/admin/cafe"
+              className="flex flex-col gap-3 p-5 rounded-xl border hover:shadow-md transition-all hover:border-green-400"
+              style={{ backgroundColor: 'var(--color-panel)', borderColor: 'var(--color-border)', background: 'linear-gradient(135deg, rgba(22,163,74,0.07) 0%, rgba(20,83,45,0.03) 100%)' }}>
+              <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl" style={{ backgroundColor: 'rgba(22,163,74,0.12)' }}>☕</div>
+              <div>
+                <div className="font-bold text-sm" style={{ color: 'var(--color-text)' }}>Café Settings</div>
+                <div className="text-xs mt-0.5" style={{ color: 'var(--color-text-secondary)' }}>Hours, entry fee, Mahjong tables, contact links & tagline</div>
+              </div>
+              <span className="inline-flex items-center gap-1 text-xs font-semibold mt-auto" style={{ color: '#16a34a' }}>
+                Open editor
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
+              </span>
+            </Link>
+            {/* Preview */}
+            <Link to="/cafe" target="_blank"
+              className="flex flex-col gap-3 p-5 rounded-xl border hover:shadow-md transition-all hover:border-amber-400"
+              style={{ backgroundColor: 'var(--color-panel)', borderColor: 'var(--color-border)' }}>
+              <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl" style={{ backgroundColor: 'rgba(251,191,36,0.15)' }}>🌐</div>
+              <div>
+                <div className="font-bold text-sm" style={{ color: 'var(--color-text)' }}>Preview Café Page</div>
+                <div className="text-xs mt-0.5" style={{ color: 'var(--color-text-secondary)' }}>See the live /cafe page exactly as customers see it</div>
+              </div>
+              <span className="inline-flex items-center gap-1 text-xs font-semibold mt-auto" style={{ color: '#D97706' }}>
+                Open in new tab
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+              </span>
             </Link>
           </div>
         </div>
