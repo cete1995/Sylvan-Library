@@ -864,10 +864,13 @@ const AdminTikTokDebugPage: React.FC = () => {
       setAccessToken(data.data.accessToken);
       setRefreshToken(data.data.refreshToken);
 
-      const expiresInHours = Math.floor(data.data.accessTokenExpireIn / 3600);
+      const nowSec = Math.floor(Date.now() / 1000);
+      const remainingSec = data.data.accessTokenExpireIn - nowSec;
+      const expiresInDays = Math.floor(remainingSec / 86400);
+      const expiresInHours = Math.floor((remainingSec % 86400) / 3600);
       setTokenRefreshMessage(
         `✅ Token refreshed & saved automatically!\n` +
-        `New Access Token expires in: ${expiresInHours} hours\n` +
+        `Access Token valid for: ${expiresInDays} days ${expiresInHours} hrs\n` +
         `Seller: ${data.data.sellerName} (${data.data.sellerBaseRegion})`
       );
 
