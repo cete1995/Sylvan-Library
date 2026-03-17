@@ -35,6 +35,7 @@ const AdminTikTokDebugPage: React.FC = () => {
   const [failedRows, setFailedRows] = useState<Array<{
     productId: string;
     skuId: string;
+    sellerSku?: string;
     productName?: string;
     price?: string; // Keep as string to preserve exact CSV format
     stock?: string; // Keep as string to preserve exact CSV format
@@ -138,6 +139,7 @@ const AdminTikTokDebugPage: React.FC = () => {
   const [originalCsvData, setOriginalCsvData] = useState<Array<{
     productId: string;
     skuId: string;
+    sellerSku?: string;
     productName?: string;
     price?: string;
     stock?: string;
@@ -180,6 +182,7 @@ const AdminTikTokDebugPage: React.FC = () => {
           parsedData.push({
             productId: row.productid || '',
             skuId: row.skuid || '',
+            sellerSku: row.sellersku || '',
             productName: row.productname || '',
             price: row.price || '',
             stock: row.stock || ''
@@ -348,6 +351,7 @@ const AdminTikTokDebugPage: React.FC = () => {
                   ...failedProductSkus.map(sku => ({
                     productId: sku.productId, // Keep original format from CSV
                     skuId: sku.skuId,
+                    sellerSku: sku.sellerSku || '',
                     productName: sku.productName || data.productName,
                     price: sku.price, // Keep as string from CSV
                     stock: sku.stock, // Keep as string from CSV
@@ -540,12 +544,13 @@ const AdminTikTokDebugPage: React.FC = () => {
     }
 
     // Convert failed rows back to CSV format
-    const csvHeader = 'productId,skuId,productName,price,stock\n';
+    const csvHeader = 'productId,skuId,sellerSku,productName,price,stock\n';
     const csvRows = failedRows.map(row => {
       const price = row.price || '';
       const stock = row.stock || '';
       const productName = row.productName || '';
-      return `${row.productId},${row.skuId},${productName},${price},${stock}`;
+      const sellerSku = row.sellerSku || '';
+      return `${row.productId},${row.skuId},${sellerSku},${productName},${price},${stock}`;
     }).join('\n');
     
     const csvContent = csvHeader + csvRows;
@@ -558,6 +563,7 @@ const AdminTikTokDebugPage: React.FC = () => {
     const retryData = failedRows.map(row => ({
       productId: row.productId,
       skuId: row.skuId,
+      sellerSku: row.sellerSku || '',
       productName: row.productName || '',
       price: row.price || '',
       stock: row.stock || ''
@@ -568,6 +574,9 @@ const AdminTikTokDebugPage: React.FC = () => {
     setCsvFile(retryFile);
     setCsvPreview(csvContent.split('\n').slice(0, 6).join('\n'));
     
+    // Small delay before retry to avoid TikTok rate limit from previous batch
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
     // Automatically trigger the bulk update with the retry file
     setPriceLoading(true);
     setPriceResponse(`Retrying ${failedRows.length} failed rows...\n\n`);
@@ -685,6 +694,7 @@ const AdminTikTokDebugPage: React.FC = () => {
                   ...failedProductSkus.map(sku => ({
                     productId: sku.productId, // Keep original format from CSV
                     skuId: sku.skuId,
+                    sellerSku: sku.sellerSku || '',
                     productName: sku.productName || data.productName,
                     price: sku.price, // Keep as string from CSV
                     stock: sku.stock, // Keep as string from CSV
@@ -871,7 +881,7 @@ const AdminTikTokDebugPage: React.FC = () => {
       // Prefix with \t to prevent Excel scientific-notation conversion on long numeric IDs
       '\t' + (row.productId ?? ''),
       '\t' + (row.skuId ?? ''),
-      escape((row as any).sellerSku ?? ''),
+      escape(row.sellerSku ?? ''),
       escape(row.productName ?? ''),
       escape(row.price ?? ''),
       escape(row.stock ?? ''),
