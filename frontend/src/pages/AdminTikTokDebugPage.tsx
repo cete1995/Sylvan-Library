@@ -573,9 +573,31 @@ const AdminTikTokDebugPage: React.FC = () => {
     // Set the retry file and clear failed rows for new attempt
     setCsvFile(retryFile);
     setCsvPreview(csvContent.split('\n').slice(0, 6).join('\n'));
-    
-    // Small delay before retry to avoid TikTok rate limit from previous batch
-    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    // Auto-refresh access token before retry so an expired token doesn't block the batch
+    let activeAccessToken = accessToken;
+    if (refreshToken && appKey && appSecret) {
+      setPriceResponse(`🔄 Auto-refreshing TikTok access token before retry...\n\n`);
+      try {
+        const refreshRes = await fetch(`${API_BASE_URL}/admin/tiktok/refresh-token`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({ appKey, appSecret, refreshToken })
+        });
+        const refreshData = await refreshRes.json();
+        if (refreshRes.ok && refreshData.success) {
+          activeAccessToken = refreshData.data.accessToken;
+          setAccessToken(refreshData.data.accessToken);
+          setRefreshToken(refreshData.data.refreshToken);
+        }
+        // If refresh fails, continue with current token — don't abort the retry
+      } catch {
+        // Network error on refresh — continue with current token
+      }
+    }
 
     // Automatically trigger the bulk update with the retry file
     setPriceLoading(true);
@@ -594,7 +616,7 @@ const AdminTikTokDebugPage: React.FC = () => {
       formData.append('file', retryFile);
       formData.append('appKey', appKey);
       formData.append('appSecret', appSecret);
-      formData.append('accessToken', accessToken);
+      formData.append('accessToken', activeAccessToken);
       if (shopCipher) {
         formData.append('shopCipher', shopCipher);
       }
