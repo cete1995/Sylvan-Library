@@ -182,59 +182,105 @@ Boardgame Time/
 
 ---
 
-## Quick Start
+## Quick Start (New PC / Fresh Setup)
 
-### Prerequisites
-- Node.js 18+
-- MongoDB (local or connection string)
-- npm
+### Step 1 — Install prerequisites
 
-### 1. Clone
+**Node.js 20 LTS** (includes npm):
+- Download from https://nodejs.org → choose the **LTS** installer for your OS
+- After install, verify: `node -v` and `npm -v`
+
+**MongoDB Community Server**:
+- Download from https://www.mongodb.com/try/download/community → choose your OS → MSI (Windows) or pkg (Mac)
+- Install with default settings; the installer will register it as a service that starts automatically
+- Verify: `mongosh` in a terminal should connect without errors (type `exit` to quit)
+- Alternative: use a free cloud database at https://www.mongodb.com/atlas (free tier) — then use the Atlas connection string instead of `mongodb://localhost`
+
+**Git**:
+- Download from https://git-scm.com/downloads if not already installed
+
+---
+
+### Step 2 — Clone the repository
 
 ```bash
 git clone https://github.com/cete1995/Sylvan-Library.git
 cd "Sylvan Library"
 ```
 
-### 2. Backend
+---
 
-```bash
-cd backend
-npm install
-```
+### Step 3 — Configure backend environment
 
-Create `backend/.env`:
+Create the file `backend/.env` (this file is git-ignored, you must create it manually):
+
 ```env
 PORT=5000
 NODE_ENV=development
 MONGODB_URI=mongodb://localhost:27017/sylvan-library
-JWT_SECRET=change_this_to_a_long_random_string
+JWT_SECRET=change_this_to_a_long_random_string_min_32_chars
 JWT_EXPIRES_IN=7d
 FRONTEND_URL=http://localhost:5173
 ```
 
+> If using MongoDB Atlas, replace `MONGODB_URI` with your Atlas connection string, e.g.:
+> `MONGODB_URI=mongodb+srv://user:password@cluster.mongodb.net/sylvan-library`
+
+---
+
+### Step 4 — Install dependencies
+
+Open **two separate terminals** — you need both backend and frontend running at the same time.
+
+**Terminal 1 — Backend:**
 ```bash
-npm run dev   # runs on http://localhost:5000
+cd backend
+npm install
+npm run dev
+# → API running at http://localhost:5000
 ```
 
-### 3. Frontend
-
+**Terminal 2 — Frontend:**
 ```bash
 cd frontend
 npm install
-npm run dev   # runs on http://localhost:5173
+npm run dev
+# → App running at http://localhost:5173
 ```
 
-### 4. Create first admin
+---
+
+### Step 5 — Create the first admin account
+
+With the backend running, open a **third terminal**:
 
 ```bash
 cd backend
 node create-admin.js
 ```
 
-### 5. Login
+Follow the prompts (email + password). To reset a password later:
+```bash
+node reset-admin-password.js
+```
 
-Go to `http://localhost:5173/login` and sign in.
+---
+
+### Step 6 — Open the app
+
+Go to `http://localhost:5173/login` and sign in with the admin credentials you just created.
+
+---
+
+### Troubleshooting
+
+| Problem | Fix |
+|---|---|
+| `EADDRINUSE: port 5000` | Another process is using port 5000. Change `PORT=5001` in `backend/.env` and update `VITE_API_URL` in `frontend/.env` |
+| `MongooseServerSelectionError` | MongoDB is not running. On Windows: open Services → start **MongoDB**. On Mac: `brew services start mongodb-community` |
+| `npm install` fails | Delete `node_modules` and `package-lock.json`, then retry |
+| Frontend shows blank page | Check browser console. Usually a missing `backend/.env` or backend not started |
+| `Cannot find module` on backend | Run `npm run build` once, or ensure `ts-node` / `tsx` is installed via `npm install` |
 
 ---
 

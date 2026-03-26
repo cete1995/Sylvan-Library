@@ -39,7 +39,7 @@ If not set, defaults to http://localhost:5000/api.
 
 ## Project Structure
 
-`
+```
 frontend/src/
   api/              # Axios API wrappers (one file per resource)
     admin.ts
@@ -109,7 +109,7 @@ frontend/src/
   main.tsx
   index.css
   theme.css
-`
+```
 
 ---
 
@@ -175,7 +175,7 @@ frontend/src/
 
 ## Key TypeScript Types
 
-`	ypescript
+```typescript
 // InventoryItem - sub-document on each Card
 interface InventoryItem {
   condition: 'NM' | 'LP' | 'P';
@@ -191,7 +191,7 @@ interface InventoryItem {
   tiktokSkuId?: string;
   sellerSku?: string;          // links CSV row to this inventory slot
 }
-`
+```
 
 ---
 

@@ -7,8 +7,11 @@ Express + TypeScript API server for the Boardgame Time MTG & café app.
 ## Quick Start
 
 ### Prerequisites
-- Node.js 18+
-- MongoDB running locally or a remote connection string
+- **Node.js 20 LTS** — https://nodejs.org (includes npm)
+- **MongoDB Community Server** — https://www.mongodb.com/try/download/community
+  - Windows: install as a service (default installer option) — starts automatically
+  - Mac: `brew install mongodb-community && brew services start mongodb-community`
+  - Or use MongoDB Atlas (free cloud tier) — copy the connection string for `MONGODB_URI`
 
 ### Install and run
 
@@ -20,9 +23,9 @@ npm install
 Create `backend/.env` (see Environment Variables below), then:
 
 ```bash
-npm run dev     # development with auto-reload
-npm run build   # compile TypeScript
-npm start       # run compiled output
+npm run dev     # development with auto-reload (tsx watch)
+npm run build   # compile TypeScript to dist/
+npm start       # run compiled dist/server.js
 ```
 
 API runs at http://localhost:5000.
@@ -31,7 +34,7 @@ API runs at http://localhost:5000.
 
 ## Environment Variables
 
-Create a .env file in the ackend/ directory:
+Create a `.env` file in the `backend/` directory:
 
 ```env
 PORT=5000
@@ -224,23 +227,23 @@ Core document with an inventory[] array of slots (one per seller + condition + f
 
 ## Bulk CSV Upload (Card Import)
 
-Use ulk-upload-template.csv for the card import format. Required columns:
+Use `bulk-upload-template.csv` for the card import format. Required columns:
 
-ame, setCode, setName, collectorNumber, language, condition, finish, quantityOwned, quantityForSale, buyPrice, sellPrice, rarity
+`name, setCode, setName, collectorNumber, language, condition, finish, quantityOwned, quantityForSale, buyPrice, sellPrice, rarity`
 
-Optional: colorIdentity, imageUrl, scryfallId, typeLine, oracleText, manaCost, notes
+Optional: `colorIdentity, imageUrl, scryfallId, typeLine, oracleText, manaCost, notes`
 
 ---
 
 ## TikTok Shop Bulk Update CSV
 
-See TIKTOK_CSV_INSTRUCTIONS.md and 	iktok-bulk-update-template.csv for full details.
+See `TIKTOK_CSV_INSTRUCTIONS.md` and `tiktok-bulk-update-template.csv` for full details.
 
-Columns: productId, skuId, sellerSku, productName, price, stock
+Columns: `productId, skuId, sellerSku, productName, price, stock`
 
-- productId and skuId use a ' prefix to prevent Excel scientific notation
-- sellerSku matches the CSV row to the correct inventory slot in the database
-- After a successful sync, 	iktokProductId and 	iktokSkuId are written back to the matched inventory item
+- `productId` and `skuId` use a `'` prefix to prevent Excel scientific notation
+- `sellerSku` matches the CSV row to the correct inventory slot in the database
+- After a successful sync, `tiktokProductId` and `tiktokSkuId` are written back to the matched inventory item
 
 ---
 
