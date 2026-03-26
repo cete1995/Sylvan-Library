@@ -54,10 +54,13 @@ A full-stack web app for **Boardgame Time**, a boardgame café + MTG singles sho
 | `/` | HomePage |
 | `/catalog` | CatalogPage |
 | `/cafe` | CafePage |
+| `/boardgames` | BoardgameCataloguePage (public) |
+| `/boardgames/:id` | BoardgameDetailPage (public) |
 | `/consoles` | ConsolesPage |
 | `/cart` | CartPage |
 | `/profile` | ProfilePage |
 | `/orders` | OrderHistoryPage |
+| `/orders/:id` | OrderDetailPage |
 | `/login` | LoginPage |
 | `/register` | RegisterPage |
 | `/seller/dashboard` | SellerDashboardPage (sellerOnly) |
@@ -65,8 +68,17 @@ A full-stack web app for **Boardgame Time**, a boardgame café + MTG singles sho
 | `/seller/cards/:id/inventory` | SellerInventoryFormPage (sellerOnly) |
 | `/sets` | SetBrowsePage (public) |
 | `/wishlist` | WishlistPage (protected) |
+| `/admin/dashboard` | AdminDashboardPage (adminOnly) |
 | `/admin/orders` | AdminOrdersPage (adminOnly) |
-| `/admin/*` | Admin pages (adminOnly) |
+| `/admin/offline-sales` | AdminOfflineSalePage (adminOnly) |
+| `/admin/offline-buys` | AdminOfflineBuyPage (adminOnly) |
+| `/admin/tiktok-debug` | AdminTikTokDebugPage (adminOnly) |
+| `/admin/tiktok-get-orders` | AdminTikTokGetOrdersPage (adminOnly) |
+| `/admin/tiktok-orders` | AdminTikTokOrdersPage (adminOnly) |
+| `/admin/tiktok-saved-orders` | AdminTikTokSavedOrdersPage (adminOnly) |
+| `/admin/boardgames` | AdminBoardgamesPage (adminOnly) |
+| `/admin/cafe` | AdminCafePage (adminOnly) |
+| `/admin/*` | Other admin pages (adminOnly) |
 
 ## Key Frontend Files
 - `src/App.tsx` — all routes, providers
@@ -95,8 +107,13 @@ A full-stack web app for **Boardgame Time**, a boardgame café + MTG singles sho
 - `Carousel` — homepage carousel images
 - `FeaturedProduct` / `FeaturedBanner` — homepage featured section
 - `TikTokOrder` — TikTok shop orders
+- `TikTokCredentials` — encrypted TikTok API credentials (AES-256-CBC, single document)
 - `Wishlist` — per-user wishlist (`{ user: ObjectId (unique), cards: ObjectId[] }`)
 - `StockNotification` — per-user per-card notify subscription (compound unique index on user+card)
+- `OfflineSale` — walk-in sale record (card-first, multi-seller cart, payment method)
+- `OfflineBuy` — walk-in buy-back record (per-item: card name, condition, finish, buy price)
+- `CafeSettings` — single-document boardgame café CMS (hours, entry fee, Mahjong, consoles)
+- `Boardgame` — boardgame library entry (name, description, gallery[], howToPlay, category, difficulty, featured, sortOrder)
 
 ## Café Settings (admin-managed)
 Stored in DB via `/api/admin/cafe`. Structure:
@@ -144,10 +161,39 @@ Stored in DB via `/api/admin/cafe`. Structure:
 - **Never use PowerShell `Get-Content`/`Set-Content` on TSX files** — it corrupts UTF-8 emojis/symbols (double-encodes as Windows-1252). Always use Node.js `fs.readFileSync/writeFileSync` with `'utf8'` encoding for file operations.
 - When trimming/replacing file content use Node.js scripts, not PowerShell text cmdlets.
 - Vercel build fails silently if TypeScript errors exist — always run `npx tsc --noEmit` before pushing.
+- TikTok `access_token_expire_in` is a **Unix timestamp** (seconds since epoch), not a duration — compute remaining time as `(expireIn - Date.now()/1000)`, not `expireIn / 3600`.
+- TikTok Shop long-lived access tokens are valid for ~1 year; "invalid token" errors during batch retries are usually rate-limiting, not real expiry.
+- The TikTok bulk-update retry (`handleRetryFailedRows`) auto-refreshes the token before each retry batch — uses a local variable `activeAccessToken` (not the React state) because state updates are async.
+- `sellerSku` must flow through the entire failed-rows pipeline: `originalCsvData` → `failedRows` → retry CSV → retry `originalCsvData`. All types include `sellerSku?: string`.
+
+## TikTok Shop Integration Details
+- Credentials stored encrypted (AES-256-CBC) in MongoDB `TikTokCredentials` collection + cached in `localStorage`; DB is the source of truth, loaded on page mount.
+- Bulk update flow: frontend uploads CSV → `POST /api/admin/tiktok/bulk-update-csv-stream` → backend parses CSV, groups by `productId`, sends CONCURRENCY=20 concurrent batches → SSE stream back → on success writes `tiktokProductId`/`tiktokSkuId` back to DB via `sellerSku` match.
+- `sellerSku` column in CSV links each row to `card.inventory[].sellerSku` — required for DB write-back of TikTok IDs.
+- Failed rows: tracked in `failedRows` state, downloadable as CSV with all columns including `sellerSku`. Retry rebuilds CSV with `sellerSku` intact.
+- Token refresh: `POST /api/admin/tiktok/refresh-token` → calls TikTok auth endpoint → auto-saves to DB → returns `accessToken`, `refreshToken`, `accessTokenExpireIn` (Unix timestamp), `sellerName`.
+- Auto-refresh runs at the start of every retry batch; new token captured in local var `activeAccessToken` for immediate use in `formData.append`.
+- `productId`/`skuId` in download CSV prefixed with `\t` to prevent Excel scientific notation.
+
+## Offline Sales & Buy-backs
+- Walk-in sale: Admin → `/admin/offline-sales` — card-first search across all sellers' in-stock inventory, build mixed-seller cart, record payment method (Cash/Transfer/Other), void support.
+- Walk-in buy-back: Admin → `/admin/offline-buys` — record cards purchased from walk-in customers, per-item buy price, buy history with void support.
+- Both deduct/update `quantityForSale` on the Card inventory document.
+
+## Boardgame Catalogue
+- Public `/boardgames` — searchable, filterable by category (Strategy/Party/Family/…) and difficulty (Easy/Medium/Hard/Expert).
+- Each game: `/boardgames/:id` — gallery, how-to-play, stats (players, duration, age), designer/publisher.
+- Admin manages at `/admin/boardgames` — full CRUD, gallery images, featured flag (appears on CafePage carousel), sort order.
+- `Boardgame` model fields: `name, description, gallery[], howToPlay, category, difficulty, featured, sortOrder, players, duration, ageRating, designer, publisher, isActive`.
 
 ## Recent Commit History (as of March 2026)
 | Commit | Description |
 |---|---|
+| `45d0ee9` | docs: update all READMEs with full new-PC setup steps, fix corrupted code fences |
+| `c2f4856` | fix: TikTok token expiry display — was showing Unix timestamp as hours, now shows remaining days/hours |
+| `0a358e1` | fix: auto-refresh TikTok token before retry to avoid expired token errors |
+| `9acade5` | fix: sellerSku preserved through failed-rows pipeline + 2s retry delay for TikTok rate limit |
+| `35e9fda` | fix: boardgames catalogue + detail page, admin boardgames CRUD, CafePage featured-games carousel |
 | `0fe806c` | fix: 8 bugs audit 3 — cart cleared after order, checkout pre-fill, isMobile flash, null guards, blob URL leak, admin seller access, remove dead getAllOrders |
 | `1c36d3c` | fix: 15 buyer/seller/admin bugs (audit 2) — checkout modal, cartCount badge, ManaboxUploadPage prod URL, CardDetailPage auto-tab, SellerDashboard race, scroll restore, URLSearchParams, indeterminate checkbox, wishlist 401 |
 | `d24c0ec` | fix: 11 bugs (audit 1) — auth role, bulkUpdate validation, models barrel, ConditionGuideModal scope, AuthContext leak, order rollback |
