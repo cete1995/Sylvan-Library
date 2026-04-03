@@ -168,7 +168,7 @@ Stored in DB via `/api/admin/cafe`. Structure:
 
 ## TikTok Shop Integration Details
 - Credentials stored encrypted (AES-256-CBC) in MongoDB `TikTokCredentials` collection + cached in `localStorage`; DB is the source of truth, loaded on page mount.
-- Bulk update flow: frontend uploads CSV → `POST /api/admin/tiktok/bulk-update-csv-stream` → backend parses CSV, groups by `productId`, sends CONCURRENCY=20 concurrent batches → SSE stream back → on success writes `tiktokProductId`/`tiktokSkuId` back to DB via `sellerSku` match.
+- Bulk update flow: frontend uploads CSV → `POST /api/admin/tiktok/bulk-update-csv-stream` → backend parses CSV, groups by `productId`, sends CONCURRENCY=10 concurrent batches with 2s delay between batches → SSE stream back → on success writes `tiktokProductId`/`tiktokSkuId` back to DB via `sellerSku` match.
 - `sellerSku` column in CSV links each row to `card.inventory[].sellerSku` — required for DB write-back of TikTok IDs.
 - Failed rows: tracked in `failedRows` state, downloadable as CSV with all columns including `sellerSku`. Retry rebuilds CSV with `sellerSku` intact.
 - Token refresh: `POST /api/admin/tiktok/refresh-token` → calls TikTok auth endpoint → auto-saves to DB → returns `accessToken`, `refreshToken`, `accessTokenExpireIn` (Unix timestamp), `sellerName`.

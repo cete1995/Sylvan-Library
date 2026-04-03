@@ -1028,14 +1028,17 @@ router.post('/bulk-update-csv-stream', authenticate, requireAdmin, upload.single
       }
     };
 
-    // ── Process in concurrent batches of 20 (safe margin under TikTok's 30 req/s) ──
-    const CONCURRENCY = 20;
+    // ── Process in concurrent batches of 10 with 2s delay between batches ──
+    const CONCURRENCY = 10;
     const entries = Object.entries(groupedUpdates);
     for (let i = 0; i < entries.length; i += CONCURRENCY) {
       const batch = entries.slice(i, i + CONCURRENCY);
       await Promise.allSettled(
         batch.map(([productId, productUpdates]) => processOneProduct(productId, productUpdates as any[]))
       );
+      if (i + CONCURRENCY < entries.length) {
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
     }
 
     // Send completion
