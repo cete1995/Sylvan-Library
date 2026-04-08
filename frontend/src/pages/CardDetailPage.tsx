@@ -118,6 +118,7 @@ const CardDetailPage: React.FC = () => {
 
   const loadCard = async (cardId: string) => {
     setLoading(true);
+    setCalculatedPrices(null);
     try {
       const data = await cardApi.getCardById(cardId);
       setCard(data.card);

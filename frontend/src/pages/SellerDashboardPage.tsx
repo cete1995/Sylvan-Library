@@ -15,6 +15,7 @@ const rarityStyle = (rarity: string) => {
 const SellerDashboardPage: React.FC = () => {
   const [cards, setCards] = useState<Card[]>([]);
   const [loading, setLoading] = useState(false);
+  const [inputValue, setInputValue] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
@@ -43,6 +44,7 @@ const SellerDashboardPage: React.FC = () => {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setPage(1);
+    setSearchQuery(inputValue);
   };
 
   return (
@@ -83,8 +85,8 @@ const SellerDashboardPage: React.FC = () => {
             <div className="flex-1">
               <input
                 type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
                 placeholder="Search card name..."
                 className="w-full px-4 py-3 rounded-xl focus:ring-2 focus:outline-none transition-all text-sm"
                 style={{
