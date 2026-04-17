@@ -40,7 +40,7 @@ export const getCards = asyncHandler(async (req: Request, res: Response) => {
     // Flexible pattern: words separated by optional commas/apostrophes/colons/spaces/hyphens
     const flexPattern = words
       .map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
-      .join("[,':\\uA789\\s\\-]*");
+      .join("[,':\\s\\-]*");
 
     // Also keep hyphen-variation patterns for existing searches like "goblin-guide"
     const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -348,7 +348,7 @@ export const getGroupedCards = asyncHandler(async (req: Request, res: Response) 
     const words = cleanTerm.split(/\s+/).filter(Boolean);
     const flexPattern = words
       .map((w: string) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
-      .join("[,':\\uA789\\s\\-]*");
+      .join("[,':\\s\\-]*");
     filter.name = { $regex: flexPattern, $options: 'i' };
   }
 
