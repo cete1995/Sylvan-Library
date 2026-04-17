@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useSearchParams, useLocation, useNavigate } from 'react-router-dom';
+import { useSearchParams, useLocation } from 'react-router-dom';
 import { cardApi, CardGroup } from '../api/cards';
 import { Card, SetInfo } from '../types';
 import CardCard from '../components/CardCard';
@@ -8,7 +8,6 @@ import Pagination from '../components/Pagination';
 const CatalogPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
-  const navigate = useNavigate();
   const [cards, setCards] = useState<Card[]>([]);
   const [groups, setGroups] = useState<CardGroup[]>([]);
   const [groupedMode, setGroupedMode] = useState(false);
@@ -118,10 +117,11 @@ const CatalogPage: React.FC = () => {
     }
     
     if (groupedMode) {
-      loadGroupedCards(searchParams.get('page') ? Number(searchParams.get('page')) : 1);
+      loadGroupedCards();
     } else {
       loadCards();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, groupedMode]);
 
   const loadSets = async () => {
@@ -159,9 +159,10 @@ const CatalogPage: React.FC = () => {
     }
   };
 
-  const loadGroupedCards = useCallback(async (page = 1) => {
+  const loadGroupedCards = async () => {
     setLoading(true);
     try {
+      const page = searchParams.get('page') ? Number(searchParams.get('page')) : 1;
       const data = await cardApi.getGroupedCards({
         q: searchParams.get('q') || undefined,
         instock: searchParams.get('instock') || undefined,
@@ -175,7 +176,7 @@ const CatalogPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [searchParams]);
+  };
 
   const applyFilters = useCallback((overrides: { q?: string } = {}) => {
     const q = overrides.q !== undefined ? overrides.q : searchQuery;
@@ -536,10 +537,10 @@ const CatalogPage: React.FC = () => {
                     {/* Grouped mode toggle */}
                     <button
                       onClick={() => {
-                        setGroupedMode(prev => !prev);
                         const params = Object.fromEntries(searchParams.entries());
                         params.page = '1';
                         setSearchParams(params);
+                        setGroupedMode(prev => !prev);
                       }}
                       className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
                       style={groupedMode
@@ -567,8 +568,8 @@ const CatalogPage: React.FC = () => {
                         className="rounded-lg overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
                         style={{ backgroundColor: 'var(--color-panel)', border: '1px solid var(--color-border)' }}
                         onClick={() => {
-                          navigate(`/catalog?q=${encodeURIComponent(group.name)}`);
                           setGroupedMode(false);
+                          setSearchParams({ q: group.name, page: '1' });
                         }}
                       >
                         {group.imageUrl ? (
