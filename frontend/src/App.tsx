@@ -48,6 +48,8 @@ const AdminOfflineBuyPage      = lazy(() => import('./pages/AdminOfflineBuyPage'
 const AdminCafePage            = lazy(() => import('./pages/AdminCafePage'));
 const AdminOrdersPage          = lazy(() => import('./pages/AdminOrdersPage'));
 const AdminBoardgamesPage      = lazy(() => import('./pages/AdminBoardgamesPage'));
+const AdminBuylistPage         = lazy(() => import('./pages/AdminBuylistPage'));
+const BuylistPage              = lazy(() => import('./pages/BuylistPage'));
 
 // Lazily-loaded seller pages
 const ManaboxUploadPage        = lazy(() => import('./pages/ManaboxUploadPage'));
@@ -101,6 +103,7 @@ const App: React.FC = () => {
                 <Route path="/consoles" element={<ConsolesPage />} />
                 <Route path="/boardgames" element={<BoardgameCataloguePage />} />
                 <Route path="/boardgames/:id" element={<BoardgameDetailPage />} />
+                <Route path="/buylist" element={<BuylistPage />} />
                 <Route path="/sets" element={<SetBrowsePage />} />
                 {/* Redirect old admin login to unified login */}
                 <Route path="/admin/login" element={<Navigate to="/login" replace />} />
@@ -153,6 +156,14 @@ const App: React.FC = () => {
                 element={
                   <ProtectedRoute adminOnly={true}>
                     <AdminBoardgamesPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/buylist"
+                element={
+                  <ProtectedRoute adminOnly={true}>
+                    <AdminBuylistPage />
                   </ProtectedRoute>
                 }
               />

@@ -1028,7 +1028,7 @@ router.post('/bulk-update-csv-stream', authenticate, requireAdmin, upload.single
       }
     };
 
-    // ── Process in concurrent batches of 10 with 2s delay between batches ──
+    // ── Process in concurrent batches of 10 with 1s delay between batches ──
     const CONCURRENCY = 10;
     const entries = Object.entries(groupedUpdates);
     for (let i = 0; i < entries.length; i += CONCURRENCY) {
@@ -1037,7 +1037,7 @@ router.post('/bulk-update-csv-stream', authenticate, requireAdmin, upload.single
         batch.map(([productId, productUpdates]) => processOneProduct(productId, productUpdates as any[]))
       );
       if (i + CONCURRENCY < entries.length) {
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise(resolve => setTimeout(resolve, 1000));
       }
     }
 

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getCards, getCardById, getSets, addInventory } from '../controllers/card.controller';
+import { getCards, getCardById, getSets, addInventory, getGroupedCards } from '../controllers/card.controller';
 import { authenticate, requireAdminOrSeller } from '../middleware/auth.middleware';
 
 const router = Router();
@@ -10,6 +10,13 @@ const router = Router();
  * @access  Public
  */
 router.get('/sets/list', getSets);
+
+/**
+ * @route   GET /api/cards/grouped
+ * @desc    Get cards grouped by name with printing count and min price
+ * @access  Public
+ */
+router.get('/grouped', getGroupedCards);
 
 /**
  * @route   GET /api/cards

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useSearchParams, useLocation } from 'react-router-dom';
-import { cardApi } from '../api/cards';
+import { useSearchParams, useLocation, useNavigate } from 'react-router-dom';
+import { cardApi, CardGroup } from '../api/cards';
 import { Card, SetInfo } from '../types';
 import CardCard from '../components/CardCard';
 import Pagination from '../components/Pagination';
@@ -8,7 +8,10 @@ import Pagination from '../components/Pagination';
 const CatalogPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
+  const navigate = useNavigate();
   const [cards, setCards] = useState<Card[]>([]);
+  const [groups, setGroups] = useState<CardGroup[]>([]);
+  const [groupedMode, setGroupedMode] = useState(false);
   const [sets, setSets] = useState<SetInfo[]>([]);
   const [loading, setLoading] = useState(false);
   const hasInitialized = useRef(false);
@@ -114,8 +117,12 @@ const CatalogPage: React.FC = () => {
       return;
     }
     
-    loadCards();
-  }, [searchParams]);
+    if (groupedMode) {
+      loadGroupedCards(searchParams.get('page') ? Number(searchParams.get('page')) : 1);
+    } else {
+      loadCards();
+    }
+  }, [searchParams, groupedMode]);
 
   const loadSets = async () => {
     try {
@@ -151,6 +158,24 @@ const CatalogPage: React.FC = () => {
       setLoading(false);
     }
   };
+
+  const loadGroupedCards = useCallback(async (page = 1) => {
+    setLoading(true);
+    try {
+      const data = await cardApi.getGroupedCards({
+        q: searchParams.get('q') || undefined,
+        instock: searchParams.get('instock') || undefined,
+        page,
+        limit: 25,
+      });
+      setGroups(data.groups);
+      setPagination(data.pagination);
+    } catch {
+      setGroups([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [searchParams]);
 
   const applyFilters = useCallback((overrides: { q?: string } = {}) => {
     const q = overrides.q !== undefined ? overrides.q : searchQuery;
@@ -489,7 +514,7 @@ const CatalogPage: React.FC = () => {
             ) : (
               <>
                 <div className="rounded-xl shadow-lg px-5 py-4 mb-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-3" style={{ backgroundColor: 'var(--color-panel)' }}>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 flex-wrap">
                     <div className="bg-blue-100 dark:bg-blue-900 px-4 py-2 rounded-lg">
                       <div className="text-sm flex items-center gap-2" style={{ color: 'var(--color-text-secondary)' }}>
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--color-accent)' }}>
@@ -497,7 +522,7 @@ const CatalogPage: React.FC = () => {
                         </svg>
                         <div>
                           <span className="font-bold text-lg" style={{ color: 'var(--color-text)' }}>{pagination.total}</span>
-                          <span className="ml-1.5">card{pagination.total !== 1 ? 's' : ''}</span>
+                          <span className="ml-1.5">{groupedMode ? 'unique name' : 'card'}{pagination.total !== 1 ? 's' : ''}</span>
                         </div>
                       </div>
                     </div>
@@ -508,17 +533,81 @@ const CatalogPage: React.FC = () => {
                         </span>
                       </div>
                     )}
+                    {/* Grouped mode toggle */}
+                    <button
+                      onClick={() => {
+                        setGroupedMode(prev => !prev);
+                        const params = Object.fromEntries(searchParams.entries());
+                        params.page = '1';
+                        setSearchParams(params);
+                      }}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
+                      style={groupedMode
+                        ? { backgroundColor: 'var(--color-accent)', color: 'white' }
+                        : { backgroundColor: 'var(--color-background)', color: 'var(--color-text)', border: '1px solid var(--color-border)' }
+                      }
+                      title={groupedMode ? 'Show all printings' : 'Group by card name'}
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                      </svg>
+                      {groupedMode ? 'Grouped' : 'Group by name'}
+                    </button>
                   </div>
                   <div className="text-sm font-medium px-4 py-2 rounded-lg" style={{ backgroundColor: 'var(--color-background)', color: 'var(--color-text)' }}>
                     Page {pagination.page} of {pagination.totalPages}
                   </div>
                 </div>
                 
+                {groupedMode ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                    {groups.map(group => (
+                      <div
+                        key={group._id}
+                        className="rounded-lg overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
+                        style={{ backgroundColor: 'var(--color-panel)', border: '1px solid var(--color-border)' }}
+                        onClick={() => {
+                          navigate(`/catalog?q=${encodeURIComponent(group.name)}`);
+                          setGroupedMode(false);
+                        }}
+                      >
+                        {group.imageUrl ? (
+                          <img src={group.imageUrl} alt={group.name} className="w-full aspect-[5/7] object-cover" />
+                        ) : (
+                          <div className="w-full aspect-[5/7] flex items-center justify-center" style={{ backgroundColor: 'var(--color-border)' }}>
+                            <span className="text-3xl">🃏</span>
+                          </div>
+                        )}
+                        <div className="p-2.5 space-y-1">
+                          <p className="font-semibold text-xs leading-tight line-clamp-2" style={{ color: 'var(--color-text)' }}>{group.name}</p>
+                          <div className="flex items-center justify-between flex-wrap gap-1">
+                            <span className="text-xs px-1.5 py-0.5 rounded" style={{ backgroundColor: 'var(--color-background)', color: 'var(--color-text-secondary)' }}>
+                              {group.printingCount} printing{group.printingCount !== 1 ? 's' : ''}
+                            </span>
+                            {group.hasFoil && (
+                              <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: 'linear-gradient(90deg,#f59e0b,#ec4899)', color: 'white' }}>✨</span>
+                            )}
+                          </div>
+                          {group.minSellPrice != null && group.minSellPrice > 0 ? (
+                            <p className="text-xs font-bold" style={{ color: 'var(--color-accent)' }}>
+                              from Rp {group.minSellPrice.toLocaleString('id-ID')}
+                            </p>
+                          ) : (
+                            <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+                              {group.totalStock > 0 ? `${group.totalStock} in stock` : 'Out of stock'}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                   {cards.map((card) => (
                     <CardCard key={card._id} card={card} />
                   ))}
                 </div>
+                )}
 
                 <Pagination
                   currentPage={pagination.page}

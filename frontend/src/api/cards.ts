@@ -1,9 +1,37 @@
 import api from './client';
 import { Card, CardListResponse, CardSearchParams, SetInfo } from '../types';
 
+export interface CardGroup {
+  _id: string;
+  name: string;
+  imageUrl?: string;
+  printingCount: number;
+  minSellPrice: number | null;
+  totalStock: number;
+  hasFoil: boolean;
+  cardIds: string[];
+}
+
+export interface GroupedCardsResponse {
+  groups: CardGroup[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  };
+}
+
 export const cardApi = {
   getCards: async (params: CardSearchParams): Promise<CardListResponse> => {
     const response = await api.get<CardListResponse>('/cards', { params });
+    return response.data;
+  },
+
+  getGroupedCards: async (params: { q?: string; instock?: string; page?: number; limit?: number }): Promise<GroupedCardsResponse> => {
+    const response = await api.get<GroupedCardsResponse>('/cards/grouped', { params });
     return response.data;
   },
 

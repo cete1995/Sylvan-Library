@@ -328,6 +328,113 @@ export const getCardById = asyncHandler(async (req: Request, res: Response) => {
 });
 
 /**
+ * Get cards grouped by name — one entry per unique card name with printing count + min price
+ * GET /api/cards/grouped?q=...&instock=...&page=...&limit=...
+ */
+export const getGroupedCards = asyncHandler(async (req: Request, res: Response) => {
+  const q = (req.query.q as string) || '';
+  const instock = req.query.instock === 'true';
+  const page = Math.max(1, parseInt(req.query.page as string) || 1);
+  const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 25));
+  const skip = (page - 1) * limit;
+
+  const filter: FilterQuery<ICard> = { isActive: true };
+
+  if (q) {
+    const rawTerm = q.trim()
+      .replace(/\u{A789}/gu, ':')
+      .replace(/[\u2019\u2018]/gu, "'");
+    const cleanTerm = rawTerm.replace(/[,'\u2019\u2018]/g, '').replace(/\s+/g, ' ').trim();
+    const words = cleanTerm.split(/\s+/).filter(Boolean);
+    const flexPattern = words
+      .map((w: string) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+      .join("[,':\\uA789\\s\\-]*");
+    filter.name = { $regex: flexPattern, $options: 'i' };
+  }
+
+  if (instock) {
+    filter.$and = filter.$and || [];
+    (filter.$and as any[]).push({
+      inventory: { $elemMatch: { quantityForSale: { $gt: 0 } } }
+    });
+  }
+
+  const pipeline: any[] = [
+    { $match: filter },
+    {
+      $addFields: {
+        minSellPrice: {
+          $min: {
+            $map: {
+              input: {
+                $filter: {
+                  input: '$inventory',
+                  as: 'item',
+                  cond: { $and: [{ $gt: ['$$item.quantityForSale', 0] }, { $gt: ['$$item.sellPrice', 0] }] }
+                }
+              },
+              as: 'item',
+              in: '$$item.sellPrice'
+            }
+          }
+        },
+        totalStock: { $sum: '$inventory.quantityForSale' },
+        hasFoil: {
+          $gt: [
+            {
+              $size: {
+                $filter: {
+                  input: '$inventory',
+                  as: 'item',
+                  cond: { $and: [{ $gt: ['$$item.quantityForSale', 0] }, { $eq: ['$$item.finish', 'foil'] }] }
+                }
+              }
+            },
+            0
+          ]
+        }
+      }
+    },
+    {
+      $group: {
+        _id: '$name',
+        name: { $first: '$name' },
+        imageUrl: { $first: '$imageUrl' },
+        printingCount: { $sum: 1 },
+        minSellPrice: { $min: '$minSellPrice' },
+        totalStock: { $sum: '$totalStock' },
+        hasFoil: { $max: '$hasFoil' },
+        cardIds: { $push: { $toString: '$_id' } }
+      }
+    },
+    { $sort: { name: 1 } },
+    {
+      $facet: {
+        data: [{ $skip: skip }, { $limit: limit }],
+        total: [{ $count: 'count' }]
+      }
+    }
+  ];
+
+  const [result] = await Card.aggregate(pipeline);
+  const groups = result?.data || [];
+  const total = result?.total?.[0]?.count || 0;
+  const totalPages = Math.ceil(total / limit);
+
+  res.json({
+    groups,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages,
+      hasNextPage: page < totalPages,
+      hasPrevPage: page > 1
+    }
+  });
+});
+
+/**
  * Get unique sets (for filter dropdowns)
  * GET /api/cards/sets/list
  */

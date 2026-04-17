@@ -74,6 +74,7 @@ import cafeRoutes from './routes/cafe.routes';
 import wishlistRoutes from './routes/wishlist.routes';
 import boardgameRoutes from './routes/boardgame.routes';
 import adminBoardgameRoutes from './routes/admin-boardgame.routes';
+import buylistRoutes from './routes/buylist.routes';
 
 app.get('/api', (_req, res) => {
   res.json({
@@ -120,6 +121,7 @@ app.use('/api/cafe', cafeRoutes);
 app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/boardgames', boardgameRoutes);
 app.use('/api/admin/boardgames', adminBoardgameRoutes);
+app.use('/api/buylist', buylistRoutes);
 
 // Error handling
 app.use(notFoundHandler);

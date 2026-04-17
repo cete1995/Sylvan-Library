@@ -2,11 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { API_BASE_URL } from '../api/client';
 
-type ActiveTab = 'category' | 'price-inventory';
+type ActiveTab = 'category' | 'price-inventory' | 'edit-product';
 
 const AdminTikTokDebugPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ActiveTab>('category');
   
+  // Edit product state
+  const [editProductId, setEditProductId] = useState('');
+  const [editProductData, setEditProductData] = useState('');
+  const [editProductResponse, setEditProductResponse] = useState('');
+  const [editProductLoading, setEditProductLoading] = useState(false);
+  const [editProductFetching, setEditProductFetching] = useState(false);
+
   // Category update state
   const [productIds, setProductIds] = useState<string[]>([]);
   const [categoryId, setCategoryId] = useState('');
@@ -434,6 +441,68 @@ const AdminTikTokDebugPage: React.FC = () => {
       setPriceLoading(false);
     } finally {
       setAbortController(null);
+    }
+  };
+
+  const handleFetchProductForEdit = async () => {
+    if (!appKey || !appSecret || !accessToken || !editProductId.trim()) {
+      alert('Please fill in all credentials and a Product ID');
+      return;
+    }
+    setEditProductFetching(true);
+    setEditProductResponse('');
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_BASE_URL}/admin/tiktok/get-product`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ appKey, appSecret, accessToken, shopCipher, productId: editProductId.trim() })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setEditProductData(JSON.stringify(data.data?.data || data.data, null, 2));
+        setEditProductResponse('✅ Product fetched. Edit the JSON below, then click Update Product.');
+      } else {
+        setEditProductResponse(`❌ Fetch failed: ${JSON.stringify(data.error, null, 2)}`);
+      }
+    } catch (err: any) {
+      setEditProductResponse(`❌ Error: ${err.message}`);
+    } finally {
+      setEditProductFetching(false);
+    }
+  };
+
+  const handleEditProduct = async () => {
+    if (!appKey || !appSecret || !accessToken || !editProductId.trim() || !editProductData.trim()) {
+      alert('Please fill in all credentials, Product ID, and product data JSON');
+      return;
+    }
+    let parsedData: any;
+    try {
+      parsedData = JSON.parse(editProductData);
+    } catch {
+      alert('Invalid JSON in product data field');
+      return;
+    }
+    setEditProductLoading(true);
+    setEditProductResponse(prev => prev + '\n⏳ Sending edit request...');
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_BASE_URL}/admin/tiktok/edit-product`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ appKey, appSecret, accessToken, shopCipher, productId: editProductId.trim(), productData: parsedData })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setEditProductResponse(`✅ Product updated successfully!\n\nResponse:\n${JSON.stringify(data.data, null, 2)}`);
+      } else {
+        setEditProductResponse(`❌ Update failed:\n${JSON.stringify(data.error, null, 2)}`);
+      }
+    } catch (err: any) {
+      setEditProductResponse(`❌ Error: ${err.message}`);
+    } finally {
+      setEditProductLoading(false);
     }
   };
 
@@ -1224,6 +1293,17 @@ const AdminTikTokDebugPage: React.FC = () => {
           >
             💰 Price & Inventory Update
           </button>
+          <button
+            onClick={() => setActiveTab('edit-product')}
+            className={`px-6 py-3 font-bold transition-all ${
+              activeTab === 'edit-product'
+                ? 'border-b-4 border-green-500'
+                : 'opacity-50 hover:opacity-100'
+            }`}
+            style={{ color: 'var(--color-text)' }}
+          >
+            ✏️ Edit Product
+          </button>
         </div>
 
         {/* Category Update Tab */}
@@ -1574,6 +1654,107 @@ productId,skuId,price,stock{'\n'}
             </div>
           </div>
         )}
+
+      {/* Edit Product Tab */}
+      {activeTab === 'edit-product' && (
+        <div className="space-y-6">
+          <div className="p-6 rounded-lg shadow-lg border-l-4 border-green-500" style={{ backgroundColor: 'var(--color-panel)' }}>
+            <h2 className="text-2xl font-bold mb-1" style={{ color: 'var(--color-text)' }}>✏️ Edit Product</h2>
+            <p className="text-sm mb-6" style={{ color: 'var(--color-text-secondary)' }}>
+              Fetch a product's current data from TikTok Shop, edit the JSON, then push the update. Uses
+              <code className="mx-1 px-1 rounded" style={{ backgroundColor: 'var(--color-background)' }}>PUT /product/202509/products/{'{'}id{'}'}</code>.
+            </p>
+
+            {/* Warning */}
+            <div className="mb-5 p-3 rounded-lg bg-yellow-50 border border-yellow-300 text-sm text-yellow-800">
+              ⚠️ <strong>Full-edit endpoint:</strong> All fields in the JSON overwrite existing values. Always <em>Fetch Product</em> first to get the latest data before editing. Price and inventory changes are published immediately without re-audit.
+            </div>
+
+            {/* Product ID */}
+            <div className="mb-5">
+              <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--color-text)' }}>Product ID</label>
+              <div className="flex gap-3">
+                <input
+                  type="text"
+                  value={editProductId}
+                  onChange={e => setEditProductId(e.target.value)}
+                  placeholder="e.g. 1729409636071801988"
+                  className="flex-1 px-4 py-3 border rounded-lg"
+                  style={{ backgroundColor: 'var(--color-background)', color: 'var(--color-text)', borderColor: 'var(--color-border)' }}
+                />
+                <button
+                  onClick={handleFetchProductForEdit}
+                  disabled={editProductFetching || editProductLoading}
+                  className="px-5 py-3 rounded-lg font-bold text-white transition-colors disabled:opacity-50"
+                  style={{ backgroundColor: '#3b82f6' }}
+                >
+                  {editProductFetching ? '⏳ Fetching...' : '🔍 Fetch Product'}
+                </button>
+              </div>
+            </div>
+
+            {/* Product Data JSON Editor */}
+            <div className="mb-5">
+              <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--color-text)' }}>
+                Product Data (JSON) — edit before updating
+              </label>
+              <textarea
+                value={editProductData}
+                onChange={e => setEditProductData(e.target.value)}
+                rows={20}
+                placeholder='Fetch a product first, or paste product JSON here...'
+                className="w-full px-4 py-3 border rounded-lg font-mono text-sm"
+                style={{ backgroundColor: 'var(--color-background)', color: 'var(--color-text)', borderColor: 'var(--color-border)' }}
+              />
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3 mb-5">
+              <button
+                onClick={handleEditProduct}
+                disabled={editProductLoading || editProductFetching || !editProductData.trim()}
+                className="px-6 py-3 rounded-lg font-bold text-white transition-colors disabled:opacity-50"
+                style={{ backgroundColor: '#22c55e' }}
+              >
+                {editProductLoading ? '⏳ Updating...' : '✅ Update Product'}
+              </button>
+              <button
+                onClick={() => { setEditProductData(''); setEditProductResponse(''); setEditProductId(''); }}
+                className="px-5 py-3 rounded-lg font-bold transition-colors"
+                style={{ backgroundColor: 'var(--color-panel)', color: 'var(--color-text)', border: '1px solid var(--color-border)' }}
+              >
+                🗑️ Clear
+              </button>
+            </div>
+
+            {/* Response */}
+            {editProductResponse && (
+              <div
+                className="p-4 rounded-lg border font-mono text-sm whitespace-pre-wrap break-all"
+                style={{
+                  backgroundColor: 'var(--color-background)',
+                  borderColor: editProductResponse.startsWith('✅') ? '#22c55e' : '#ef4444',
+                  color: 'var(--color-text)'
+                }}
+              >
+                {editProductResponse}
+              </div>
+            )}
+
+            {/* Docs reference */}
+            <div className="mt-5 p-4 rounded-lg border-2 border-green-300 bg-green-50">
+              <h3 className="font-bold text-sm mb-2 text-green-900">📚 Key Notes (Edit Product API 202509)</h3>
+              <ul className="space-y-1 text-xs text-green-800">
+                <li>• All fields overwrite existing values — always fetch first and include complete data</li>
+                <li>• <strong>Price &amp; inventory</strong> changes are immediate (no re-audit required)</li>
+                <li>• Other content changes (title, description, images) go through re-audit</li>
+                <li>• For Tokopedia sellers: pass <code className="bg-green-200 px-1 rounded">listing_platforms</code> to control which platforms are active</li>
+                <li>• Use <em>Partial Edit Product API</em> if you only need to update specific fields</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
       </div>
     </div>
   );
