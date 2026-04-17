@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import multer from 'multer';
+import rateLimit from 'express-rate-limit';
 import { authenticate, requireAdmin } from '../middleware/auth.middleware';
 import {
   createCard,
@@ -131,15 +132,22 @@ router.post('/sets/upload', uploadSetJson);
  */
 router.post('/sets/import-from-mtgjson', importSetFromMTGJson);
 
+// Rate limiter for destructive operations (2 req per 15 min)
+const destructiveLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 2,
+  message: { error: 'Too many destructive operations. Please wait before trying again.' },
+});
+
 /**
  * @route   POST /api/admin/clear-database
  * @desc    Clear entire database (cards, non-admin users, carts)
- * @access  Private (Admin)
+ * @access  Private (Admin) — rate-limited
  */
-router.post('/clear-database', clearDatabase);
-router.post('/clear-users', clearUsers);
-router.post('/clear-cards', clearCards);
-router.post('/clear-orders', clearOrders);
+router.post('/clear-database', destructiveLimiter, clearDatabase);
+router.post('/clear-users', destructiveLimiter, clearUsers);
+router.post('/clear-cards', destructiveLimiter, clearCards);
+router.post('/clear-orders', destructiveLimiter, clearOrders);
 
 /**
  * @route   POST /api/admin/fix-seller-names

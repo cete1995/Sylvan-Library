@@ -81,10 +81,10 @@ export const addToCart = asyncHandler(async (req: Request, res: Response) => {
     throw new AppError(400, 'Invalid inventory index');
   }
 
-  // CWE-20: Cap quantity to reasonable bounds
+  // CWE-20: Cap quantity to reasonable bounds (matches order limit)
   const qty = Number(quantity);
-  if (!Number.isInteger(qty) || qty < 1 || qty > 99) {
-    throw new AppError(400, 'Quantity must be between 1 and 99');
+  if (!Number.isInteger(qty) || qty < 1 || qty > 999) {
+    throw new AppError(400, 'Quantity must be between 1 and 999');
   }
 
   // Verify card exists and get inventory item

@@ -51,17 +51,12 @@
   border-color: var(--color-highlight);
 }
 
-/* Disable default transitions globally to prevent interference */
-*, *::before, *::after {
-  transition: none !important;
-}
-
-/* Re-enable smooth transitions only for specific interactive elements */
+/* Smooth transitions for interactive elements */
 button, a, input, select, textarea {
   transition: opacity 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease !important;
 }
 
-/* Add smooth theme transition only to elements using CSS variables */
+/* Smooth transitions for elements using CSS variables */
 [style*="--color"] {
   transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease !important;
 }

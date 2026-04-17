@@ -26,7 +26,11 @@ const encrypt = (text: string): string => {
 };
 
 const decrypt = (stored: string): string => {
-  if (!stored || !stored.includes(':')) return stored; // plain-text fallback
+  if (!stored) return '';
+  if (!stored.includes(':')) {
+    console.warn('TikTok credential found in plaintext — re-save to encrypt');
+    return stored; // legacy plaintext — log warning
+  }
   const [ivHex, encHex] = stored.split(':');
   const decipher = crypto.createDecipheriv('aes-256-cbc', CRED_KEY, Buffer.from(ivHex, 'hex'));
   const decrypted = Buffer.concat([decipher.update(Buffer.from(encHex, 'hex')), decipher.final()]);
@@ -209,23 +213,13 @@ router.post('/edit-product', authenticate, requireAdmin, async (req: Request, re
       success: true,
       message: 'Product edited successfully',
       data: response.data,
-      debug: {
-        url,
-        signature: sign,
-        timestamp,
-        requestBody: productData
-      }
     });
 
   } catch (error: any) {
     console.error('TikTok Shop API Error:', error.response?.data || error.message);
     res.status(500).json({
       success: false,
-      error: error.response?.data || error.message,
-      debug: {
-        status: error.response?.status,
-        statusText: error.response?.statusText
-      }
+      error: error.response?.data?.message || 'TikTok API request failed',
     });
   }
 });

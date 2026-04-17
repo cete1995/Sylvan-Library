@@ -288,11 +288,20 @@ export const getAdminOrders = asyncHandler(async (req: Request, res: Response) =
   const skip = (page - 1) * limit;
   const { status, paymentStatus } = req.query;
 
+  const VALID_STATUSES = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
+  const VALID_PAYMENT_STATUSES = ['unpaid', 'paid', 'refunded'];
+
   const filter: Record<string, unknown> = {};
   if (status && typeof status === 'string' && status !== 'all') {
+    if (!VALID_STATUSES.includes(status)) {
+      throw new AppError(400, `Invalid status filter. Must be one of: ${VALID_STATUSES.join(', ')}`);
+    }
     filter.status = status;
   }
   if (paymentStatus && typeof paymentStatus === 'string' && paymentStatus !== 'all') {
+    if (!VALID_PAYMENT_STATUSES.includes(paymentStatus)) {
+      throw new AppError(400, `Invalid payment status filter. Must be one of: ${VALID_PAYMENT_STATUSES.join(', ')}`);
+    }
     filter.paymentStatus = paymentStatus;
   }
 

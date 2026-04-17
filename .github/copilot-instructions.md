@@ -68,6 +68,7 @@ A full-stack web app for **Boardgame Time**, a boardgame café + MTG singles sho
 | `/seller/cards/:id/inventory` | SellerInventoryFormPage (sellerOnly) |
 | `/sets` | SetBrowsePage (public) |
 | `/wishlist` | WishlistPage (protected) |
+| `/buylist` | BuylistPage (public) |
 | `/admin/dashboard` | AdminDashboardPage (adminOnly) |
 | `/admin/orders` | AdminOrdersPage (adminOnly) |
 | `/admin/offline-sales` | AdminOfflineSalePage (adminOnly) |
@@ -78,6 +79,7 @@ A full-stack web app for **Boardgame Time**, a boardgame café + MTG singles sho
 | `/admin/tiktok-saved-orders` | AdminTikTokSavedOrdersPage (adminOnly) |
 | `/admin/boardgames` | AdminBoardgamesPage (adminOnly) |
 | `/admin/cafe` | AdminCafePage (adminOnly) |
+| `/admin/buylist` | AdminBuylistPage (adminOnly) |
 | `/admin/*` | Other admin pages (adminOnly) |
 
 ## Key Frontend Files
@@ -114,6 +116,7 @@ A full-stack web app for **Boardgame Time**, a boardgame café + MTG singles sho
 - `OfflineBuy` — walk-in buy-back record (per-item: card name, condition, finish, buy price)
 - `CafeSettings` — single-document boardgame café CMS (hours, entry fee, Mahjong, consoles)
 - `Boardgame` — boardgame library entry (name, description, gallery[], howToPlay, category, difficulty, featured, sortOrder)
+- `BuylistItem` — card the shop wants to buy from customers (cardName, condition, finish, buyPrice, isActive, notes, sortOrder)
 
 ## Café Settings (admin-managed)
 Stored in DB via `/api/admin/cafe`. Structure:
@@ -186,9 +189,33 @@ Stored in DB via `/api/admin/cafe`. Structure:
 - Admin manages at `/admin/boardgames` — full CRUD, gallery images, featured flag (appears on CafePage carousel), sort order.
 - `Boardgame` model fields: `name, description, gallery[], howToPlay, category, difficulty, featured, sortOrder, players, duration, ageRating, designer, publisher, isActive`.
 
-## Recent Commit History (as of March 2026)
+## Buylist
+- Public `/buylist` — cards the shop wants to buy, searchable, grouped by card name
+- Admin CRUD at `/admin/buylist` (cardName, condition, finish, buyPrice, notes, isActive)
+- `BuylistItem` model with `{ isActive: 1, cardName: 1 }` compound index
+- Backend routes at `/api/buylist` (public GET) and `/api/buylist/admin` (admin CRUD)
+
+## Grouped Card Search
+- `GET /api/cards/grouped` — aggregation pipeline that groups cards by `name` and returns minSellPrice, totalStock, printingCount, hasFoil
+- CatalogPage has a "Group by name" toggle that switches between flat card grid and grouped view
+- Clicking a group navigates to `?q={name}` and switches back to detailed view
+
+## Security & Hardening (April 2026 audit)
+- See `SECURITY_AUDIT.md` for the full audit report and roadmap
+- Debug routes (`/api/debug`) gated behind `NODE_ENV === 'development'` only
+- Server refuses to start in production with default JWT secrets (throws Error)
+- Helmet with HSTS enabled (`maxAge: 31536000`)
+- Rate limiting on destructive admin operations (2 req/15 min for `/clear-*` endpoints)
+- Sanitized error responses: no stack traces, internal paths, or DB details leak to clients
+- TikTok API responses no longer include `debug` field with request body/URL
+- Admin order status/paymentStatus filters validated against whitelists
+- Buylist routes validate ObjectId format before DB queries
+
+## Recent Commit History (as of April 2026)
 | Commit | Description |
 |---|---|
+| `latest` | security: full audit — debug routes dev-only, JWT secret enforcement, HSTS, rate-limit destructive ops, sanitized errors, buylist ObjectId validation, UX fixes |
+| `4c6ca4a` | feat: TikTok 1s delay, edit-product tab, grouped card search, buylist pages |
 | `45d0ee9` | docs: update all READMEs with full new-PC setup steps, fix corrupted code fences |
 | `c2f4856` | fix: TikTok token expiry display — was showing Unix timestamp as hours, now shows remaining days/hours |
 | `0a358e1` | fix: auto-refresh TikTok token before retry to avoid expired token errors |

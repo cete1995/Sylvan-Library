@@ -104,6 +104,7 @@ const BottomNav: React.FC = () => {
             <Link
               key={item.path}
               to={item.path}
+              aria-label={item.label}
               className="flex flex-col items-center justify-center flex-1 h-full relative transition-all"
               style={{ color: accentColor }}
             >

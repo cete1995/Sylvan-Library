@@ -20,13 +20,13 @@ const config: Config = {
   frontendUrl: process.env.FRONTEND_URL || 'http://localhost:5173',
 };
 
-// Warn if using default secrets in production
+// BLOCK startup if using default secrets in production
 if (config.nodeEnv === 'production') {
   if (config.jwtSecret === 'default-secret-change-in-production') {
-    console.warn('⚠️  WARNING: Using default JWT_SECRET in production!');
+    throw new Error('FATAL: JWT_SECRET must be set in production. Server refused to start.');
   }
   if (config.jwtRefreshSecret === 'default-refresh-secret-change-in-production') {
-    console.warn('⚠️  WARNING: Using default JWT_REFRESH_SECRET in production!');
+    throw new Error('FATAL: JWT_REFRESH_SECRET must be set in production. Server refused to start.');
   }
 }
 

@@ -86,6 +86,11 @@ A full-stack web application for **Boardgame Time**, a boardgame café and MTG s
 - Per-item: card name, condition, finish, buy price
 - Buy history with void support
 
+### Buylist (Public)
+- Public `/buylist` page — customers can see what cards the shop is buying and at what prices
+- Searchable, grouped by card name with condition/finish/price breakdown
+- Admin CRUD at `/admin/buylist` — manage buylist entries (card name, condition, finish, buy price, notes)
+
 ### TikTok Shop Integration
 - Fetch and manage TikTok Shop orders
 - Bulk update product prices & stock via CSV upload (SSE stream with live progress)
@@ -110,6 +115,7 @@ A full-stack web application for **Boardgame Time**, a boardgame café and MTG s
 | csv-parse | CSV parsing |
 | Axios | CK price fetching, TikTok API calls |
 | crypto | TikTok API signature generation, credential encryption |
+| Helmet | HTTP security headers (HSTS, CORP) |
 
 ### Frontend
 | Technology | Purpose |
@@ -154,6 +160,7 @@ Boardgame Time/
           UBSettings.model.ts     # UB pricing settings
           RegularSettings.model.ts
           CafeSettings.model.ts   # Boardgame café content (single-document)
+          Buylist.model.ts            # Buylist entries (cards the shop wants to buy)
        routes/                # One file per resource
        utils/
           regularPricing.ts
@@ -351,6 +358,7 @@ Sell Price = CK Price  Multiplier
 | GET | `/api/public/carousel` | Active carousel items |
 | GET | `/api/public/featured` | Featured banners & products |
 | GET | `/api/cafe/settings` | Boardgame café content |
+| GET | `/api/buylist` | Public buylist (cards the shop is buying) |
 
 ### Admin (JWT + admin role)
 | Method | Endpoint | Description |
@@ -374,6 +382,7 @@ Sell Price = CK Price  Multiplier
 | POST | `/api/admin/clear-orders` | Delete all orders and carts |
 | POST | `/api/tiktok/bulk-update-csv-stream` | Bulk price+stock update (SSE) |
 | POST | `/api/tiktok/bulk-update-csv` | Bulk price+stock update (legacy) |
+| GET/POST/PUT/DELETE | `/api/buylist/admin` | Buylist management |
 
 ### Seller (JWT + seller role)
 | Method | Endpoint | Description |
@@ -404,6 +413,7 @@ Sell Price = CK Price  Multiplier
 | `/orders/:id` | Order detail (requires login) |
 | `/profile` | Profile (requires login) |
 | `/wishlist` | Wishlist (requires login) |
+| `/buylist` | Buylist — cards the shop is buying |
 
 ### Admin
 | Path | Description |
@@ -434,6 +444,7 @@ Sell Price = CK Price  Multiplier
 | `/admin/debug` | System maintenance tools |
 | `/admin/cafe` | Boardgame Café content editor (hours, consoles, entry fee) |
 | `/admin/boardgames` | Boardgame library CRUD |
+| `/admin/buylist` | Buylist management |
 
 ### Seller
 | Path | Description |
@@ -464,6 +475,23 @@ cd backend && npm run build && npm start
 cd frontend && npm run build
 # Serve dist/ via Nginx, Vercel, or Netlify
 ```
+
+---
+
+## Security
+
+See [SECURITY_AUDIT.md](SECURITY_AUDIT.md) for the full audit report and improvement roadmap.
+
+### Key Security Measures
+- **JWT authentication** with Bearer tokens; refresh token rotation
+- **Helmet** HTTP security headers (HSTS, X-Content-Type-Options, X-Frame-Options)
+- **Rate limiting** on login, registration, and destructive admin operations
+- **Zod validation** on auth inputs; inline validation on all other inputs
+- **TikTok credentials** encrypted at rest with AES-256-CBC
+- **Debug routes** gated behind `NODE_ENV === 'development'` only
+- **Server refuses to start** in production with default JWT secrets
+- **Sanitized error responses** — no stack traces, internal paths, or DB details in production
+- **CORS whitelist** — only configured origins allowed
 
 ---
 

@@ -39,23 +39,19 @@ const LoginPage: React.FC = () => {
     
     // Start loading
     setLoading(true);
-    
-    // Small delay to ensure state is set
-    await new Promise(resolve => setTimeout(resolve, 50));
 
     try {
       // Use AuthContext login which handles everything
       await login(formData.email, formData.password, rememberMe);
       
-      // Success - wait a bit then navigate
-      await new Promise(resolve => setTimeout(resolve, 300));
-      
       const storedUser = localStorage.getItem('user');
       if (storedUser) {
         const userData = JSON.parse(storedUser);
-        // Navigate after successful login
+        // Navigate based on role
         if (userData.role === 'admin') {
           navigate('/admin/dashboard', { replace: true });
+        } else if (userData.role === 'seller') {
+          navigate('/seller/dashboard', { replace: true });
         } else {
           navigate('/catalog', { replace: true });
         }

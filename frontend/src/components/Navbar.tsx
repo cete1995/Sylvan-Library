@@ -162,6 +162,9 @@ const Navbar: React.FC = () => {
             <Link to="/cafe" className="font-medium text-sm md:text-base hover:opacity-80 flex items-center gap-1.5" style={{ color: 'var(--color-text-secondary)' }}>
               <span>🎲</span> BOARDGAME CAFÉ
             </Link>
+            <Link to="/buylist" className="font-medium text-sm md:text-base hover:opacity-80" style={{ color: 'var(--color-text-secondary)' }}>
+              BUYLIST
+            </Link>
             <Link to="/catalog" className="font-medium text-sm md:text-base hover:opacity-80" style={{ color: 'var(--color-text-secondary)' }}>
               PICK UP IN STORE
             </Link>

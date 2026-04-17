@@ -46,6 +46,13 @@ const ProfilePage: React.FC = () => {
     }
   }, [error]);
 
+  // Revoke blob URL on unmount to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
+
   const loadProfile = async () => {
     try {
       setLoading(true);

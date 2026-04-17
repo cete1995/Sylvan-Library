@@ -17,6 +17,8 @@ const app: Application = express();
 // Security headers
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' }, // Allow uploaded images to be served cross-origin
+  hsts: { maxAge: 31536000, includeSubDomains: true }, // Enforce HTTPS for 1 year
+  contentSecurityPolicy: false, // Handled by frontend
 }));
 
 // CORS — supports comma-separated FRONTEND_URL for multiple origins
@@ -41,11 +43,7 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Health check route
 app.get('/health', (_req, res) => {
-  res.json({
-    status: 'OK',
-    timestamp: new Date().toISOString(),
-    environment: config.nodeEnv,
-  });
+  res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
 // API routes
@@ -116,7 +114,10 @@ app.use('/api/admin/sellers', sellerRoutes);
 app.use('/api/admin/offline-sales', offlineSaleRoutes);
 app.use('/api/admin/offline-buys', offlineBuyRoutes);
 app.use('/api/manabox', manaboxRoutes);
-app.use('/api/debug', debugRoutes);
+// Debug routes — only available in development
+if (config.nodeEnv === 'development') {
+  app.use('/api/debug', debugRoutes);
+}
 app.use('/api/cafe', cafeRoutes);
 app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/boardgames', boardgameRoutes);

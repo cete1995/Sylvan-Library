@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import mongoose from 'mongoose';
 import { authenticate, requireAdmin } from '../middleware/auth.middleware';
 import { asyncHandler } from '../middleware/asyncHandler';
 import BuylistItem from '../models/Buylist.model';
@@ -84,6 +85,9 @@ router.post('/admin', authenticate, requireAdmin, asyncHandler(async (req: Reque
 
 // PUT /api/admin/buylist/:id — update item
 router.put('/admin/:id', authenticate, requireAdmin, asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    res.status(400).json({ error: 'Invalid ID format' }); return;
+  }
   const { cardName, setCode, setName, imageUrl, condition, finish, buyPrice, notes, sortOrder, isActive } = req.body;
 
   const item = await BuylistItem.findByIdAndUpdate(
@@ -109,6 +113,9 @@ router.put('/admin/:id', authenticate, requireAdmin, asyncHandler(async (req: Re
 
 // DELETE /api/admin/buylist/:id — delete item
 router.delete('/admin/:id', authenticate, requireAdmin, asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    res.status(400).json({ error: 'Invalid ID format' }); return;
+  }
   const item = await BuylistItem.findByIdAndDelete(req.params.id);
   if (!item) { res.status(404).json({ error: 'Buylist item not found' }); return; }
   res.json({ message: 'Deleted' });

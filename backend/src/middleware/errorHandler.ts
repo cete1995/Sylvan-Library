@@ -56,18 +56,18 @@ export const errorHandler = (
     return;
   }
 
-  // Unexpected errors
-  console.error('💥 Unexpected error:', err);
+  // Unexpected errors — log full error server-side, send sanitized response
+  console.error('Unexpected error:', err.message);
+  if (process.env.NODE_ENV === 'development') {
+    console.error(err.stack);
+  }
   res.status(500).json({
     error: 'Internal server error',
-    ...(process.env.NODE_ENV === 'development' && { details: err.message }),
   });
 };
 
-export const notFoundHandler = (req: Request, res: Response): void => {
+export const notFoundHandler = (_req: Request, res: Response): void => {
   res.status(404).json({
     error: 'Route not found',
-    // Only expose the path in development to aid debugging
-    ...(process.env.NODE_ENV !== 'production' && { path: req.originalUrl }),
   });
 };
