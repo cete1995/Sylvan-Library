@@ -246,38 +246,9 @@ const AdminTikTokDebugPage: React.FC = () => {
     }
 
     setPriceLoading(true);
+    setPriceResponse('Uploading CSV and processing updates...\n\n');
     setPriceProgress({ current: 0, total: 0, percentage: 0, successful: 0, failed: 0 });
-    setFailedRows([]);
-
-    // Auto-refresh token before starting so expired tokens don't silently kill the run
-    let activeAccessToken = accessToken;
-    if (refreshToken && appKey && appSecret) {
-      setPriceResponse('🔄 Refreshing TikTok access token...\n\n');
-      try {
-        const refreshRes = await fetch(`${API_BASE_URL}/admin/tiktok/refresh-token`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          },
-          body: JSON.stringify({ appKey, appSecret, refreshToken })
-        });
-        const refreshData = await refreshRes.json();
-        if (refreshRes.ok && refreshData.success) {
-          activeAccessToken = refreshData.data.accessToken;
-          setAccessToken(refreshData.data.accessToken);
-          setRefreshToken(refreshData.data.refreshToken);
-          setPriceResponse('✅ Token refreshed. Starting bulk update...\n\n');
-        } else {
-          const errMsg = refreshData?.error || 'Unknown error';
-          setPriceResponse(`⚠️ Token refresh failed (${errMsg}) — using current token. If you get auth errors, refresh manually first.\n\n`);
-        }
-      } catch {
-        setPriceResponse('⚠️ Token refresh failed (network error) — using current token.\n\n');
-      }
-    } else {
-      setPriceResponse('Uploading CSV and processing updates...\n\n');
-    }
+    setFailedRows([]); // Clear previous failed rows
 
     // Create abort controller for this request
     const controller = new AbortController();
@@ -288,7 +259,7 @@ const AdminTikTokDebugPage: React.FC = () => {
       formData.append('file', csvFile);
       formData.append('appKey', appKey);
       formData.append('appSecret', appSecret);
-      formData.append('accessToken', activeAccessToken);
+      formData.append('accessToken', accessToken);
       if (shopCipher) {
         formData.append('shopCipher', shopCipher);
       }
