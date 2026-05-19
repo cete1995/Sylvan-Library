@@ -246,9 +246,38 @@ const AdminTikTokDebugPage: React.FC = () => {
     }
 
     setPriceLoading(true);
-    setPriceResponse('Uploading CSV and processing updates...\n\n');
     setPriceProgress({ current: 0, total: 0, percentage: 0, successful: 0, failed: 0 });
-    setFailedRows([]); // Clear previous failed rows
+    setFailedRows([]);
+
+    // Auto-refresh token before starting so expired tokens don't silently kill the run
+    let activeAccessToken = accessToken;
+    if (refreshToken && appKey && appSecret) {
+      setPriceResponse('🔄 Refreshing TikTok access token...\n\n');
+      try {
+        const refreshRes = await fetch(`${API_BASE_URL}/admin/tiktok/refresh-token`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({ appKey, appSecret, refreshToken })
+        });
+        const refreshData = await refreshRes.json();
+        if (refreshRes.ok && refreshData.success) {
+          activeAccessToken = refreshData.data.accessToken;
+          setAccessToken(refreshData.data.accessToken);
+          setRefreshToken(refreshData.data.refreshToken);
+          setPriceResponse('✅ Token refreshed. Starting bulk update...\n\n');
+        } else {
+          const errMsg = refreshData?.error || 'Unknown error';
+          setPriceResponse(`⚠️ Token refresh failed (${errMsg}) — using current token. If you get auth errors, refresh manually first.\n\n`);
+        }
+      } catch {
+        setPriceResponse('⚠️ Token refresh failed (network error) — using current token.\n\n');
+      }
+    } else {
+      setPriceResponse('Uploading CSV and processing updates...\n\n');
+    }
 
     // Create abort controller for this request
     const controller = new AbortController();
@@ -259,7 +288,7 @@ const AdminTikTokDebugPage: React.FC = () => {
       formData.append('file', csvFile);
       formData.append('appKey', appKey);
       formData.append('appSecret', appSecret);
-      formData.append('accessToken', accessToken);
+      formData.append('accessToken', activeAccessToken);
       if (shopCipher) {
         formData.append('shopCipher', shopCipher);
       }
@@ -643,29 +672,37 @@ const AdminTikTokDebugPage: React.FC = () => {
     setCsvFile(retryFile);
     setCsvPreview(csvContent.split('\n').slice(0, 6).join('\n'));
 
-    // Auto-refresh access token before retry so an expired token doesn't block the batch
+    // Refresh token before retry — abort if refresh fails (don't waste the attempt with an expired token)
+    setPriceResponse(`🔄 Refreshing TikTok access token before retry...\n\n`);
+    if (!refreshToken || !appKey || !appSecret) {
+      setPriceResponse(`❌ Cannot retry: refresh token or credentials are missing.\nPlease enter your credentials and click "Refresh Token" manually, then retry.`);
+      return;
+    }
     let activeAccessToken = accessToken;
-    if (refreshToken && appKey && appSecret) {
-      setPriceResponse(`🔄 Auto-refreshing TikTok access token before retry...\n\n`);
-      try {
-        const refreshRes = await fetch(`${API_BASE_URL}/admin/tiktok/refresh-token`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          },
-          body: JSON.stringify({ appKey, appSecret, refreshToken })
-        });
-        const refreshData = await refreshRes.json();
-        if (refreshRes.ok && refreshData.success) {
-          activeAccessToken = refreshData.data.accessToken;
-          setAccessToken(refreshData.data.accessToken);
-          setRefreshToken(refreshData.data.refreshToken);
-        }
-        // If refresh fails, continue with current token — don't abort the retry
-      } catch {
-        // Network error on refresh — continue with current token
+    try {
+      const refreshRes = await fetch(`${API_BASE_URL}/admin/tiktok/refresh-token`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ appKey, appSecret, refreshToken })
+      });
+      const refreshData = await refreshRes.json();
+      if (refreshRes.ok && refreshData.success) {
+        activeAccessToken = refreshData.data.accessToken;
+        setAccessToken(refreshData.data.accessToken);
+        setRefreshToken(refreshData.data.refreshToken);
+        setPriceResponse(`✅ Token refreshed. Retrying ${failedRows.length} failed rows...\n\n`);
+      } else {
+        // Refresh failed — abort so we don't burn the retry with an expired token
+        const errMsg = refreshData?.error || refreshData?.message || 'Unknown error';
+        setPriceResponse(`❌ Token refresh failed: ${errMsg}\n\nPlease click "Refresh Token" manually in the credentials section above, then retry.`);
+        return;
       }
+    } catch {
+      setPriceResponse(`❌ Token refresh failed (network error).\n\nPlease check your connection and try again.`);
+      return;
     }
 
     // Automatically trigger the bulk update with the retry file
