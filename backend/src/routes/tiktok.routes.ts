@@ -1022,8 +1022,8 @@ router.post('/bulk-update-csv-stream', authenticate, requireAdmin, upload.single
       }
     };
 
-    // ── Process in concurrent batches of 10 with 1s delay between batches ──
-    const CONCURRENCY = 10;
+    // ── Process in concurrent batches of 20 with 1s delay between batches ──
+    const CONCURRENCY = 20;
     const entries = Object.entries(groupedUpdates);
     for (let i = 0; i < entries.length; i += CONCURRENCY) {
       const batch = entries.slice(i, i + CONCURRENCY);
@@ -1035,7 +1035,7 @@ router.post('/bulk-update-csv-stream', authenticate, requireAdmin, upload.single
       }
     }
 
-    // Send completion
+    // Send completion — only send failed items (no full API responses) to keep payload small
     sendProgress({
       type: 'complete',
       totalProducts,
@@ -1043,7 +1043,9 @@ router.post('/bulk-update-csv-stream', authenticate, requireAdmin, upload.single
       failed: results.failed.length,
       percentage: 100,
       message: `Completed: ${results.successful.length} successful, ${results.failed.length} failed`,
-      results
+      results: {
+        failed: results.failed.map(({ fullResponse, ...rest }) => rest)
+      }
     });
 
     res.end();

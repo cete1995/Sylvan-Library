@@ -287,6 +287,8 @@ const AdminTikTokDebugPage: React.FC = () => {
       let buffer = '';
       let detailedLog = '';
       let failedLog = '';
+      let runHeader = '';
+      let lastProgressFlush = 0;
 
       if (!reader) {
         throw new Error('Could not get reader from response');
@@ -321,14 +323,14 @@ const AdminTikTokDebugPage: React.FC = () => {
                 successful: 0,
                 failed: 0
               });
-              setPriceResponse(
+              runHeader =
                 `📦 Starting bulk update...\n` +
                 `Total Products: ${data.totalProducts}\n` +
-                `Total Rows: ${data.totalRows}\n\n` +
-                `${'='.repeat(60)}\n\n`
-              );
+                `Total Rows: ${data.totalRows}\n\n`;
+              setPriceResponse(runHeader + `${'='.repeat(60)}\n\n`);
               detailedLog = '';
               failedLog = '';
+              lastProgressFlush = 0;
 
             } else if (data.type === 'progress') {
               setPriceProgress({
@@ -369,13 +371,17 @@ const AdminTikTokDebugPage: React.FC = () => {
                 detailedLog += logEntry;
               }
 
-              setPriceResponse(prev => 
-                prev.split('='.repeat(60))[0] + 
-                `${'='.repeat(60)}\n\n` +
-                `Progress: ${data.processed}/${data.total} (${data.percentage}%)\n` +
-                `✅ Successful: ${data.successful} | ❌ Failed: ${data.failed}\n\n` +
-                (data.failed > 0 ? `FAILED PRODUCTS:\n${failedLog}\n` : 'All products updated successfully!\n')
-              );
+              const now = Date.now();
+              if (now - lastProgressFlush >= 250) {
+                lastProgressFlush = now;
+                setPriceResponse(
+                  runHeader +
+                  `${'='.repeat(60)}\n\n` +
+                  `Progress: ${data.processed}/${data.total} (${data.percentage}%)\n` +
+                  `✅ Successful: ${data.successful} | ❌ Failed: ${data.failed}\n\n` +
+                  (data.failed > 0 ? `FAILED PRODUCTS:\n${failedLog}\n` : 'All products updated successfully!\n')
+                );
+              }
 
             } else if (data.type === 'complete') {
               setPriceProgress({
@@ -407,18 +413,15 @@ const AdminTikTokDebugPage: React.FC = () => {
                 ? `📋 ALL PRODUCTS:\n\n${detailedLog}\n\n${'='.repeat(60)}\n\n`
                 : '';
 
-              const fullResultsSection = `📊 Full Results (JSON):\n${JSON.stringify(data.results, null, 2)}`;
-
-              // Store completion data for toggle functionality
+              // Store completion data for toggle functionality (no JSON stringify — avoids UI freeze)
               setCompletionData({
                 summary: summarySection,
                 failed: failedSection,
                 detailed: detailedSection,
-                json: fullResultsSection
+                json: ''
               });
 
-              // Initial response (without detailed section)
-              setPriceResponse(summarySection + failedSection + fullResultsSection);
+              setPriceResponse(summarySection + failedSection);
 
               setPriceLoading(false);
             } else if (data.type === 'error') {
@@ -722,6 +725,8 @@ const AdminTikTokDebugPage: React.FC = () => {
       let buffer = '';
       let detailedLog = '';
       let failedLog = '';
+      let runHeader = '';
+      let lastProgressFlush = 0;
 
       if (!reader) {
         throw new Error('Could not get reader from response');
@@ -756,14 +761,14 @@ const AdminTikTokDebugPage: React.FC = () => {
                 successful: 0,
                 failed: 0
               });
-              setPriceResponse(
+              runHeader =
                 `🔄 Retrying failed rows...\n` +
                 `Total Products: ${data.totalProducts}\n` +
-                `Total Rows: ${data.totalRows}\n\n` +
-                `${'='.repeat(60)}\n\n`
-              );
+                `Total Rows: ${data.totalRows}\n\n`;
+              setPriceResponse(runHeader + `${'='.repeat(60)}\n\n`);
               detailedLog = '';
               failedLog = '';
+              lastProgressFlush = 0;
 
             } else if (data.type === 'progress') {
               setPriceProgress({
@@ -804,13 +809,17 @@ const AdminTikTokDebugPage: React.FC = () => {
                 detailedLog += logEntry;
               }
 
-              setPriceResponse(prev => 
-                prev.split('='.repeat(60))[0] + 
-                `${'='.repeat(60)}\n\n` +
-                `Progress: ${data.processed}/${data.total} (${data.percentage}%)\n` +
-                `✅ Successful: ${data.successful} | ❌ Failed: ${data.failed}\n\n` +
-                (data.failed > 0 ? `FAILED PRODUCTS:\n${failedLog}\n` : 'All products updated successfully!\n')
-              );
+              const now = Date.now();
+              if (now - lastProgressFlush >= 250) {
+                lastProgressFlush = now;
+                setPriceResponse(
+                  runHeader +
+                  `${'='.repeat(60)}\n\n` +
+                  `Progress: ${data.processed}/${data.total} (${data.percentage}%)\n` +
+                  `✅ Successful: ${data.successful} | ❌ Failed: ${data.failed}\n\n` +
+                  (data.failed > 0 ? `FAILED PRODUCTS:\n${failedLog}\n` : 'All products updated successfully!\n')
+                );
+              }
 
             } else if (data.type === 'complete') {
               setPriceProgress({
@@ -839,16 +848,15 @@ const AdminTikTokDebugPage: React.FC = () => {
                 ? `📋 ALL PRODUCTS:\n\n${detailedLog}\n\n${'='.repeat(60)}\n\n`
                 : '';
 
-              const fullResultsSection = `📊 Full Results (JSON):\n${JSON.stringify(data.results, null, 2)}`;
-
+              // No JSON.stringify — avoids UI freeze on large result sets
               setCompletionData({
                 summary: summarySection,
                 failed: failedSection,
                 detailed: detailedSection,
-                json: fullResultsSection
+                json: ''
               });
 
-              setPriceResponse(summarySection + failedSection + fullResultsSection);
+              setPriceResponse(summarySection + failedSection);
               setPriceLoading(false);
               
             } else if (data.type === 'error') {
