@@ -57,6 +57,10 @@ const AdminTikTokDebugPage: React.FC = () => {
   const [shopCipher, setShopCipher] = useState(localStorage.getItem('tiktok_shop_cipher') || '');
   const [tokenRefreshing, setTokenRefreshing] = useState(false);
   const [tokenRefreshMessage, setTokenRefreshMessage] = useState('');
+  const [authCode, setAuthCode] = useState('');
+  const [authCodeExchanging, setAuthCodeExchanging] = useState(false);
+  const [shopCipherFetching, setShopCipherFetching] = useState(false);
+  const [authCodeMessage, setAuthCodeMessage] = useState('');
   const [credsSaving, setCredsSaving] = useState(false);
   const [credsSaved, setCredsSaved] = useState(false);
   const [credsLastSaved, setCredsLastSaved] = useState<string | null>(null);
@@ -969,6 +973,93 @@ const AdminTikTokDebugPage: React.FC = () => {
     }
   };
 
+  const handleExchangeAuthCode = async () => {
+    if (!appKey || !appSecret || !authCode.trim()) {
+      setAuthCodeMessage('❌ Please provide App Key, App Secret, and the auth code');
+      return;
+    }
+
+    setAuthCodeExchanging(true);
+    setAuthCodeMessage('🔄 Exchanging auth code for access token...');
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/admin/tiktok/exchange-auth-code`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ appKey, appSecret, authCode: authCode.trim() })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        setAuthCodeMessage(`❌ Exchange failed: ${data.error || 'Unknown error'}\n\nDetails: ${JSON.stringify(data.details || data, null, 2)}`);
+        return;
+      }
+
+      setAccessToken(data.data.accessToken);
+      setRefreshToken(data.data.refreshToken);
+      setAuthCode('');
+      setAuthCodeMessage(
+        `✅ Auth code exchanged & saved!\n` +
+        `Seller: ${data.data.sellerName} (${data.data.sellerBaseRegion})\n\n` +
+        `Now click "Fetch Shop Cipher" below to get the shop_cipher.`
+      );
+    } catch (error: any) {
+      setAuthCodeMessage(`❌ Error: ${error.message}`);
+    } finally {
+      setAuthCodeExchanging(false);
+    }
+  };
+
+  const handleFetchShopCipher = async () => {
+    if (!appKey || !appSecret || !accessToken) {
+      setAuthCodeMessage('❌ Please provide App Key, App Secret, and Access Token first');
+      return;
+    }
+
+    setShopCipherFetching(true);
+    setAuthCodeMessage('🔄 Fetching authorized shops...');
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/admin/tiktok/get-authorized-shops`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ appKey, appSecret, accessToken })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        setAuthCodeMessage(`❌ Fetch failed: ${data.error || 'Unknown error'}\n\nDetails: ${JSON.stringify(data.details || data, null, 2)}`);
+        return;
+      }
+
+      if (data.shops.length === 0) {
+        setAuthCodeMessage('❌ No authorized shops found for this token.');
+        return;
+      }
+
+      if (data.shops.length === 1) {
+        setShopCipher(data.shops[0].cipher);
+        setAuthCodeMessage(`✅ Shop Cipher fetched & saved!\nShop: ${data.shops[0].name} (${data.shops[0].code})`);
+      } else {
+        // Multiple shops authorized — show list, let the admin pick manually
+        const list = data.shops.map((s: any) => `- ${s.name} (${s.code}): ${s.cipher}`).join('\n');
+        setAuthCodeMessage(`⚠️ Multiple shops found — copy the correct cipher into the Shop Cipher field:\n\n${list}`);
+      }
+    } catch (error: any) {
+      setAuthCodeMessage(`❌ Error: ${error.message}`);
+    } finally {
+      setShopCipherFetching(false);
+    }
+  };
+
   const downloadFailedRowsCsv = () => {
     if (failedRows.length === 0) {
       alert('No failed rows to download');
@@ -1244,6 +1335,57 @@ const AdminTikTokDebugPage: React.FC = () => {
               </div>
             )}
           </div>
+
+          {/* Shop Cipher Generator Section */}
+          <div className="mt-4 p-4 rounded-lg border-2 border-orange-400 bg-orange-50">
+            <h3 className="font-bold text-orange-900 mb-1">🔑 Generate New Shop Cipher</h3>
+            <p className="text-sm text-orange-700 mb-3">
+              Step 1: Paste the one-time auth code from the shop authorization redirect URL (the <code>code=</code> param). It expires within minutes.
+            </p>
+            <div className="flex gap-2 mb-2">
+              <input
+                type="text"
+                value={authCode}
+                onChange={(e) => setAuthCode(e.target.value)}
+                placeholder="ROW_yyUlBQ..."
+                className="flex-1 px-4 py-2 border rounded-lg"
+                style={{
+                  backgroundColor: 'var(--color-background)',
+                  color: 'var(--color-text)',
+                  borderColor: 'var(--color-border)'
+                }}
+              />
+              <button
+                onClick={handleExchangeAuthCode}
+                disabled={authCodeExchanging || !appKey || !appSecret || !authCode.trim()}
+                className="px-6 py-2 rounded-lg font-bold text-white transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                style={{ backgroundColor: '#ea580c' }}
+              >
+                {authCodeExchanging ? '🔄 Exchanging...' : '1️⃣ Exchange Code'}
+              </button>
+            </div>
+            <p className="text-sm text-orange-700 mb-2">
+              Step 2: Once exchanged, fetch the shop_cipher for the authorized shop.
+            </p>
+            <button
+              onClick={handleFetchShopCipher}
+              disabled={shopCipherFetching || !appKey || !appSecret || !accessToken}
+              className="px-6 py-2 rounded-lg font-bold text-white transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ backgroundColor: '#ea580c' }}
+            >
+              {shopCipherFetching ? '🔄 Fetching...' : '2️⃣ Fetch Shop Cipher'}
+            </button>
+            {authCodeMessage && (
+              <div className={`mt-3 p-3 rounded-lg ${
+                authCodeMessage.includes('✅') ? 'bg-green-100 text-green-800' :
+                authCodeMessage.includes('🔄') ? 'bg-blue-100 text-blue-800' :
+                authCodeMessage.includes('⚠️') ? 'bg-yellow-100 text-yellow-800' :
+                'bg-red-100 text-red-800'
+              }`}>
+                <pre className="text-sm whitespace-pre-wrap font-mono">{authCodeMessage}</pre>
+              </div>
+            )}
+          </div>
           
           {/* Credential Management Info */}
           <div className="mt-4 p-3 rounded-lg" style={{ backgroundColor: 'var(--color-background)' }}>
@@ -1273,6 +1415,8 @@ const AdminTikTokDebugPage: React.FC = () => {
                       setAccessToken('');
                       setRefreshToken('');
                       setShopCipher('');
+                      setAuthCode('');
+                      setAuthCodeMessage('');
                     }
                   }}
                   className="px-4 py-2 rounded-lg text-sm font-semibold transition-colors"

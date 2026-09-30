@@ -1333,7 +1333,148 @@ router.post('/refresh-token', authenticate, requireAdmin, async (req: Request, r
   }
 });
 
-// Get product details including SKU IDs
+// Exchange one-time auth code (from the shop authorization redirect URL) for access/refresh tokens
+router.post('/exchange-auth-code', authenticate, requireAdmin, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { appKey, appSecret, authCode } = req.body;
+
+    if (!appKey || !appSecret || !authCode) {
+      res.status(400).json({
+        success: false,
+        error: 'Missing required fields: appKey, appSecret, authCode'
+      });
+      return;
+    }
+
+    const queryString = new URLSearchParams({
+      app_key: appKey,
+      app_secret: appSecret,
+      auth_code: authCode,
+      grant_type: 'authorized_code'
+    }).toString();
+
+    const url = `https://auth.tiktok-shops.com/api/v2/token/get?${queryString}`;
+
+    console.log('Exchanging TikTok auth code for access token...');
+    const response = await axios.get(url);
+
+    if (response.data.code !== 0) {
+      res.status(400).json({
+        success: false,
+        error: response.data.message || 'Failed to exchange auth code',
+        details: response.data
+      });
+      return;
+    }
+
+    const newAccessToken  = response.data.data.access_token;
+    const newRefreshToken = response.data.data.refresh_token;
+
+    const existing = await TikTokCredentials.findOne();
+    if (existing) {
+      existing.appKey       = encrypt(appKey || '');
+      existing.appSecret    = encrypt(appSecret || '');
+      existing.accessToken  = encrypt(newAccessToken  || '');
+      existing.refreshToken = encrypt(newRefreshToken || '');
+      await existing.save();
+    } else {
+      await TikTokCredentials.create({
+        appKey:       encrypt(appKey      || ''),
+        appSecret:    encrypt(appSecret   || ''),
+        accessToken:  encrypt(newAccessToken  || ''),
+        refreshToken: encrypt(newRefreshToken || ''),
+        shopCipher:   encrypt(''),
+      });
+    }
+
+    res.json({
+      success: true,
+      savedToDb: true,
+      data: {
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken,
+        accessTokenExpireIn: response.data.data.access_token_expire_in,
+        refreshTokenExpireIn: response.data.data.refresh_token_expire_in,
+        openId: response.data.data.open_id,
+        sellerName: response.data.data.seller_name,
+        sellerBaseRegion: response.data.data.seller_base_region
+      }
+    });
+
+  } catch (error: any) {
+    console.error('TikTok Shop Auth Code Exchange Error:', error.response?.data || error.message);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      details: error.response?.data
+    });
+  }
+});
+
+// Fetch shops authorized to this access token — returns the shop_cipher needed for shop-scoped calls
+router.post('/get-authorized-shops', authenticate, requireAdmin, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { appKey, appSecret, accessToken } = req.body;
+
+    if (!appKey || !appSecret || !accessToken) {
+      res.status(400).json({
+        success: false,
+        error: 'Missing required fields: appKey, appSecret, accessToken'
+      });
+      return;
+    }
+
+    const timestamp = Math.floor(Date.now() / 1000);
+    const queryParams: any = { app_key: appKey, timestamp: timestamp.toString() };
+
+    const sortedKeys = Object.keys(queryParams).sort();
+    let signString = '';
+    for (const key of sortedKeys) signString += `${key}${queryParams[key]}`;
+
+    const apiPath = '/authorization/202309/shops';
+    const wrappedString = appSecret + apiPath + signString + appSecret;
+    queryParams.sign = generateSignature(appSecret, wrappedString);
+
+    const url = `${TIKTOK_API_BASE}${apiPath}?${new URLSearchParams(queryParams).toString()}`;
+    const response = await axios.get(url, {
+      headers: { 'x-tts-access-token': accessToken }
+    });
+
+    if (response.data.code !== 0) {
+      res.status(400).json({
+        success: false,
+        error: response.data.message || 'Failed to fetch authorized shops',
+        details: response.data
+      });
+      return;
+    }
+
+    const shops = response.data.data?.shops || [];
+
+    // If exactly one shop is authorized, auto-save its cipher for convenience
+    if (shops.length === 1 && shops[0].cipher) {
+      const existing = await TikTokCredentials.findOne();
+      if (existing) {
+        existing.shopCipher = encrypt(shops[0].cipher);
+        await existing.save();
+      }
+    }
+
+    res.json({
+      success: true,
+      shops,
+      autoSaved: shops.length === 1
+    });
+
+  } catch (error: any) {
+    console.error('TikTok Shop Authorized Shops Error:', error.response?.data || error.message);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      details: error.response?.data
+    });
+  }
+});
 router.post('/get-product-details', authenticate, requireAdmin, async (req: Request, res: Response): Promise<void> => {
   try {
     const { appKey, appSecret, accessToken, shopCipher, productId } = req.body;
